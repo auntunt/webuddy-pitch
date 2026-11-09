@@ -217,6 +217,57 @@ class RunRecoveryTest(unittest.TestCase):
                 self.assertIn("未验证", snap_file.read_text())
                 self.assertEqual(new["decision"], "")
 
+    def select_system(self):
+        # Isolated confirmed-contract fixture; no product approval is performed.
+        from tmh.platform import development as dev
+        dev.schema(self.store)
+        payload = {'summary': 'Keep all bytes', 'questions': [], 'answers': {},
+                   'execution_choice_required': True, 'criteria': []}
+        source = dev.source(self.store, self.store.ticket(self.ticket['id']))
+        binding = dev.digest({'source': source, 'revision': 1, 'payload': payload})
+        self.store.x("INSERT INTO development_sessions VALUES(?,?,?,?,?,?,?)",
+                     (self.ticket['id'], 1, source, dev.encode(payload), 'tester', binding, 'fixture'))
+        execution = {'mode': 'system', 'digest': binding, 'base_commit': self.original_head}
+        self.store.x("INSERT INTO development_events(ticket_id,actor,request_id,fingerprint,revision,action,payload,created) VALUES(?,?,?,?,?,?,?,?)",
+                     (self.ticket['id'], 'tester', 'fixture-system', 'fixture', 1, 'execution', dev.encode(execution), 'fixture'))
+
+    def test_selected_system_retries_snapshot_preserving_fixed_authorization(self):
+        self.select_system()
+        old = self.old_run()
+        original = self.git_state(Path(old['workdir']))
+        self.configure('recovered')
+        new = self.wait(self.runner.retry(old['id'], 'tester')['id'])
+        self.assertEqual(new['status'], 'done', new['result'])
+        seen = self.observation(new['id'])
+        self.assertEqual({p: base64.b64decode(b) for p, b in seen['files'].items() if p != '.git'}, original['files'])
+        self.assertNotEqual(seen['head'], self.original_head)
+        self.assertEqual(self.store.run(new['id'])['retry_of'], old['id'])
+        self.assertEqual(self.git_state(Path(old['workdir'])), original)
+        self.assertFalse(self.runner.retry_state(old['id'])['can_retry'])
+
+    def test_system_failure_before_worktree_keeps_preflight_and_retry_consistent(self):
+        from unittest.mock import patch
+        self.select_system()
+        self.configure('initial-failure')
+        with patch.object(self.runner,'_execute_run',side_effect=RuntimeError('fixture before checkout')):
+            old = self.wait(self.start()['id'])
+        self.assertFalse(old['workdir'])
+        self.assertTrue(self.runner.retry_state(old['id'])['can_retry'])
+        self.configure('recovered')
+        new = self.wait(self.runner.retry(old['id'],'tester')['id'])
+        self.assertEqual(new['status'],'done',new['result'])
+        self.assertEqual(self.observation(new['id'])['head'],self.original_head)
+
+    def test_changed_system_contract_blocks_preflight_before_snapshot(self):
+        self.select_system()
+        old = self.old_run()
+        self.store.x("UPDATE development_sessions SET revision=revision+1 WHERE ticket_id=?", (self.ticket['id'],))
+        state = self.runner.retry_state(old['id'])
+        self.assertFalse(state['can_retry'], state)
+        with self.assertRaises(ValueError):
+            self.runner.retry(old['id'], 'tester')
+        self.assertEqual(list((self.data/'runs'/str(old['id'])).glob('recovery-*')), [])
+
     def test_concurrent_retry_clicks_create_exactly_one_new_run(self):
         old = self.old_run()
         self.configure("recovered")

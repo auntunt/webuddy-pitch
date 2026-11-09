@@ -25,6 +25,13 @@ class RunHandoffTest(unittest.TestCase):
         self.ticket = self.store.create_ticket(self.project["id"], "保存原事项", "agent", auto=False)
         self.runner = Runner(self.store, self.data)
 
+    def test_plan_scope_handles_missing_or_malformed_model_output(self):
+        from tmh.platform.fixloop import plan_scope
+        for value in ([], {'scope': 'unknown'}, {'scope': {'new': 'A1'}}, {'scope': {'new': [None]}}):
+            self.assertEqual(plan_scope('```tmh-plan\n' + json.dumps(value) + '\n```'), {})
+        self.assertEqual(plan_scope('```tmh-plan\n{"scope":{"new":["A1"],"gaps":["缺少接口环境"]}}\n```'),
+                         {'new':['A1'],'gaps':['缺少接口环境']})
+
     def test_long_request_plan_and_failure_feedback_survive_handoff(self):
         body = "完整需求\n" + "标题和状态必须保留。" * 600 + "\n需求末尾：重试不能新增记录"
         self.ticket = self.store.update_ticket(self.ticket["id"], "agent", body=body)
@@ -105,8 +112,10 @@ class RunHandoffTest(unittest.TestCase):
         folder.mkdir(parents=True)
         loop = FixLoop.__new__(FixLoop)
         loop.r, loop.rid, loop.t = SimpleNamespace(data_dir=self.data), 77, None
+        loop.p, loop.base = self.project, 'baseline'
         loop.wt, loop.set = self.data, {"rounds": 0, "split_from": 3}
         loop.box, loop.nobuild, loop.ok = None, "", True
+        loop.remote_testing = False
         loop.brought, loop.log, loop.notes = set(), [], {}
         loop.commands = mock.Mock(return_value=([("test", "python3 -m unittest")], ""))
         loop.baseline = mock.Mock(return_value="")
@@ -115,7 +124,9 @@ class RunHandoffTest(unittest.TestCase):
         loop.whole = mock.Mock()
         loop.diagnose = mock.Mock(return_value={"text": "模型未返回有效结论"})
         loop.say = mock.Mock()
-        with mock.patch("tmh.platform.fixloop.worktree_diff", return_value="diff --git a/app.py b/app.py\n+edit"):
+        with mock.patch("tmh.platform.fixloop.worktree_diff", return_value="diff --git a/app.py b/app.py\n+edit"), \
+                mock.patch("tmh.platform.fixloop.verification_contract", return_value="contract"), \
+                mock.patch("tmh.platform.fixloop.git", return_value="baseline") :
             code, summary = loop.run()
         saved = json.loads((folder / "verify.json").read_text())
         self.assertEqual(code, 0)
@@ -181,7 +192,10 @@ class RunHandoffTest(unittest.TestCase):
         self.assertEqual(result["checked_commit"], exact)
         self.assertEqual(result["checked_diff"], original)
         self.assertEqual(self.store.run(run["id"])["diff"], original)
-        self.assertEqual(result["verdict"], "pass")
+        # Legacy diagnosis has no test/acceptance contract binding. Preserve it
+        # as history, rather than asserting it proves the current contract.
+        self.assertEqual(result["verdict"], "unknown")
+        self.assertEqual(result["previous_verifications"][0]["verification"]["verdict"], "pass")
         self.assertNotIn("+VALUE = 9", result["checked_diff"])
         self.assertFalse((self.data / "worktrees" / ("recheck-%d" % run["id"])).exists())
 

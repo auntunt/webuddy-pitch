@@ -68,7 +68,38 @@ jobs:
           tests/test_jpa.py
           tests/test_lessons.py
           tests/test_filelock.py
+          tests/test_windows_execution.py
+          tests/test_windows_offline_bundle.py
           tests/test_comment_drafts.py
+
+  windows_contracts:
+    name: Windows execution and evidence (py${{ matrix.python }})
+    runs-on: windows-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install pytest
+        run: python -m pip install --upgrade pip pytest
+      - name: Verify process ownership and exact evidence
+        run: >-
+          python -m pytest -q -p no:cacheprovider
+          tests/test_windows_execution.py
+          tests/test_code_review.py
+          tests/test_direct_invocation_lifecycle.py
+          tests/test_intake_recovery_independent.py
+          tests/test_learning.py
+          tests/test_learning_api.py
+          tests/test_learning_decisions.py
+          tests/test_learning_context.py
+          tests/test_learning_facts.py
+          tests/test_review_feedback.py
 
   full:
     name: full suite (${{ matrix.os }} / py${{ matrix.python }})
@@ -91,3 +122,34 @@ jobs:
         run: python -m pip install --upgrade pip pytest
       - name: Full test suite
         run: python -m pytest tests -q -p no:cacheprovider
+
+  web:
+    name: web frontend (ubuntu-latest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Build committed web_dist
+        run: npm run build
+      - name: Compiled output must match the committed bundle
+        working-directory: ${{ github.workspace }}
+        run: git diff --exit-code tmh/platform/web_dist
+      - name: Vitest
+        run: npx vitest run
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Playwright e2e
+        run: npx playwright test --project=desktop --project=mobile

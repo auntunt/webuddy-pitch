@@ -6,7 +6,9 @@ import unittest
 from tmh.platform.ui import page
 from tmh.platform.ui_pilots import PILOTS_JS
 
-HARNESS=r"""
+from tmh.platform.ui_time import TIME_JS
+
+HARNESS=TIME_JS+r"""
 const assert=require('node:assert/strict');
 const {randomUUID}=require('node:crypto');const crypto={randomUUID};
 const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

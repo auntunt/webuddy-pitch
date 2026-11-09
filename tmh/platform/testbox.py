@@ -1,12 +1,12 @@
 """A test machine: a separate computer the platform builds and tests changes on, reached over SSH.
 
-The agents never touch it. After an agent has changed the code, the platform sends the change there, applies it
+Agents can use the run-bound testbox MCP bridge. The platform sends the change there, applies it
 on the same commit the ticket is pinned to, runs the build and the tests, and hands the result back to the agent.
 The machine may start empty: `check` lists what it has, `install` puts the missing tools (Git, JDK, Maven, Node
 and pnpm) as unpacked archives under its folder, without administrator rights and without touching the system.
 
 Settings, in <data>/autoflow.json:
-    "testbox": {"host": "user@43.153.76.85", "port": 12022, "dir": "C:/tmh-runner"}
+    "testbox": {"host": "user@build-host.example.invalid", "port": 22, "dir": "C:/build-workspace"}
 Only key login is used (BatchMode): the platform never sends or keeps a password. Windows machines run PowerShell,
 others sh; which one is found out on the first contact.
 
@@ -51,6 +51,16 @@ def settings(data_dir: Path) -> dict:
         return {}
     return {"host": str(v["host"]), "port": int(v.get("port") or 0), "dir": str(v.get("dir") or "").rstrip("/\\"),
             "timeout": int(v.get("timeout") or 1800)}
+
+
+def local_check() -> dict:
+    """Inventory the server process environment; this does not run project tests."""
+    import shutil
+    import sys
+    return {"ok": True, "executor": "local", "os": "windows" if os.name == "nt" else "posix",
+            "tools": {"python": sys.executable, **{name: shutil.which(name) or ""
+                      for name in ("git", "node", "java", "mvn", "dotnet", "pnpm")}},
+            "notice": "只检查当前平台进程可用的工具；项目测试是否通过以实际执行回执为准。"}
 
 
 class TestBox:
@@ -243,7 +253,7 @@ class TestBox:
                 body = ("Set-Location '{w}';cmd /c '{c} 2>&1';exit $LASTEXITCODE" if win else "cd '{w}' && {c} 2>&1").format(w=w, c=cmd.replace("'", "''") if win else cmd)
                 code, out = self.script(body, timeout=timeout)
                 x = {"kind": kind, "command": cmd, "exit_code": code, "seconds": round(time.time() - t0, 1),
-                     "tail": "\n".join(out.strip().splitlines()[-60:]), "where": "测试机"}
+                     "tail": "\n".join(out.strip().splitlines()[-60:]), "where": "测试机", "output": out}
                 res.append(x)
                 say("%s，%s 秒" % ("通过" if code == 0 else "失败（退出码 %s）" % code, x["seconds"]))
                 if code != 0:

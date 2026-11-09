@@ -71,7 +71,7 @@ table.t tbody tr:hover{background:var(--hover)}
 .ttabs,.tabs{gap:16px}.ttabs a,.tabs button{padding:10px 4px}
 
 /* A stable workspace header: project scope and tools use the same hierarchy on every route. */
-#top,body.svc-reform #top{height:var(--shell-height);padding:0 32px;gap:16px;background:var(--panel);color:var(--fg);border-bottom:1px solid var(--line);box-shadow:none}
+#top,
 #top .brand{color:var(--blue);font-size:16px;line-height:1.3;font-weight:650;letter-spacing:-.02em;gap:10px;flex:none}
 #top .brand:hover{text-decoration:none}#top .brand #brandName{color:var(--fg)}
 #top .brand svg{display:block;width:32px;height:32px}
@@ -79,7 +79,7 @@ table.t tbody tr:hover{background:var(--hover)}
 #projSel:hover{border-color:var(--control-line)}
 #svc{background:var(--soft);border:1px solid var(--line);padding:2px;border-radius:7px}
 #svc a{color:var(--mut);padding:5px 9px;font-size:12px}
-#svc a.on,body.svc-reform #svc a.on{background:var(--panel);color:var(--blue);box-shadow:0 1px 3px #11182714}
+#svc a.on{background:var(--panel);color:var(--blue);box-shadow:0 1px 3px #11182714}
 #svc a:hover{color:var(--blue)}
 #top button{color:var(--fg);background:var(--panel);border:1px solid var(--line);white-space:nowrap;font-size:12px}
 #top button:hover{color:var(--blue);background:var(--soft);border-color:var(--control-line)}
@@ -131,7 +131,7 @@ body.ast-on #ast{z-index:21}
 @media(max-width:1150px){#top{padding:0 24px;gap:10px}#page{padding-left:24px;padding-right:24px}#top kbd{display:none}#projSel{max-width:190px;min-width:140px}#svc a span{display:none}#top .brand{font-size:14px}}
 @media(max-width:950px){
  :root{--shell-height:116px}
- #top,body.svc-reform #top{height:auto;min-height:var(--shell-height);display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:8px;padding:12px 20px}
+ #top,
  #top .brand{grid-column:1/4;grid-row:1;font-size:15px}#account{grid-column:4;grid-row:1;justify-self:end}
  #projSel{grid-column:1;grid-row:2;max-width:none;width:100%;min-width:0}
  #top .pts{grid-column:2;grid-row:2}#say{grid-column:3;grid-row:2}#astToggle{grid-column:4;grid-row:2}#svc{grid-column:1/-1;grid-row:3}#top .sp{display:none}

@@ -77,13 +77,21 @@ class AgentProfilesTest(unittest.TestCase):
         self.exe = self.data / 'synthetic-codex'
         self.exe.write_text('#!' + sys.executable + '\n' + FIXTURE)
         self.exe.chmod(0o700)
+        if os.name == 'nt':
+            script = self.exe
+            self.exe = self.data / 'synthetic-codex.cmd'
+            self.exe.write_text('@echo off\n"%s" "%s" %%*\n' % (sys.executable, script), encoding='utf-8')
         self.store = Store(self.data / 'platform.db')
-        self.addCleanup(self.store.db.close)
         self.project = self.store.add_project('PROFILE', '隔离配置', str(self.root))
         self.runner = agents.Runner(self.store, self.data)
+        self.addCleanup(self.close_runner_store, self.runner, self.store)
         self.config = {'engine': 'codex', 'bin': str(self.exe), 'profile': 'webuddy-cloudwave',
                        'prompt_transport': 'stdin', 'resume': False, 'retry_busy': False, 'timeout': 10}
         self.save_config()
+
+    def close_runner_store(self, runner, store):
+        self.assertTrue(runner.wait_for_idle(30), "runner still using database; do not close it")
+        store.db.close()
 
     def save_config(self):
         self.conf = {'cloudwave-codex': self.config}
@@ -111,6 +119,26 @@ class AgentProfilesTest(unittest.TestCase):
             time.sleep(.02)
         self.fail('profile run did not finish: %r' % self.store.run(rid))
 
+    def test_terminal_status_does_not_allow_database_cleanup_before_final_writes(self):
+        entered, release = threading.Event(), threading.Event()
+        self.addCleanup(release.set)
+        def finish(rid, *args):
+            self.store.update_run(rid, status='done', exit_code=0, result='model finished')
+            entered.set()
+            if not release.wait(10):
+                raise TimeoutError('fixture finalizer not released')
+            self.store.append_output(rid, 'final database write')
+        with mock.patch.object(self.runner, '_execute_run', side_effect=finish):
+            run = self.runner.start(self.project, None, 'cloudwave-codex', 'ask', 'tester', question='fixture')
+            try:
+                self.assertTrue(entered.wait(5))
+                self.assertEqual(self.store.run(run['id'])['status'], 'done')
+                self.assertFalse(self.runner.wait_for_idle(.05))
+            finally:
+                release.set()
+            self.assertTrue(self.runner.wait_for_idle(5))
+            self.assertIn('final database write', self.store.run(run['id'])['output'])
+
     def retained_profile_attempts(self, rid, count):
         lifecycle = json.loads((self.data / 'runs' / str(rid) / 'lifecycle.json').read_text())
         self.assertEqual(len(lifecycle['attempts']), count)
@@ -131,8 +159,8 @@ class AgentProfilesTest(unittest.TestCase):
         seen = []
         with mock.patch.object(agents.shutil, 'which', side_effect=lambda name: seen.append(name) or '/synthetic/' + name):
             available = agents.available(self.data)
-        self.assertEqual(seen, ['claude', 'codex', 'codex'])
-        self.assertEqual({a['name'] for a in available}, {'claude', 'codex', 'cloudwave-codex'})
+        self.assertEqual(seen, ['claude', 'codex', 'agent', '/synthetic/agent', 'codex'])
+        self.assertEqual({a['name'] for a in available}, {'claude', 'codex', 'cursor', 'cloudwave-codex'})
         alias = next(a for a in available if a['name'] == 'cloudwave-codex')
         self.assertTrue(alias['available'])
         self.assertEqual((alias['engine'], alias['profile']), ('codex', 'webuddy-cloudwave'))
@@ -344,9 +372,9 @@ class AgentProfilesTest(unittest.TestCase):
         (platform_data / 'agent-routes.json').write_text(json.dumps({'schema': 1, 'projects': {
             'FLOW': {'agent': 'cloudwave-codex', 'allowed_agents': ['cloudwave-codex']}}}))
         (platform_data / 'autoflow.json').write_text(json.dumps({
-            'on': False, 'rounds': 0, 'check': shlex.quote(sys.executable) + ' check.py'}))
+            'on': False, 'rounds': 0, 'check': (subprocess.list2cmdline([sys.executable, 'check.py']) if os.name == 'nt' else shlex.quote(sys.executable) + ' check.py')}))
         platform = Platform(platform_data, 'synthetic-operator')
-        self.addCleanup(platform.store.db.close)
+        self.addCleanup(self.close_runner_store, platform.runner, platform.store)
         platform.store.add_project('FLOW', 'Synthetic route flow', str(self.root))
         httpd = ThreadingHTTPServer(('127.0.0.1', 0), make_handler(platform))
         self.addCleanup(httpd.server_close)

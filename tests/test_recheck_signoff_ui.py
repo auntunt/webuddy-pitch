@@ -14,7 +14,7 @@ class RecheckSignoffUiTest(unittest.TestCase):
         summary = "function ticketSummarySync" + JS.split("function ticketSummarySync", 1)[1].split("function watchIntakeRecovery", 1)[0]
         package = "const PKC=" + JS.split("const PKC=", 1)[1].split("function upCard", 1)[0]
         top = "function plainState" + WORK_JS.split("function plainState", 1)[1]
-        acceptance = "const acc=async res=>" + JS.split("const acc=async res=>", 1)[1].split("  $('#accDraft')", 1)[0]
+        acceptance = "let accepting=false;" + JS.split("let accepting=false;", 1)[1].split("  $('#accDraft')", 1)[0]
         acceptance_html = "const accUi=" + JS.split("const accUi=", 1)[1].split("  const reviewing=", 1)[0]
         script = r'''
 const assert=require('node:assert/strict');

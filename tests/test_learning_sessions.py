@@ -21,7 +21,7 @@ class LearningSessionTests(unittest.TestCase):
         self.root = self.data / "project"
         self.root.mkdir()
         self.source = self.root / "app.py"
-        self.source.write_text("OPEN = True\n", encoding="utf-8")
+        self.source.write_text("OPEN = True\n", encoding="utf-8", newline="")
         self.p = self.store.add_project("APP", "学习会话", str(self.root))
         self.P = SimpleNamespace(store=self.store, data_dir=self.data)
         self.ticket = self.store.create_ticket(self.p["id"], "核对项目说明", "alice", auto=False)
@@ -34,7 +34,7 @@ class LearningSessionTests(unittest.TestCase):
         text = ("---\nid: index\ntitle: 项目说明\nsummary: 项目事实\nstatus: 待确认\n---\n# 项目说明\n\n" +
                 kb.FACTS_START + "\n固定生成事实\n" + kb.FACTS_END + "\n\n" +
                 "\n\n".join("## " + title + "\n完整说明依据 `app.py:1`。" for title in kb.SECTIONS["index"]))
-        self.page.write_text(text, encoding="utf-8")
+        self.page.write_text(text, encoding="utf-8", newline="")
         kb.save_registry(self.root, {"index": {"status": kb.STATUS_DRAFT, "title": "项目说明"}})
         item = L._origin(self.P, self.p, "fact:index")
         revision = L.capture(self.P, self.p, item["key"], item["fingerprint"], "writer")
@@ -86,9 +86,9 @@ class LearningSessionTests(unittest.TestCase):
         directory.mkdir(parents=True)
         if recorded:
             policy = {"mode": "learning_policy", **D.runtime_policy(self.store, self.p)}
-            (directory / "context.json").write_text(json.dumps([policy, *metas], ensure_ascii=False), encoding="utf-8")
+            (directory / "context.json").write_text(json.dumps([policy, *metas], ensure_ascii=False), encoding="utf-8", newline="")
             agents.record_session_context(self.data, run["id"], parent)
-        (directory / "session.txt").write_text("session-" + str(run["id"]), encoding="utf-8")
+        (directory / "session.txt").write_text("session-" + str(run["id"]), encoding="utf-8", newline="")
         return self.store.run(run["id"])
 
     def valid(self, run):
@@ -112,11 +112,11 @@ class LearningSessionTests(unittest.TestCase):
         _, meta = self.fact()
         run = self.saved_run(meta)
         self.assertTrue(self.valid(run))
-        self.source.write_text("OPEN = False\n", encoding="utf-8")
+        self.source.write_text("OPEN = False\n", encoding="utf-8", newline="")
         self.assertFalse(self.valid(run))
-        self.source.write_text("OPEN = True\n", encoding="utf-8")
+        self.source.write_text("OPEN = True\n", encoding="utf-8", newline="")
         self.assertTrue(self.valid(run))
-        self.page.write_text(self.page.read_text(encoding="utf-8") + "\n未经确认的新正文", encoding="utf-8")
+        self.page.write_text(self.page.read_text(encoding="utf-8") + "\n未经确认的新正文", encoding="utf-8", newline="")
         self.assertFalse(self.valid(run))
 
     def test_local_lesson_revoke_starts_new_session(self):
@@ -204,7 +204,7 @@ class LearningSessionTests(unittest.TestCase):
         meta.update(knowledge_revision=cp._knowledge_revision(self.root), source_version=cp._git_head(self.root))
         run = self.saved_run(meta)
         self.assertTrue(self.valid(run))
-        self.page.write_text(self.page.read_text(encoding="utf-8") + "\n人工确认之后的新内容", encoding="utf-8")
+        self.page.write_text(self.page.read_text(encoding="utf-8") + "\n人工确认之后的新内容", encoding="utf-8", newline="")
         self.assertFalse(self.valid(run))
 
     def test_latest_invalid_step_does_not_fall_back_to_an_older_session(self):
@@ -226,7 +226,7 @@ class LearningSessionTests(unittest.TestCase):
         _, meta = self.fact()
         run = self.saved_run(meta)
         path = self.data / "runs" / str(run["id"]) / "context.json"
-        path.write_text("[]", encoding="utf-8")
+        path.write_text("[]", encoding="utf-8", newline="")
         self.assertFalse(self.valid(run))
         other = self.store.create_ticket(self.p["id"], "另一工单", "alice", auto=False)
         self.store.update_run(run["id"], ticket_id=other["id"])
@@ -249,7 +249,7 @@ class LearningSessionTests(unittest.TestCase):
         loop = self.fake_loop(run)
         def invoke(*args):
             n = loop.n
-            (self.data / "runs" / str(run["id"]) / ("session-%d.txt" % n)).write_text("continued", encoding="utf-8")
+            (self.data / "runs" / str(run["id"]) / ("session-%d.txt" % n)).write_text("continued", encoding="utf-8", newline="")
             return 0, "fix complete"
         loop.r.invoke.side_effect = invoke
         loop.whole(None)

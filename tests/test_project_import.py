@@ -69,6 +69,18 @@ class ProjectImportTest(unittest.TestCase):
         self.assertEqual((p["name"], p["root"]), ("OA 系统", str(root)))
         self.assertFalse((self.P.data_dir / "project-imports" / st["job"] / "upload.zip").exists())
 
+    def test_done_is_not_visible_until_uploaded_archive_is_removed(self):
+        observed = []
+        original = imp._step
+        def step(platform, job, **fields):
+            if fields.get('status') == 'done':
+                observed.append((platform.data_dir / 'project-imports' / job / 'upload.zip').exists())
+            return original(platform, job, **fields)
+        with mock.patch.object(imp, '_step', step):
+            st = self.upload(make_zip({'a.txt': 'ok'}))
+        self.assertEqual(st['status'], 'done', st)
+        self.assertEqual(observed, [False])
+
     def test_runtime_only_release_still_gets_the_project_tool(self):
         with mock.patch.object(resources, "FILES", (*resources.FILES, "docs/not-shipped-on-the-server.md")):
             st = self.upload(make_zip({"a.txt": "ok"}))

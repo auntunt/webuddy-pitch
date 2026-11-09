@@ -20,7 +20,10 @@ class WorkspaceHandoffsTest(unittest.TestCase):
         self.data = self.root / "data"
         self.store = Store(self.data / "platform.db")
         self.addCleanup(self.store.db.close)
-        self.P = SimpleNamespace(store=self.store, data_dir=self.data)
+        self.P = SimpleNamespace(store=self.store, data_dir=self.data,
+                                 flow=SimpleNamespace(autoflow=lambda: {"on": False},
+                                     agent=lambda *args: "", switched_on=lambda *args: False,
+                                     next_step=lambda *args: ("", ""), verification_wait=lambda *args: {}))
         login._save_users(self.data, {n: {"pw": "synthetic-not-login"} for n in ("alice", "bob", "charlie")})
         self.project = self.store.add_project("FLOW", "Synthetic project", str(self.repo))
         team.schema(self.P)

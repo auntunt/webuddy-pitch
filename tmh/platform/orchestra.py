@@ -112,8 +112,9 @@ class Orchestra:
     def _flow_agent(self, conf: dict, project: dict | None = None) -> str:
         from .agents import available
         from .agent_routes import resolve
+        from .agent_page import default_executor
         agents = [a["name"] for a in available(self.data_dir) if a["available"]]
-        fallback = conf.get("agent") if conf.get("agent") in agents else (agents[0] if agents else "")
+        fallback = conf.get("agent") if conf.get("agent") in agents else (default_executor(self.data_dir, agents) or (agents[0] if agents else ""))
         return resolve(self.data_dir, project, fallback=fallback)
 
     def _intake(self, p: dict, t: dict) -> None:
@@ -217,6 +218,8 @@ class Orchestra:
             # no acceptance criteria (the plan's, or the ones the client confirmed), no implementation
             if conf.get("fix") and not plan_ac(run.get("result") or "") and not client_ac(self.data_dir, st.ticket(tid)["key"]):
                 return st.event(tid, by, "flow", "方案里没有验收标准（AC），不进入自动改代码；补上验收标准后由人决定是否改", {"run": run["id"]})
+            if st.ticket(tid)["links"].get("goal") == "出方案":
+                return st.event(tid, by, "flow", "方案已出（出方案：不改代码）", {"run": run["id"], "stage": "方案已出"})
             if conf.get("fix"):
                 st.event(tid, by, "flow", "修改方案已出，接着在独立分支上改代码")
                 self._flow_fix(p, tid, conf, agent)
@@ -277,7 +280,7 @@ class Orchestra:
 
     def accepted(self, p: dict, t: dict, passed: bool, note: str, by: str) -> dict:
         """A person's verdict on a task: keep what it teaches, send a rejected automatic change back to be redone,
-        and tell every app that listens (for instance a reform plan moving on to its next wave)."""
+        and tell every app that listens."""
         from . import learn
         later = (t.get("links") or {}).get("later")
         out = {} if later else learn.on_accept(self, p, t, passed, note, by)
@@ -470,7 +473,7 @@ class Orchestra:
                 self.tell_team(p, t["id"], "验收通过了，还没上线：%s" % r["why"], "等你确认上线", "orange")
         return r
 
-    def recheck(self, rid: int, by: str, wait: bool = False) -> dict:
+    def recheck(self, rid: int, by: str, wait: bool = False, kind: str = "tests") -> dict:
         """Build a finished change again without redoing it (after the build setup was fixed, say). In the background
         unless `wait`; when the build passes and the ticket is still on the automatic line, the change is committed
         as if its own run had just passed; a failed build leaves it for a person."""
@@ -482,13 +485,15 @@ class Orchestra:
             raise ValueError("这次改动正在重新验证")
         if r["status"] != "done" or not r["diff"] or (r["decision"] and not r["decision"].startswith("accepted:")):
             raise ValueError("这次运行没有可以重新验证的改动")
+        if kind not in ("tests", "review", "all"):
+            raise ValueError("验证类型只能是 tests、review 或 all")
         operation = start_recheck(self.runner, rid, by)
         self.rechecking.add(rid)
         tid = r["ticket_id"]
 
         def go():
             try:
-                v = recheck(self.runner, rid, operation=operation, by=by)
+                v = recheck(self.runner, rid, operation=operation, by=by, kind=kind)
             except Exception as e:  # noqa: BLE001
                 if tid:
                     self.store.event(tid, by, "flow", "重新验证没做成（%s）" % e, {"run": rid})
@@ -497,11 +502,13 @@ class Orchestra:
                 self.rechecking.discard(rid)
             run = self.store.run(rid)
             said = {"pass": "构建通过", "fail": "构建没通过", "skip": "没有跑构建（%s）" % v.get("skip")}.get(v["check"], v.get("skip") or "当前验证尚未完整结束")
+            if kind in ("review", "all"):
+                said += "；AI Review：" + {"pass": "通过", "fail": "发现阻断问题"}.get((v.get("diagnosis") or {}).get("verdict"), "未形成结论")
             if tid:
                 self.store.event(tid, by, "flow", "重新验证了运行 #%d 的改动（没改代码）：%s" % (rid, said), {"run": rid, "check": v["check"]})
                 conf = self.autoflow()
                 t = self.store.ticket(tid)
-                if v["check"] == "pass" and not run["decision"] and self.switched_on(conf, run["project_id"]) and not self.held(tid) and t["status"] == "doing":
+                if kind != "review" and v["check"] == "pass" and not run["decision"] and self.switched_on(conf, run["project_id"]) and not self.held(tid) and t["status"] == "doing":
                     self._flow_commit(self.store.project(run["project_id"]), tid, conf, run)
             return v
         if wait:
@@ -526,6 +533,8 @@ class Orchestra:
         if v.get("check") == "fail":
             bad = [c for c in v.get("commands") or [] if c.get("exit_code")]
             return "%d 轮修改后构建测试仍没通过（%s）" % (v.get("rounds") or 0, bad[0]["command"] if bad else "构建测试")
+        if v.get("diagnosis_invalidated"):
+            return "旧诊断已失效，需重新技术复核：" + str(v["diagnosis_invalidated"])
         if v.get("vague_fail"):
             return "诊断判了不通过但没说清阻断项，留给人看"
         if v.get("verdict") == "fail":

@@ -96,15 +96,15 @@ def active_revision(P, p, origin_id):
 
 
 def _status(text, value):
-    match = re.match(r"\A---\n(.*?)\n---\n", text, re.S)
+    match = re.match(r"\A---(\r?\n)(.*?)\r?\n---\r?\n", text, re.S)
     if not match:
         raise ApiError(409, "知识页面缺少可验证的登记字段")
-    head = match.group(1)
+    newline, head = match.group(1), match.group(2)
     if re.search(r"^status:", head, re.M):
-        head = re.sub(r"^status:[^\n]*", "status: " + value, head, flags=re.M)
+        head = re.sub(r"^status:[^\r\n]*", "status: " + value, head, flags=re.M)
     else:
-        head += "\nstatus: " + value
-    return "---\n" + head + "\n---\n" + text[match.end():]
+        head += newline + "status: " + value
+    return "---" + newline + head + newline + "---" + newline + text[match.end():]
 
 
 def _checked_revision(P, p, r, actor, decision_id, expected_token, reason):
@@ -260,7 +260,7 @@ def _project_locked(P, p, r, actor, decision_id, expected_token, reason, action)
             _sources_current(P, p, r["source"])
         if L.digest(text) == receipt["before_sha256"]:
             kb._atomic_text(page, receipt["draft_content"])
-        if L.digest(page.read_text(encoding="utf-8")) not in (receipt["draft_sha256"], receipt["final_sha256"]):
+        if L.digest(page.read_bytes().decode("utf-8")) not in (receipt["draft_sha256"], receipt["final_sha256"]):
             raise ApiError(409, "事实发布期间正文发生变化")
         if action == "adopt":
             kb.confirm(root, r["origin_id"], actor, reason, _locked=True,

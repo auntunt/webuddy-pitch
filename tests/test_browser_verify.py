@@ -1,4 +1,5 @@
 import json
+import shlex
 import tempfile
 import unittest
 from pathlib import Path
@@ -49,6 +50,25 @@ class BrowserVerifyTest(unittest.TestCase):
             self.assertEqual(bv.full_sha(Path(d), full), full)
             for bad in ("", "HEAD", full[:4], "0" * 8, "main"):
                 self.assertEqual(bv.full_sha(Path(d), bad), "")
+
+    def test_a_finished_run_is_found_on_its_own_branch(self):
+        import subprocess
+        from types import SimpleNamespace
+        with tempfile.TemporaryDirectory() as d:
+            git = ["git", "-C", d, "-c", "user.name=t", "-c", "user.email=t@t"]
+            subprocess.run(git + ["init", "-q"], check=True)
+            subprocess.run(git + ["commit", "-q", "--allow-empty", "-m", "base"], check=True)
+            subprocess.run(git + ["checkout", "-q", "-b", "tmh/BID-1-r408"], check=True)
+            subprocess.run(git + ["commit", "-q", "--allow-empty", "-m", "change"], check=True)
+            tip = subprocess.run(git + ["rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+            self.assertEqual(bv.run_branch_head(Path(d), {"key": "BID-1"}, 408), tip)
+            self.assertEqual(bv.run_branch_head(Path(d), {"key": "BID-1"}, 409), "")
+            P = SimpleNamespace(data_dir=Path(d), store=SimpleNamespace(run=lambda rid: {"workdir": d + "/gone"}))
+            with mock.patch.object(bv, "conf", return_value={"ssh": "u@h"}), \
+                    mock.patch.object(bv, "run_remote", side_effect=RuntimeError("reached")) as remote:
+                with self.assertRaises(RuntimeError):
+                    bv.verify(P, {"key": "BID", "root": d}, {"key": "BID-1", "title": "t"}, 408, ACS[:1], ask=lambda *a: "```tmh-spec\nimport a\n```")
+            self.assertEqual(remote.call_args.args[2], tip)
 
     def test_spec_and_config(self):
         self.assertEqual(bv.spec_from("x\n```tmh-spec\nimport a\n```\n"), "import a\n")
@@ -109,7 +129,7 @@ class RepairTest(unittest.TestCase):
                 mock.patch.object(bv, "full_sha", return_value="a" * 40), \
                 mock.patch.object(bv, "run_remote", side_effect=remote), \
                 mock.patch.object(bv, "_record", side_effect=lambda *a: rec.append(a)):
-            out = bv.verify(P, {"key": "JB", "root": "."}, {"title": "t"}, 3, ACS[:2], commit="abc", ask=ask)
+            out = bv.verify(P, {"key": "JB", "root": "."}, {"key": "JB-1", "title": "t"}, 3, ACS[:2], commit="abc", ask=ask)
         return out, asked, ran
 
     def test_strict_mode_is_a_script_fault_not_a_reproduced_defect(self):
@@ -183,6 +203,21 @@ class StartCommandTest(unittest.TestCase):
         self.assertIn('[ -n "$START" ]', bv.DRIVER)
         self.assertIn("REPO=${8:-pv/base}; START=${9:-}", bv.DRIVER)
 
+    def test_a_form_login_config_reaches_the_host_without_the_password(self):
+        sent = []
+
+        def fake(c, remote, data=None, timeout=120):
+            sent.append(remote)
+            return (0, b"a" * 40 + b"\n") if len(sent) == 1 else (1, b"")
+        login = {"path": "login", "user": "demo_admin", "pass_var": "BID_DEMO_PASS", "env_file": "~/.bidding-demo.env"}
+        c = {"ssh": "u@h", "app": ".", "repo": "pv/BID/base", "start": "bash demo/start.sh", "login": login}
+        with mock.patch.object(bv, "_ssh", side_effect=fake):
+            bv.run_remote(c, Path("."), "a" * 40, "", "spec", "j1", 23001)
+        self.assertIn(shlex.quote(json.dumps(login, ensure_ascii=False)), sent[-1])
+        self.assertIn("LOGIN=${10:-}", bv.DRIVER)
+        self.assertIn('[ -n "$LOGIN" ] && export TMH_LOGIN=$LOGIN', bv.DRIVER)
+        self.assertIn("if (process.env.TMH_LOGIN) return formLogin(page, JSON.parse(process.env.TMH_LOGIN));", bv.HELPERS)
+
     def test_login_opens_the_home_page_when_there_is_no_jeecg_config(self):
         self.assertIn("if (!process.env.TMH_JB_YML) { await page.goto(base); await ready(page); return; }", bv.HELPERS)
 
@@ -228,7 +263,7 @@ class PageCheckTest(unittest.TestCase):
         client = [{"id": "A1", "text": "主人详情页不再有 Add New Pet 按钮"}, {"id": "A2", "text": "测试通过", "keep": True}]
         with mock.patch("tmh.platform.signoff.state", return_value={"snapshot": {}}), \
                 mock.patch("tmh.platform.signoff.client_ac", return_value=client):
-            self.assertEqual(bv.page_criteria(P, {"id": 1, "key": "PETS-2"}), client[:1])
+            self.assertEqual(bv.page_criteria(P, {"id": 1, "key": "PETS-2"}), client)
         P.store.runs.assert_not_called()
 
 
@@ -292,7 +327,7 @@ class NoSpecTest(unittest.TestCase):
                 mock.patch.object(bv, "full_sha", return_value="a" * 40), \
                 mock.patch.object(bv, "run_remote") as remote, \
                 mock.patch.object(bv, "_record"):
-            out = bv.verify(P, {"key": "PETS", "root": "."}, {"title": "t"}, 3, ACS[:1], commit="abc", ask=ask)
+            out = bv.verify(P, {"key": "PETS", "root": "."}, {"key": "JB-1", "title": "t"}, 3, ACS[:1], commit="abc", ask=ask)
         self.assertEqual(len(asked), 2)
         self.assertIn("上一次没有交回脚本", asked[1])
         self.assertEqual(out["why"], "没有写出实测脚本")

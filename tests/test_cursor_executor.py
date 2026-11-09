@@ -1,0 +1,185 @@
+"""Targeted Cursor adapter checks; the supervised CLI fixture makes no model calls."""
+import json
+import os
+from unittest.mock import patch
+from pathlib import Path
+import sys
+import tempfile
+import threading
+import time
+import unittest
+
+from tmh.platform import agents, agent_settings
+from tmh.platform.store import Store
+from tmh.platform.errors import ApiError
+
+
+class CursorExecutorTest(unittest.TestCase):
+    def test_commands_and_permission_boundary(self):
+        conf = {'cursor': dict(agents.BUILTIN['cursor'], bin='fixture-cursor')}
+        for mode in ('ask', 'analyze'):
+            cmd = agents.command(conf, 'cursor', mode, 'prompt', Path('prompt'), Path('.'), Path('last'), model='sonnet')
+            self.assertEqual(cmd[:6], ['fixture-cursor', '--trust', '--print', '--output-format', 'stream-json', '--sandbox'])
+            self.assertEqual(cmd[6], 'enabled')
+            self.assertEqual(cmd[cmd.index('--model') + 1], 'sonnet')
+            self.assertNotIn('-m', cmd)
+            self.assertIn('--mode', cmd)
+            self.assertNotIn('--force', cmd)
+            self.assertNotIn('--approve-mcps', cmd)
+            self.assertNotIn('prompt', cmd)
+        for mode in ('fix', 'edit', 'kb', 'chart'):
+            cmd = agents.command(conf, 'cursor', mode, 'prompt', Path('prompt'), Path('.'), Path('last'))
+            self.assertIn('--force', cmd)
+            self.assertNotIn('--mode', cmd)
+            self.assertEqual(cmd[cmd.index('--sandbox')+1], 'enabled')
+        for changes in ({'args':['--force']}, {'profile':'team'}, {'prompt_transport':'stdin'}):
+            with self.assertRaises(ValueError):
+                agents.engine_name('team-cursor', dict(engine='cursor', **changes))
+        with self.assertRaises(ValueError):
+            agents.member_codex_binding({'engine':'cursor'}, '')
+
+    def test_windows_cursor_allowlist_mode(self):
+        """Windows: --sandbox disabled; write modes use --force, read-only keeps --mode ask without it."""
+        conf = {'cursor': dict(agents.BUILTIN['cursor'], bin='fixture-cursor'),
+                'codex': dict(agents.BUILTIN['codex'], bin='fixture-codex'),
+                'claude': dict(agents.BUILTIN['claude'], bin='fixture-claude')}
+        build = lambda agent, mode='ask', **kw: agents.command(
+            conf, agent, mode, 'test', Path('prompt'), Path('.'), Path('last'), **kw)
+        codex_before, claude_before = build('codex'), build('claude')
+        with patch.object(sys, 'platform', 'win32'):
+            for mode in ('ask', 'analyze', 'plan', 'diagnose', 'understand', 'fix', 'edit', 'kb', 'chart'):
+                cmd = build('cursor', mode)
+                self.assertEqual(cmd[cmd.index('--sandbox') + 1], 'disabled', cmd)
+                self.assertEqual(cmd.count('--sandbox'), 1)
+                self.assertIn('--trust', cmd)
+                if mode in ('fix', 'edit', 'kb', 'chart'):
+                    self.assertIn('--force', cmd)  # write modes need it or every shell call is rejected
+                else:
+                    self.assertNotIn('--force', cmd)
+                if mode not in ('fix', 'edit', 'kb', 'chart'):
+                    self.assertEqual(cmd[cmd.index('--mode') + 1], 'ask')
+            cmd = build('cursor', 'edit', model='auto', resume='test-session')
+            self.assertEqual(cmd[cmd.index('--model') + 1], 'auto')
+            self.assertEqual(cmd[cmd.index('--resume') + 1], 'test-session')
+            self.assertEqual(build('codex'), codex_before)
+            self.assertEqual(build('claude'), claude_before)
+
+    def test_agent_command_and_legacy_name_share_discovery(self):
+        with patch.dict(os.environ, {}, clear=True), patch.object(agents.shutil, 'which', side_effect=lambda name: '/fixture/agent' if name == 'agent' else None):
+            self.assertEqual(agents.executable('cursor', {}), '/fixture/agent')
+            self.assertEqual(agents.executable('cursor', {'bin':'cursor-agent'}), '/fixture/agent')
+            self.assertEqual(agents.executable('cursor', {'bin':'/explicit/missing'}), '/explicit/missing')
+        with patch.dict(os.environ, {'WEBUDDY_CURSOR_BIN':'/configured/agent'}):
+            self.assertEqual(agents.executable('cursor', {'bin':'cursor-agent'}), '/configured/agent')
+
+    def test_settings_alias_and_revision(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            body = {'action':'create','name':'team-cursor','revision':agent_settings.view(root)['revision'],
+                    'config':{'engine':'cursor','title':'Cursor','models':[], 'defaults':{},'timeout':60}}
+            saved = agent_settings.save(root, body)
+            self.assertEqual(agents.load_config(root)['team-cursor']['bin'], 'agent')
+            with self.assertRaises(ApiError) as caught:
+                agent_settings.save(root, body)
+            self.assertEqual(caught.exception.code, 409)
+            body.update(action='update', revision=saved['revision'])
+            body['config']['engine'] = 'codex'
+            with self.assertRaises(ApiError):
+                agent_settings.save(root, body)
+
+    def test_supervised_success_incomplete_and_cancel(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            script = root / 'fixture.py'
+            script.write_text('''import json, sys, time
+prompt = sys.stdin.read()
+print(json.dumps({'type':'system','subtype':'init','session_id':'fixture-session','model':'fixture'}), flush=True)
+if '--force' in sys.argv:
+    from pathlib import Path
+    Path('synthetic-change.txt').write_text('authorized fixture change')
+if prompt == 'wait':
+    time.sleep(30)
+elif prompt.startswith('complete'):
+    print(json.dumps({'type':'result','subtype':'success','is_error':False,'result':'fixture answer'}), flush=True)
+''')
+            exe = root / ('cursor-fixture.cmd' if os.name == 'nt' else 'cursor-fixture')
+            exe.write_text('@echo off\n"%s" "%s" %%*\n' % (sys.executable, script) if os.name == 'nt' else '#!%s\n%s' % (sys.executable, script.read_text()))
+            exe.chmod(0o700)
+            store = Store(root / 'platform.db')
+            runner = agents.Runner(store, root)
+            project = store.add_project('CURSOR', 'Synthetic', str(root))
+            conf = {'cursor': {'engine':'cursor', 'bin':str(exe), 'resume':False, 'retry_busy':False}}
+            try:
+                for prompt, expected in [('complete' + 'x'*40000, 0), ('incomplete', 1)]:
+                    run = store.create_run(project['id'], None, 'cursor', 'ask', 'tester', prompt)
+                    store.update_run(run['id'], status='running')
+                    code, result = runner.invoke(run['id'], project, None, 'cursor', conf, 'ask', prompt, root)
+                    self.assertEqual(code, expected, result)
+                    self.assertEqual((root / 'runs' / str(run['id']) / 'session.txt').read_text(), 'fixture-session')
+                    self.assertTrue(list((root / 'runs' / str(run['id'])).rglob('process.json')))
+                    runner.finish_invocation(run['id'], code, result)
+                run = store.create_run(project['id'], None, 'cursor', 'fix', 'tester', 'complete')
+                store.update_run(run['id'], status='running')
+                code, result = runner.invoke(run['id'], project, None, 'cursor', conf, 'fix', 'complete', root)
+                self.assertEqual(code, 0, result)
+                self.assertEqual((root/'synthetic-change.txt').read_text(), 'authorized fixture change')
+                runner.finish_invocation(run['id'], code, result)
+                run = store.create_run(project['id'], None, 'cursor', 'ask', 'tester', 'wait')
+                store.update_run(run['id'], status='running')
+                output = []
+                def invoke():
+                    output.append(runner.invoke(run['id'], project, None, 'cursor', conf, 'ask', 'wait', root))
+                thread = threading.Thread(target=invoke)
+                thread.start()
+                deadline = time.monotonic() + 5
+                while not runner.procs and time.monotonic() < deadline:
+                    time.sleep(.02)
+                self.assertTrue(runner.procs)
+                runner.cancel(run['id'], 'tester')
+                thread.join(5)
+                self.assertFalse(thread.is_alive())
+                self.assertNotEqual(output[0][0], 0)
+                self.assertFalse(runner.procs)
+            finally:
+                self.assertTrue(runner.wait_for_idle(10))
+                store.db.close()
+
+    def test_windows_cursor_paths_with_chinese_and_spaces(self):
+        """argv[0] is the exe unchanged; prompt via stdin, workdir via cwd — never in argv."""
+        exe = r'C:\Users\张 三\AppData\Local\cursor-agent\agent.cmd'
+        workdir = Path(r'I:\安装包\安装包\Webuddy\WebuddyData\State\repositories\SJJH21 副本')
+        conf = {'cursor': dict(agents.BUILTIN['cursor'], bin=exe)}
+        with patch.object(sys, 'platform', 'win32'):
+            cmd = agents.command(conf, 'cursor', 'fix', '改一个文件的提示词', Path('prompt'), workdir, Path('last'))
+        self.assertEqual(cmd[0], exe)
+        self.assertNotIn('改一个文件的提示词', cmd)
+        self.assertTrue(all('SJJH21' not in a and '安装包' not in a for a in cmd))
+        self.assertNotIn('cmd', cmd[:1])  # no cmd /c wrapping: Popen runs .cmd directly
+        with tempfile.TemporaryDirectory() as folder:  # LOCALAPPDATA discovery for agent.cmd
+            agent = Path(folder + r'\cursor-agent\agent.cmd')  # Windows path = one filename on POSIX
+            agent.write_text('@echo off\n')
+            env = patch.dict(os.environ, {'LOCALAPPDATA': folder})
+            with env, patch.object(sys, 'platform', 'win32'), patch('shutil.which', return_value=None):
+                self.assertEqual(agents.executable('cursor', {'bin': 'agent'}), str(agent))
+
+    def test_cursor_rejected_calls_stop_after_three_consecutive(self):
+        import json as _json
+        p = agents.StreamParser('cursor')
+        def ev(cmd, rejected=True):
+            return _json.dumps({'type': 'tool_call', 'subtype': 'completed',
+                                'tool_call': {'shellToolCall': {'args': cmd,
+                                                'result': {'rejected': {'denied': cmd}} if rejected else {'success': 'ok'}}}})
+        self.assertEqual(p.feed(ev('python --version')), '被拒绝的命令：python --version\n')
+        p.feed(ev('dir'))
+        self.assertFalse(p.stopped_rejections)
+        p.feed(ev('tmh status'))
+        self.assertIn('连续 3 次', p.stopped_rejections)
+        # streak resets on a successful call
+        q = agents.StreamParser('cursor')
+        for cmd in ('a', 'b'):
+            q.feed(ev(cmd))
+        q.feed(ev('git status', rejected=False))
+        q.feed(ev('c')); q.feed(ev('d'))
+        self.assertFalse(q.stopped_rejections)
+        q.feed(ev('e'))
+        self.assertIn('连续 3 次', q.stopped_rejections)

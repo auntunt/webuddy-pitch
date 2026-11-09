@@ -37,7 +37,7 @@ input[type=checkbox],input[type=radio]{min-height:0;width:16px;height:16px;accen
 .skip-link{z-index:100}
 
 /* Header is global; the project scope remains visible while routes change. */
-#top,body.svc-reform #top{
+#top{
  height:var(--shell-height);min-height:var(--shell-height);display:flex;align-items:center;
  gap:14px;padding:0 24px;background:#fff;color:var(--fg);border-bottom:1px solid var(--line);
  position:sticky;top:0;z-index:16;box-shadow:none;
@@ -67,7 +67,7 @@ input[type=checkbox],input[type=radio]{min-height:0;width:16px;height:16px;accen
 #logout{color:var(--mut);font-size:12px}
 #svc{background:var(--soft);border-color:var(--line);border-radius:6px}
 #svc a{color:var(--mut);font-size:12px}
-#svc a.on,body.svc-reform #svc a.on{background:#fff;color:var(--blue);box-shadow:none}
+#svc a.on{background:#fff;color:var(--blue);box-shadow:none}
 
 /* Main navigation is a true sidebar; the page's own tabs stay in its context. */
 #wrap{display:flex;align-items:flex-start;min-height:calc(100dvh - var(--shell-height))}
@@ -286,7 +286,7 @@ body.ast-on #ast{z-index:25}
 }
 @media(max-width:950px){
  :root{--shell-height:112px;--workspace-nav-width:170px}
- #top,body.svc-reform #top{height:auto;min-height:var(--shell-height);display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:9px 12px;padding:12px 18px}
+ #top,
  #top .brand{grid-column:1;grid-row:1;font-size:16px}#account{grid-column:3;grid-row:1;justify-self:end}
  #projSel{grid-column:1;grid-row:2;max-width:100%;width:100%;min-width:0}
  #say{grid-column:2;grid-row:2;max-width:none;width:auto;justify-self:stretch}#say input{width:135px}
@@ -298,7 +298,7 @@ body.ast-on #ast{z-index:25}
 }
 @media(max-width:700px){
  :root{--shell-height:116px;--workspace-nav-width:0px;--workspace-gap:18px}
- #top,body.svc-reform #top{position:sticky;top:0;padding:10px 14px;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;height:auto;min-height:var(--shell-height)}
+ #top,
  #top .brand{font-size:16px;grid-column:1;grid-row:1;min-width:0}#top .brand svg{display:block;width:26px;height:26px}
  #brandName{display:inline}#top .brand #brandName{display:inline}
  #account{grid-column:3;grid-row:1;gap:6px;max-width:100%}#top .me{display:inline-flex;font-size:11px;min-height:30px;padding:5px 9px;max-width:110px;white-space:normal;overflow-wrap:anywhere}
@@ -393,4 +393,21 @@ td.key{font-family:var(--mono);font-size:12px;color:var(--mut);white-space:nowra
 .ws-stage-strip button b{font-size:13px;color:var(--mut)}
 .ws-stage-strip button[aria-pressed=true]{background:#fff;border-color:var(--line);box-shadow:0 1px 2px rgba(16,24,40,.06)}
 .ws-stage-strip button[aria-pressed=true] b{color:var(--blue)}
+/* Daily task surfaces: same data and controls, less competing chrome. */
+.ws-filters{margin:12px 0 18px}.ws-filters>summary{cursor:pointer;color:var(--mut);padding:8px 0}.ws-filters .ws-stage-strip{margin:12px 0}.ws-filters .ws-filterbar{margin-bottom:12px}
+.ws-attention-layout{display:block}.ws-attention-layout.with-detail{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(320px,1fr);align-items:start}
+.ws-attention-row{display:grid;grid-template-columns:minmax(0,1fr) 140px 160px;gap:22px;align-items:center;background:var(--panel);border:0;border-bottom:1px solid var(--line);padding:22px 24px;border-radius:0}
+.ws-attention-row .ws-row-title{display:inline-block;font-size:16px;line-height:1.6;margin:7px 0;color:var(--fg);font-weight:600}.ws-task-content{min-width:0}.ws-task-reason{margin:0;color:var(--mut);font-size:14px;overflow-wrap:anywhere}.ws-task-owner{display:flex;flex-direction:column;gap:3px}.ws-task-owner strong{font-weight:500}.ws-task-buttons{display:flex;flex-direction:column;align-items:stretch;gap:4px}.ws-task-buttons .ghost{color:var(--mut)}
+.ws-running-title{padding:18px 24px 0}.ws-list:has(.ws-attention-row){border:1px solid var(--line);border-radius:8px;overflow:hidden}.ws-attention-row:last-child{border-bottom:0}.ws-attention-layout.with-detail .ws-attention-row{grid-template-columns:minmax(0,1fr) 130px;gap:12px}.ws-attention-layout.with-detail .ws-task-owner{grid-column:1}.ws-attention-layout.with-detail .ws-task-buttons{grid-column:2;grid-row:1/3}
+#wsQueueNotice:empty{display:none}.ws-head{margin-bottom:22px}.ws-queue-tabs{margin-bottom:12px}.task-panels{min-width:0}.task-panels>[data-task-panel]{display:flex;flex-direction:column;gap:18px}.task-panels>[hidden]{display:none}.task-policy{display:flex;gap:16px 28px;flex-wrap:wrap;padding:14px 0;color:var(--mut);font-size:13px}.task-policy b{font-weight:500;color:var(--fg);margin-left:8px}.task-scope-grid{display:grid;grid-template-columns:150px minmax(0,1fr);gap:18px 24px;margin:12px 0}.task-scope-grid dt{color:var(--mut)}.task-scope-grid dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}.task-decision{display:flex;flex-wrap:wrap;gap:10px}.task-decision h2,.task-decision textarea{flex-basis:100%}.task-decision #accDraft{margin-left:auto}#taskTabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:20px 0}#taskTabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;padding:12px 18px;color:var(--mut)}#taskTabs button.on{color:var(--blue);border-bottom-color:var(--blue)}#taskEvidence .card{padding:24px}#taskEvidence pre{white-space:pre-wrap;overflow-wrap:anywhere}#taskEvidence table{font-size:14px;min-width:720px}#taskEvidence th,#taskEvidence td{padding:14px 12px;text-align:left;vertical-align:top}#taskEvidence h4{font-size:17px;margin:22px 0 12px}#taskRecords>.card,#taskScope>.card{margin:0}.task-policy span{overflow-wrap:anywhere}#tStatus{flex:none}#taskScope details[open]>summary{margin-bottom:16px}
+.ws-readiness{margin:24px 0}.ws-readiness-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px}.ws-readiness-grid section{padding:20px 0;border-top:1px solid var(--line)}.ws-readiness-grid p{margin:8px 0;overflow-wrap:anywhere}.ws-readiness-grid h3{font-size:16px}.ws-readiness-grid .sub{display:block}
+@media(min-width:1400px){#main{max-width:1660px;margin-right:auto}}
+@media(max-width:1100px){.ws-attention-layout.with-detail{grid-template-columns:minmax(0,1fr)}.ws-attention-row{grid-template-columns:minmax(0,1fr) 120px;gap:12px}.ws-task-owner{grid-column:1;flex-direction:row;flex-wrap:wrap;gap:8px}.ws-task-buttons{grid-column:2;grid-row:1/3}}
+@media(max-width:600px){.ws-attention-row,.ws-attention-layout.with-detail .ws-attention-row{display:flex;flex-direction:column;align-items:stretch;padding:18px 16px;gap:12px}.ws-task-buttons{flex-direction:row;align-items:center}.ws-task-buttons>a{flex:1}.ws-task-owner{font-size:13px}.task-scope-grid{grid-template-columns:minmax(0,1fr);gap:6px}.task-scope-grid dd{margin-bottom:14px}.task-policy{flex-direction:column;gap:8px}#taskTabs{overflow-x:auto;max-width:100%;white-space:nowrap}#taskTabs button{min-height:44px;padding:10px 12px;font-size:13px}#taskEvidence .card{padding:16px}.ws-readiness-grid{grid-template-columns:minmax(0,1fr)}.task-decision #accDraft{margin-left:0}#main :where(button,a.btn,input:not([type=checkbox]),select){min-height:44px}#main{overflow-wrap:anywhere}.ws-queue-tabs{overflow:auto;flex-wrap:nowrap}.ws-queue-tabs button{white-space:nowrap}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+#tTop .ttop{padding:14px 18px}#tTop .ttop dl{margin:10px 0;gap:8px}#tTop .ttop dl>dt:first-child,#tTop .ttop dl>dd:nth-child(2){display:none}#tTop .ttop #ttCl{margin-left:auto}#main:has(#taskTabs)>.hdr{margin-bottom:10px}#main:has(#taskTabs)>.props{margin-bottom:14px}#taskEvidence .card>.hdr{margin-bottom:8px}#taskEvidence h4{margin-top:12px}#taskEvidence .card>p.sub{margin:8px 0}
+@media(max-width:600px){#main:has(#taskTabs)>.hdr{display:flex;flex-wrap:wrap}#ttl{flex-basis:100%;font-size:23px}#tTop .ttop #ttCl{display:block;margin:6px 0}#tTop .ttop{padding:14px}#tTop .ttop dl{display:block}#tTop .ttop dl dd{margin:6px 0}#tTop .ttop dl dt{font-weight:600}#taskTabs{margin-top:14px}}
+
+#accountMenu{position:relative}#accountMenu>summary{cursor:pointer;list-style:none}#accountMenu>summary::-webkit-details-marker{display:none}.account-options{position:absolute;right:0;top:calc(100% + 12px);width:210px;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--line);padding:10px;border-radius:8px;box-shadow:0 8px 24px #11182714;z-index:40}.account-options>a,.account-options>button{padding:10px!important;color:var(--fg);text-align:left;justify-content:flex-start}.account-options>[hidden]{display:none!important}#top #accountMenu .pts{display:flex!important;min-height:44px}#top .account-options #logout{display:block;padding:10px}#top #accountMenu:not([open])>.account-options{display:none}
 """

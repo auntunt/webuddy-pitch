@@ -1,0 +1,68 @@
+{
+  "executor": "local",
+  "require_all_criteria": true,
+  "stages": [
+    {
+      "id": "build",
+      "kind": "build",
+      "required": true,
+      "timeout": 1200,
+      "command": "python3 .webuddy-tests/business-proof/prepare.py",
+      "report": {
+        "format": "junit",
+        "path": "jshERP-boot/target/surefire-reports/TEST-*.xml"
+      }
+    },
+    {
+      "id": "frontend",
+      "kind": "unit",
+      "required": true,
+      "timeout": 60,
+      "command": "node --experimental-vm-modules --test --test-reporter=junit --test-reporter-destination=target/frontend.xml .webuddy-tests/frontend.test.cjs",
+      "report": {
+        "format": "junit",
+        "path": "target/frontend.xml"
+      }
+    },
+    {
+      "id": "business",
+      "kind": "e2e",
+      "required": true,
+      "timeout": 180,
+      "depends_on": [
+        "build",
+        "frontend"
+      ],
+      "command": "node .webuddy-tests/business-proof/verify.mjs",
+      "report": {
+        "format": "json",
+        "path": "target/business/report.json"
+      },
+      "criteria": {
+        "A1": [
+          "refund.single.save_and_read"
+        ],
+        "A2": [
+          "refund.multi.save_and_read"
+        ],
+        "A3": [
+          "refund.single.duplicate"
+        ],
+        "A4": [
+          "refund.multi.duplicate"
+        ],
+        "A5": [
+          "refund.single.unauthorized",
+          "refund.multi.unauthorized"
+        ]
+      }
+    },
+    {
+      "id": "cleanup",
+      "kind": "cleanup",
+      "required": true,
+      "timeout": 60,
+      "command": "python3 .webuddy-tests/business-proof/cleanup.py"
+    }
+  ]
+}

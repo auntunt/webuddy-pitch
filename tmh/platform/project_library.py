@@ -253,7 +253,7 @@ def _view_revision(store, row):
 
 def view(store, project):
     schema(store)
-    refs = reference_state(store, project)
+    refs = reference_overview(store, project)
     d = store.one('SELECT d.*,p.key AS source_project FROM project_derivations d JOIN projects p ON p.id=d.source_project WHERE d.project_id=?', (project['id'],))
     if d:
         d['commit'] = d.pop('commit_sha')
@@ -457,6 +457,24 @@ def reference_state(store, project):
                    'WHERE b.project_id=? ORDER BY b.id', (project['id'],))
     return [dict(r, scopes=json.loads(r['scopes']), commit=r['commit_sha'],
                  available=_allowed(store, r['source_id'], project['id'], json.loads(r['scopes']))) for r in refs]
+
+
+def reference_overview(store, project):
+    refs = reference_state(store, project)
+    # Advisory only: a new source revision never changes the pinned task input.
+    for ref in refs:
+        ref['update_available'] = False
+        if not ref['available']:
+            continue
+        latest = store.one("SELECT n.id,n.commit_sha,n.created FROM knowledge_revisions n "
+                           "JOIN knowledge_revisions pinned ON pinned.id=? "
+                           "WHERE n.project_id=pinned.project_id AND n.source_id=pinned.source_id "
+                           "AND n.status='ready' AND n.seq>pinned.seq ORDER BY n.seq DESC LIMIT 1",
+                           (ref['revision_id'],))
+        if latest:
+            ref['update_available'] = True
+            ref['latest_revision'] = {'id': latest['id'], 'commit': latest['commit_sha'], 'created': latest['created']}
+    return refs
 
 
 def bindings(store, project):

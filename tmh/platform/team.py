@@ -67,6 +67,28 @@ def assignment(P, ticket):
             "revision": row["revision"] if row else 0, "updated": row["updated"] if row else ticket["updated"]}
 
 
+def require_merger(P, ticket, user):
+    """Selected terminal tasks require their developer's final merge confirmation.
+
+    Candidate merge still independently requires the current Leader approval.
+    Other task workflows keep their existing reviewer-only merge policy.
+    """
+    from . import development
+    t = _ticket(P, ticket['id'] if isinstance(ticket, dict) else ticket)
+    if not development.row(P.store, t['id']):
+        return require_reviewer(P, t, user)
+    require_user(P, user)
+    from .tenant_policy import require_member
+    require_member(P, user, t['project_id'])
+    if assignment(P, t)['assignee'] != user:
+        raise ApiError(403, '请由当前任务负责人在个人终端确认合并')
+    try:
+        development.require_confirmed(P.store, t)
+    except ValueError as exc:
+        raise ApiError(409, str(exc)) from exc
+    return t
+
+
 def require_reviewer(P, ticket, user):
     """Use from legacy human approval routes too; never infer reviewer from author."""
     require_user(P, user)
@@ -255,6 +277,10 @@ def _action(P, t, b, user, mutation):
         fields = ("ticket", "base_commit", "commit", "requirement_hash", "criteria", "summary", "request_id")
         args = {k: b[k] for k in fields if k in b}
         op = action
+    elif action == "candidate_resolve":
+        fields = ("ticket", "base", "commit")
+        args = {k: b[k] for k in fields if k in b}
+        op = action
     else:
         row = _candidate(P, t, b.get("candidate_id"))
         if action == 'candidate_diagnostic':
@@ -263,13 +289,14 @@ def _action(P, t, b, user, mutation):
                 return project_vue_diagnostic.run(P, row, user)
             except ValueError as exc:
                 raise ApiError(409, str(exc)) from exc
-        if action in ("review", "candidate_assess", "candidate_merge", "business_accept"):
+        if action in ("review", "candidate_assess", "business_accept"):
             require_reviewer(P, t, user)
         if action == "business_accept":
             if b.get("result") not in ("pass", "fail"):
                 raise ApiError(400, "业务验收结果必须是 pass 或 fail")
             return candidates.browser_accept(P, row["id"], user, b.get("evidence_hash", ""), b["result"] == "pass", b.get("note", ""), mutation)
         if action == "candidate_merge":
+            require_merger(P, t, user)
             ctx=getattr(P,'tenant_context',None)
             if ctx and not ctx.runtime_allowed(user):
                 from . import project_merge
@@ -279,7 +306,11 @@ def _action(P, t, b, user, mutation):
         fields = {"candidate_decide": ("candidate_id", "evidence_hash", "decision", "note", "request_id"),
                   "candidate_assess": ("candidate_id", "verification_hash", "preview_hash", "results", "note", "request_id"),
                   "candidate_verify": ("candidate_id", "request_id"), "candidate_cancel": ("candidate_id", "request_id"),
-                  "candidate_preview": ("candidate_id", "request_id")}.get(op)
+                  "candidate_preview": ("candidate_id", "request_id"),
+                  "candidate_gate_ack": ("candidate_id", "reason", "request_id"),
+                  "candidate_resolve": ("ticket", "base", "commit"),
+                  "candidate_report_create": ("candidate_id", "request_id"),
+                  "candidate_report_get": ("candidate_id", "export_id", "file", "offset")}.get(op)
         if not fields:
             raise ApiError(400, "未知团队操作")
         args = {k: b[k] for k in fields if k in b}
@@ -297,6 +328,9 @@ def _action(P, t, b, user, mutation):
     return candidates.execute(P, user, op, args, mutation)
 
 
+READ_ACTIONS = ("candidate_resolve", "candidate_report_get")
+
+
 @scoped
 def dispatch_action(P, body, user):
     require_user(P, user)
@@ -304,13 +338,17 @@ def dispatch_action(P, body, user):
         raise ApiError(400, "请选择团队操作")
     t = _ticket(P, body.get("ticket"))
     from .tenant_policy import require_member
-    require_member(P, user, t["project_id"], "manager" if body["action"] == "assign" else "contributor")
+    read = body["action"] in READ_ACTIONS
+    require_member(P, user, t["project_id"], "viewer" if read else "manager" if body["action"] == "assign" else "contributor")
     schema(P)
     from .project_library import require_development
     try:
         require_development(P.store, P.store.project(t["project_id"]))
     except ValueError as exc:
         raise ApiError(409, str(exc)) from exc
+    if read:
+        # Read-only: no request receipt, no ticket lock, no Git fetch or write.
+        return {"result": _action(P, t, body, user, lambda: None)}
     with _guard(P, t["id"]):
         result = _assign(P, t, body, user) if body["action"] == "assign" else _request(P, t, user, body, lambda mutation: _action(P, _ticket(P, t["id"]), body, user, mutation))
     return {"result": result, "item": item(P, _ticket(P, t["id"]), user)}
@@ -437,11 +475,15 @@ def item(P, t, user):
             "candidate_id": source["candidate"], "evidence_hash": source["evidence_hash"], "result": source["result"],
             "note": source["note"], "project": source["memory_snapshot"]["project"],
             "can_retry": bool(status["pending"] and can_review and business["author"] == user)}
-    return {"ticket": t, "assignment": dict(a, assignee_active=a["assignee"] in members, reviewer_active=a["reviewer"] in members),
+    from .development import row as development_row
+    terminal = bool(development_row(P.store,t["id"]))
+    if terminal and state == "approved":
+        label = "Leader 已复核，待负责人确认合并"
+    return {"terminal_development": terminal, "ticket": t, "assignment": dict(a, assignee_active=a["assignee"] in members, reviewer_active=a["reviewer"] in members),
             "state": state, "label": label, "technical": technical, "human": human, "merge": merge,
             "candidate": candidate, "candidate_error": error, "run": run, "requirement_hash": _requirement(t, P.store),
             "acceptance_memory": acceptance_memory,
-            "needs_review": state in ("assessment", "review", "approved", "merged", "legacy_review", "acceptance"),
+            "needs_review": state in ("assessment", "review", "approved", "merged", "legacy_review", "acceptance") and not (terminal and state == "approved"),
             "can_review": can_review, "personal_decisions_available":metadata_review,
             "personal_verification_reason":personal_verification_reason,
             "personal_preview_reason":personal_preview_reason, "personal_static_preview":bool(static_config),

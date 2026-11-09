@@ -10,6 +10,7 @@ from contextlib import contextmanager
 import hashlib
 import json
 from pathlib import Path
+import re
 import subprocess
 
 from .errors import ApiError
@@ -40,7 +41,43 @@ CREATE TABLE IF NOT EXISTS candidate_merges (
  candidate_id INTEGER PRIMARY KEY, author TEXT NOT NULL, request_id TEXT NOT NULL,
  evidence_hash TEXT NOT NULL, main TEXT NOT NULL, before_commit TEXT NOT NULL,
  commit_sha TEXT NOT NULL, state TEXT NOT NULL, created TEXT NOT NULL, updated TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS candidate_gate_acks (
+ id INTEGER PRIMARY KEY AUTOINCREMENT, candidate_id INTEGER NOT NULL,
+ author TEXT NOT NULL, classification_hash TEXT NOT NULL,
+ reason TEXT NOT NULL, created TEXT NOT NULL);
 """
+
+
+GATE_FILE = re.compile(
+    r"(^\.github/workflows/|\.gitlab-ci\.|(^|/)Jenkinsfile$|^\.tmh/|(^|/)pom\.xml$|"
+    r"(^|/)build\.gradle(\.kts)?$|(^|/)package\.json$|(^|/)pytest\.ini$|"
+    r"(^|/)setup\.cfg$|(^|/)pyproject\.toml$|(^|/)Makefile$|(^|/)tox\.ini$)", re.I)
+
+
+def gate_classification(diff: str) -> dict:
+    """Deterministic tamper-relevant diff facts; reuses gates.weaken's detectors."""
+    from . import gates
+    files = gates.split_diff(diff)
+    tests_added, tests_changed, tests_deleted, gate_files = [], [], [], []
+    for path, f in sorted(files.items()):
+        if gates.TEST_FILE.search(path):
+            if f["deleted"]:
+                tests_deleted.append(path)
+            elif f["new"]:
+                tests_added.append(path)
+            elif f["added"] or f["removed"]:
+                tests_changed.append(path)
+        if GATE_FILE.search(path) and (f["deleted"] or f["new"] or f["added"] or f["removed"]):
+            gate_files.append(path)
+    weak = gates.weaken(files)
+    weakening = list((weak.get("detail") or {}).get("hits") or []) if weak.get("state") == "fail" else []
+    blocking = bool(tests_deleted or tests_changed and weakening or gate_files)
+    return {"tests_added": tests_added, "tests_changed": tests_changed,
+            "tests_deleted": tests_deleted, "gate_files": gate_files,
+            "weakening": weakening,
+            "blocking": bool(tests_deleted or weakening or gate_files),
+            "sha256": _hash({"t": tests_changed, "d": tests_deleted, "g": gate_files,
+                             "w": weakening, "a": tests_added})}
 
 
 def schema(store):
@@ -48,6 +85,8 @@ def schema(store):
         store.db.executescript(SCHEMA)
         if "preview_hash" not in {r["name"] for r in store.q("PRAGMA table_info(candidate_assessments)")}:
             store.db.execute("ALTER TABLE candidate_assessments ADD COLUMN preview_hash TEXT NOT NULL DEFAULT ''")
+        if "gate" not in {r["name"] for r in store.q("PRAGMA table_info(code_candidates)")}:
+            store.db.execute("ALTER TABLE code_candidates ADD COLUMN gate TEXT NOT NULL DEFAULT ''")
         store.db.commit()
 
 
@@ -136,6 +175,15 @@ def submit(P, actor, args, mutation):
     root = Path(p["root"])
     with guard(P, t["id"]), st.lock:
         _ready(P, t)
+        from .development import require_execution
+        try:
+            development = require_execution(st,t,'local')
+        except ValueError as exc:
+            raise ApiError(409, str(exc)) from exc
+        if development and development['execution'].get('current') and args['base_commit'] != development['execution']['base_commit']:
+            raise ApiError(409, '候选起点与负责人选择执行方式时固定的版本不同')
+        if development and args['criteria'] != development['payload']['criteria']:
+            raise ApiError(409,'候选验收标准必须与开发人员确认稿一致')
         if _requirement(t, st) != args["requirement_hash"]:
             raise ApiError(409, "需求版本已变化，请重新读取完整任务后提交")
         for key in ("base_commit", "commit"):
@@ -203,9 +251,10 @@ def submit(P, actor, args, mutation):
                   "外部候选登记；不是平台模型执行或人工采纳", args["summary"], diff, args["base_commit"])).lastrowid
             _write_run_inputs(st, current, run, inputs)
             cid = st.db.execute("""INSERT INTO code_candidates(ticket_id,run_id,agent,base_commit,commit_sha,
-                 requirement_hash,configuration_hash,criteria,summary,fingerprint,ref,artifact_dir,created)
-                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)""", (t["id"], run, actor, args["base_commit"], args["commit"],
-                 args["requirement_hash"], conf, _json(args["criteria"]), args["summary"], fp, ref, str(folder), stamp)).lastrowid
+                 requirement_hash,configuration_hash,criteria,summary,fingerprint,ref,artifact_dir,created,gate)
+                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (t["id"], run, actor, args["base_commit"], args["commit"],
+                 args["requirement_hash"], conf, _json(args["criteria"]), args["summary"], fp, ref, str(folder), stamp,
+                 _json(gate_classification(diff)))).lastrowid
             st.db.execute("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,'candidate',?,?)",
                           (t["id"], stamp, actor, "登记外部代码候选，等待平台独立验证", _json({"candidate": cid, "run": run, "commit": args["commit"]})))
             st.db.execute("UPDATE tickets SET status='doing',updated=? WHERE id=?", (stamp, t["id"]))
@@ -283,7 +332,15 @@ def view(P, cid, *, include_probe=True):
         needs.append("固定版本预览尚未就绪" + ("：" + pv["why"] if pv.get("why") else ""))
     if not technical_ok:
         needs.append("缺少当前验证对应的独立逐项技术验收，或仍有失败/未知项")
+    gate = json.loads(row["gate"] or "{}") if "gate" in row.keys() else {}
+    ack = st.one("SELECT * FROM candidate_gate_acks WHERE candidate_id=? AND classification_hash=? "
+                 "ORDER BY id DESC LIMIT 1", (cid, gate.get("sha256", ""))) if gate.get("blocking") else None
+    gate_missing = bool(gate.get("blocking") and not ack)
+    if gate_missing:
+        accepted = False
+        needs.append("门禁相关变更（改动或删除测试、加跳过标记、改动构建/CI 配置）需要操作者在网页确认")
     return {"id": cid, "ticket": t["key"], "run_id": row["run_id"], "author": row["agent"],
+            "gate_findings": gate, "gate_ack": dict(ack) if ack else None,
             "base_commit": row["base_commit"], "commit": row["commit_sha"], "ref": row["ref"],
             "requirement_hash": row["requirement_hash"], "criteria": json.loads(row["criteria"]), "summary": row["summary"],
             "current": not blocked, "blocked": blocked, "verification": v, "verification_passed": verification_ok,
@@ -297,6 +354,7 @@ def view(P, cid, *, include_probe=True):
             "ready_for_human": not needs, "missing": needs, "evidence_hash": eh,
             "human_decision": decision, "human_accepted": accepted,
             "state": "accepted" if accepted else "stale" if blocked else "awaiting_human" if not needs else "needs_verification",
+            "control_points": control_points(),
             "boundary": "Agent observations are attributed evidence, not human approval. Acceptance does not merge or deploy."}
 
 
@@ -311,6 +369,19 @@ def execute(P, actor, op, a, mutation=lambda: None):
                 "next_after": rows[min(len(rows), a["limit"]) - 1]["id"] if rows else a["after"]}
     if op == "candidate_get":
         return view(P, a["candidate_id"])
+    if op == "candidate_resolve":
+        t = P.store.ticket(a["ticket"])
+        if not t:
+            raise ApiError(404, "没有这个工单")
+        root = Path(P.store.project(t["project_id"])["root"])
+        out = {}
+        for key, name in (("base", a["base"]), ("commit", a["commit"])):
+            try:
+                sha = _git(root, "rev-parse", "--verify", "--end-of-options", name + "^{commit}").strip()
+                out[key] = {"name": name, "commit": sha, "resolved": True}
+            except ApiError:
+                out[key] = {"name": name, "commit": "", "resolved": False}
+        return out
     if op == "candidate_submit":
         result = submit(P, actor, a, mutation)
         if not result.get('reused'):
@@ -329,6 +400,16 @@ def execute(P, actor, op, a, mutation=lambda: None):
                 raise ApiError(403, '只能停止自己发起的隔离验证')
             mutation()
             return P.flow.rechecks.runner.cancel(operation["id"], actor)
+        if op == "candidate_report_get":
+            from . import report_exports
+            t = P.store.ticket(row["ticket_id"])
+            return report_exports.read(P, P.store.project(t["project_id"]),
+                                       {"id": "candidate:%d" % row["id"]}, a)
+        if op == "candidate_report_create":
+            from . import report_exports
+            t = P.store.ticket(row["ticket_id"])
+            mutation()
+            return report_exports.create_candidate(P, P.store.project(t["project_id"]), row, actor, a)
         if not v["current"]:
             raise ApiError(409, "；".join(v["blocked"]))
         if op == "candidate_verify":
@@ -382,6 +463,24 @@ def execute(P, actor, op, a, mutation=lambda: None):
                     raise ApiError(409, "当前候选不能签收：" + "；".join(v["missing"]))
                 _record(P, row, actor, op, a, mutation)
                 return view(P, row["id"])
+        if op == "candidate_gate_ack":
+            gate = json.loads(row["gate"] or "{}") if "gate" in row.keys() else {}
+            if not gate.get("blocking"):
+                raise ApiError(409, "此候选没有需要确认的门禁相关变更")
+            if implementation_author(row["agent"], actor):
+                raise ApiError(403, "固定候选的提交者不能确认自己的门禁相关变更")
+            reason = (a.get("reason") or "").strip()
+            if not reason:
+                raise ApiError(400, "确认必须写明理由")
+            mutation()
+            stamp = now()
+            st = P.store
+            st.db.execute("INSERT INTO candidate_gate_acks(candidate_id,author,classification_hash,reason,created) "
+                          "VALUES(?,?,?,?,?)", (row["id"], actor, gate["sha256"], reason, stamp))
+            st.db.execute("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,'gate_ack',?,?)",
+                          (row["ticket_id"], stamp, actor, "确认门禁相关变更分类", _json({"candidate": row["id"], "reason": reason})))
+            st.db.commit()
+            return view(P, row["id"])
     raise ApiError(400, "未知候选操作")
 
 
@@ -422,6 +521,23 @@ def _record(P, row, actor, op, a, mutation):
         except BaseException:
             st.db.rollback()
             raise
+
+
+def control_points() -> list:
+    """Honest gate boundary: states come from what Webuddy actually enforces;
+    nothing external is claimed connected without configuration to prove it."""
+    return [
+        {"name": "Webuddy 内部就绪", "state": "enforced",
+         "why": "实际生效：Webuddy 自己执行的采纳/合并受独立验证、逐项复核与操作者签收约束"},
+        {"name": "客户仓库必需检查", "state": "not_connected",
+         "why": "未接入外部仓库状态检查，仅建议。接入需要：仓库分支保护 required status check "
+               "名称、推送 webhook 或 CI 回写地址、以及服务端可达的凭据"},
+        {"name": "Webuddy 执行的合并", "state": "enforced",
+         "why": "实际生效：只有当前证据包绑定的人工签收通过后，Webuddy 才执行 ff-only 合并；"
+               "在客户仓库或其他工具里直接合并不受此约束"},
+        {"name": "部署许可", "state": "not_connected",
+         "why": "未接入部署系统；Webuddy 不发布，部署由现场发布流程单独把关"},
+    ]
 
 
 def browser_decide(P, user, args, mutation=lambda: None):
@@ -501,25 +617,32 @@ def browser_merge(P, cid, user, evidence_hash, request_id, mutation=lambda: None
     from .project_library import require_development
     from .recheck_operations import source_guard
     row = _row(P, cid)
-    t = team.require_reviewer(P, row["ticket_id"], user)
+    t = team.require_merger(P, row["ticket_id"], user)
     p = P.store.project(t["project_id"])
     try:
         require_development(P.store, p)
     except ValueError as exc:
         raise ApiError(409, str(exc)) from exc
     root = Path(p["root"])
-    with guard(P, t["id"]), source_guard(P.data_dir, row["run_id"]), _merge_guard(root), P.store.lock:
+    from .project_ci import guard as ci_guard
+    with ci_guard(P.data_dir), guard(P, t["id"]), source_guard(P.data_dir, row["run_id"]), _merge_guard(root), P.store.lock:
         st = P.store
         # Keep this transaction through the short local Git fast-forward: other
         # service processes cannot append requirements or change responsibility.
         try:
             st.db.execute("BEGIN IMMEDIATE")
-            team.require_reviewer(P, t["id"], user)
+            team.require_merger(P, t["id"], user)
             v = view(P, cid)
             if not isinstance(evidence_hash, str) or evidence_hash != v["evidence_hash"]:
                 raise ApiError(409, "证据包已变化，请重新查看后合并")
             if not v["human_accepted"] or not browser_review_current(P, cid):
                 raise ApiError(409, "当前版本尚未由当前指定复核人确认，不能合并")
+            from .development import require_confirmed
+            from .project_ci import check, configuration
+            development = require_confirmed(st,t)
+            ci = check(P.data_dir,p['key'],row['commit_sha']) if development or configuration(P.data_dir,p['key'])['config'] else None
+            if ci and ci['state'] != 'pass':
+                raise ApiError(409,'必需CI尚未通过，不能合并：' + ci.get('message','请查看当前提交的检查结果'))
             main = release.main_branch(root, P.data_dir, p["key"])
             if not main or _git(root, "symbolic-ref", "--quiet", "--short", "HEAD").strip() != main:
                 raise ApiError(409, "项目工作区必须停在已配置的主干分支上")
@@ -555,7 +678,7 @@ def browser_merge(P, cid, user, evidence_hash, request_id, mutation=lambda: None
             # and repeat evidence/identity checks before the mutation.
             st.db.commit()
             st.db.execute("BEGIN IMMEDIATE")
-            team.require_reviewer(P, t["id"], user)
+            team.require_merger(P, t["id"], user)
             current = view(P, cid)
             if current["evidence_hash"] != evidence_hash or not current["human_accepted"] or not browser_review_current(P, cid):
                 raise ApiError(409, "准备合并期间证据或复核责任变化，尚未合并")
@@ -569,9 +692,9 @@ def browser_merge(P, cid, user, evidence_hash, request_id, mutation=lambda: None
             st.db.execute("UPDATE candidate_merges SET state='merged',updated=? WHERE candidate_id=?", (now(), cid))
             st.db.execute("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,'candidate_merge',?,?)",
                           (t["id"], now(), user, "已合并固定候选到本地主干；尚未推送或部署",
-                           _json({"candidate": cid, "commit": row["commit_sha"], "main": main, "evidence_hash": evidence_hash})))
+                           _json({"candidate": cid, "commit": row["commit_sha"], "main": main, "evidence_hash": evidence_hash, "ci": ci})))
             st.db.commit()
-            return dict(merge_receipt(P, cid), pushed=False, deployed=False, replayed=False)
+            return dict(merge_receipt(P, cid), pushed=False, deployed=False, replayed=False, ci=ci)
         except BaseException:
             st.db.rollback()
             raise

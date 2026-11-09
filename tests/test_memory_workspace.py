@@ -130,7 +130,6 @@ class MemoryWorkspaceTests(unittest.TestCase):
         after = self.act("cluster_scan")["items"][0]
         self.assertEqual(after["id"], cluster["id"])
         self.assertNotIn(a["key"], {m["key"] for m in after["members"]})
-        self.assertTrue(all(x["key"] != a["key"] for x in memory.similar_tickets(self.P, b)))
         self.assertEqual(self.store.ticket(a["id"])["status"], "new")
         self.assertGreaterEqual(len(after["history"]), 3)
 

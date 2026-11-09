@@ -95,6 +95,59 @@ class TenantGatewayTest(unittest.TestCase):
     def token(self, user, tenant):
         return self.reg.context(user, tenant)["context_token"]
 
+    def test_large_authenticated_json_is_lossless_and_opt_in(self):
+        import gzip
+        root=Path(self.reg.one('SELECT path FROM tenants WHERE id=?',(self.a,))['path'])
+        store=Store(root/'platform.db')
+        original='完整历史结果，不裁剪。'*20000
+        store.update_ticket(1,'owner',body=original);store.db.close()
+        path='/t/'+self.a+'/api/tickets/SAME-1'
+        plain=self.request('GET',path,'alice',token=self.token('alice',self.a))[2]
+        conn=http.client.HTTPConnection('127.0.0.1',self.port,timeout=15)
+        try:
+            conn.request('GET',path,headers={'Cookie':self.cookies['alice'],'Accept-Encoding':'gzip','X-Webuddy-Context':self.token('alice',self.a)})
+            response=conn.getresponse();encoded=response.read()
+            self.assertEqual(response.status,200)
+            self.assertEqual(response.getheader('Content-Encoding'),'gzip')
+            self.assertEqual(json.loads(gzip.decompress(encoded)),plain)
+            self.assertIn(original,json.dumps(plain,ensure_ascii=False))
+            self.assertLess(len(encoded),len(original.encode())//2)
+        finally:conn.close()
+        code,headers,_=self.request('GET',path,'alice',token=self.token('alice',self.a),headers={'Accept-Encoding':'gzip;q=0'})
+        self.assertEqual(code,200)
+        self.assertNotIn('Content-Encoding',headers)
+
+    def test_member_knowledge_catalog_and_memory_are_scoped_over_http(self):
+        root = Path(self.reg.one('SELECT path FROM tenants WHERE id=?', (self.a,))['path'])
+        for name in ('same', 'private'):
+            folder = root / 'repositories' / name / '.tmh' / 'knowledge'
+            folder.mkdir(parents=True)
+            (folder / 'decisions.md').write_text('- 业务规则：' + name + ' distinctive rule\n')
+        for route in ('/api/org/knowledge', '/api/org/knowledge?q=rule',
+                      '/api/memory?section=knowledge', '/api/memory?section=knowledge&project=SAME'):
+            status, _, result = self.request('GET', '/t/' + self.a + route, 'alice', token=self.token('alice', self.a))
+            self.assertEqual(status, 200, result)
+            self.assertNotIn('private distinctive rule', json.dumps(result))
+            self.assertNotIn('PRIVATE', json.dumps(result))
+            self.assertIn('SAME', json.dumps(result))
+        status, _, result = self.request('GET', '/t/' + self.a + '/api/memory?project=PRIVATE', 'alice', token=self.token('alice', self.a))
+        self.assertEqual(status, 403, result)
+        status, _, result = self.request('GET', '/t/' + self.b + '/api/org/knowledge', 'alice')
+        self.assertEqual(status, 403, result)
+
+    def test_configured_https_origin_login_behind_container_proxy(self):
+        with patch.dict(os.environ, {"TMH_PUBLIC_URL": "https://webuddy.example.test"}):
+            headers = {"Host": "webuddy.example.test", "Origin": "https://webuddy.example.test", "Sec-Fetch-Site": "same-origin"}
+            status, response, body = self.request("POST", "/login", body={"username": "alice", "password": "synthetic-password"}, headers=headers, form=True)
+            self.assertEqual(status, 303, body)
+            self.assertIn("; Secure", response["Set-Cookie"])
+            for origin in ("http://webuddy.example.test", "https://attacker.example", "null"):
+                status, _, body = self.request("POST", "/login", body={}, headers=dict(headers, Origin=origin), form=True)
+                self.assertEqual(status, 403)
+                self.assertEqual(body["code"], "origin_denied")
+            self.assertEqual(self.request("POST", "/login", body={}, headers={**headers, "Sec-Fetch-Site": "cross-site"}, form=True)[0], 403)
+            self.assertEqual(self.request("POST", "/login", body={}, headers={**headers, "Host": "attacker.example", "Origin": "https://attacker.example"}, form=True)[0], 403)
+
     def test_real_workers_keep_same_project_ids_and_sessions_in_separate_tenants(self):
         for user, tenant, expected, excluded in (("alice", self.a, "甲的真实记录", "乙的真实记录"), ("bob", self.b, "乙的真实记录", "甲的真实记录")):
             status, _, meta = self.request("GET", "/t/" + tenant + "/api/meta", user, headers={"X-TMH-User": "owner"})
@@ -115,6 +168,75 @@ class TenantGatewayTest(unittest.TestCase):
         self.assertIn("SAME", str(projects))
         self.assertNotIn("PRIVATE", str(projects))
         self.assertEqual(self.request("GET", "/t/" + self.a + "/api/projects/PRIVATE", "alice", token=token)[0], 403)
+
+    def test_review_feedback_is_human_project_scoped_and_preserves_run(self):
+        from tmh.platform.review_feedback import snapshot
+        root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (self.a,))["path"])
+        store = Store(root / "platform.db")
+        self.addCleanup(store.db.close)
+        runs = []
+        verification = {"diagnosis": {"review": {"base": "a" * 40, "diff_sha256": "b" * 64,
+                         "created": "2026-11-06"}, "blocking": [], "advisory": []}}
+        for pid in (1, 2):
+            run = store.create_run(pid, None, "fixture", "fix", "alice", "")
+            store.update_run(run["id"], status="done", exit_code=0)
+            runs.append(store.run(run["id"]))
+            folder = root / "runs" / str(run["id"])
+            folder.mkdir(parents=True)
+            (folder / "verify.json").write_text(json.dumps(verification), encoding="utf-8")
+        body = {"request_id": "synthetic-feedback", "binding": snapshot(verification)["binding"],
+                "minutes": 3, "findings": [], "missed": [], "note": "隔离HTTP测试，不是真人效果数据"}
+        base = "/t/" + self.a + "/api/runs/"
+        path = base + str(runs[0]["id"]) + "/review-feedback"
+        token = self.token("alice", self.a)
+        self.assertEqual(self.request("POST", path, body=body, headers={"X-TMH": "1"})[0], 401)
+        self.assertEqual(self.request("POST", path, "bob", body, token=self.token("bob", self.b), headers={"X-TMH": "1"})[0], 403)
+        self.assertEqual(self.request("POST", base + str(runs[1]["id"]) + "/review-feedback",
+                                      "alice", body, token=token, headers={"X-TMH": "1"})[0], 403)
+        self.assertEqual(self.request("POST", path, "alice", body, token=token,
+                                      headers={"X-Webuddy-Agent": "codex", "X-TMH": "1"})[0], 403)
+        status, _, saved = self.request("POST", path, "alice", body, token=token,
+                                        headers={"X-TMH-User": "owner", "X-TMH": "1"})
+        self.assertEqual(status, 200, saved)
+        self.assertEqual(saved["actor"], "alice")
+        self.assertEqual(store.run(runs[0]["id"]), runs[0])
+        self.change("member_set", tenant=self.a, user="alice", role="viewer")
+        self.assertEqual(self.request("POST", path, "alice", body, token=self.token("alice", self.a), headers={"X-TMH": "1"})[0], 403)
+        self.assertEqual(len(store.q("SELECT * FROM review_feedback")), 1)
+
+    def test_all_project_boards_filter_real_worker_data_and_reject_revoked_context(self):
+        root = Path(self.reg.one("SELECT path FROM tenants WHERE id=?", (self.a,))["path"])
+        store = Store(root / "platform.db")
+        try:
+            store.create_ticket(2, "不可见项目的私密工单", author="owner")
+        finally:
+            store.db.close()
+        token = self.token("alice", self.a)
+        base = "/t/" + self.a + "/api/projects/"
+        status, _, board = self.request("GET", base + "*/loop", "alice", token=token, headers={"X-TMH-User": "owner"})
+        self.assertEqual(status, 200, board)
+        self.assertEqual((board["total"], board["projects"]), (1, 1))
+        status, _, inbox = self.request("GET", base + "all/inbox", "alice", token=token)
+        self.assertEqual(status, 200, inbox)
+        self.assertEqual(inbox["open"], 1)
+        self.assertNotIn("不可见", str(inbox))
+        self.assertNotIn("PRIVATE", str(inbox))
+        for suffix in ("PRIVATE/loop", "PRIVATE/inbox"):
+            self.assertEqual(self.request("GET", base + suffix, "alice", token=token)[0], 403)
+        self.assertEqual(self.request("GET", "/t/" + self.b + "/api/projects/*/loop", "alice", token=token)[0], 403)
+        self.change("project_revoke", tenant=self.a, user="alice", project_id=1)
+        self.assertEqual(self.request("GET", base + "*/loop", "alice", token=token)[0], 409)
+        status, _, empty = self.request("GET", base + "*/loop", "alice", token=self.token("alice", self.a))
+        self.assertEqual(status, 200, empty)
+        self.assertEqual((empty["total"], empty["projects"]), (0, 0))
+
+    def test_anonymous_next_shell_redirects_to_login_like_home(self):
+        for path in ("/next/p/E2E/verify?ticket=E2E-1", "/next", "/t/" + self.a + "/next/p/E2E/verify?ticket=E2E-1", "/t/" + self.a + "/next/"):
+            with self.subTest(path=path):
+                status, headers, _ = self.request("GET", path)
+                self.assertEqual(status, 303)
+                self.assertEqual(dict(headers)["Location"], "/login?next=" + quote(path, safe=""))
+        self.assertEqual(self.request("GET", "/t/" + self.a + "/")[1]["Location"], "/login?next=" + quote("/t/" + self.a + "/", safe=""))
 
     def test_global_login_home_membership_and_no_token_fallback(self):
         status, headers, _ = self.request("POST", "/login", body={"username": "alice", "password": "synthetic-password", "next": "//bad.invalid"}, form=True)

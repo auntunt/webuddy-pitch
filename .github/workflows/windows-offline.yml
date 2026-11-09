@@ -1,0 +1,89 @@
+name: Windows offline bundle
+
+on:
+  push:
+    paths:
+      - 'scripts/deploy/build-windows-offline.py'
+      - 'scripts/deploy/build-package.py'
+      - 'scripts/deploy/customer_audit.py'
+      - 'tmh/resources.py'
+      - 'tmh/install.py'
+      - 'docs/customer/**'
+      - 'setup.py'
+      - 'MANIFEST.in'
+      - 'scripts/deploy/windows-offline/**'
+      - 'scripts/deploy/test-windows-offline.*'
+      - '.github/workflows/windows-offline.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      PYTHONUTF8: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      NO_PROXY: '127.0.0.1,localhost,::1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build fixed source wheel
+        run: |
+          python -m pip install packaging
+          python scripts/deploy/build-package.py --ref $env:GITHUB_SHA --out "$env:RUNNER_TEMP/wheel"
+      - name: Build pinned Windows runtime
+        shell: pwsh
+        run: |
+          $release = Get-ChildItem "$env:RUNNER_TEMP/wheel" -Directory | Select-Object -First 1
+          python scripts/deploy/build-windows-offline.py --wheel-release $release.FullName --cache "$env:RUNNER_TEMP/payload-cache" --sevenzip 'C:\Program Files\7-Zip\7z.exe' --out "$env:RUNNER_TEMP/bundle"
+          if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+      - name: Start and restart with outbound access blocked
+        shell: pwsh
+        run: |
+          $archive = Get-ChildItem "$env:RUNNER_TEMP/bundle/*.zip" | Select-Object -First 1
+          ./scripts/deploy/test-windows-offline.ps1 -Archive $archive.FullName -Evidence "$env:RUNNER_TEMP/offline-evidence"
+      - name: Cursor end-to-end (real API key)
+        shell: pwsh
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          $archive = Get-ChildItem "$env:RUNNER_TEMP/bundle/*.zip" | Select-Object -First 1
+          $dest = "$env:RUNNER_TEMP/cursor-e2e"
+          Expand-Archive -LiteralPath $archive.FullName -DestinationPath $dest
+          $root = Join-Path $dest 'Webuddy'
+          $python = Join-Path $root 'runtime\python\python.exe'
+          if ($env:CURSOR_API_KEY) { irm 'https://cursor.com/install?win32=true' | iex }
+          & $python -B scripts/deploy/test-windows-offline.py $root --cursor-e2e "$env:RUNNER_TEMP/offline-evidence"
+          if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+      - name: Retain technical receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-offline-receipts
+          path: |
+            ${{ runner.temp }}/wheel/**/release.json
+            ${{ runner.temp }}/wheel/**/content-audit.json
+            ${{ runner.temp }}/bundle/content-audit.json
+            ${{ runner.temp }}/bundle/bundle.json
+            ${{ runner.temp }}/offline-evidence/receipt.json
+            ${{ runner.temp }}/offline-evidence/cursor-e2e.json
+            ${{ runner.temp }}/offline-evidence/**/Webuddy/MANIFEST.json
+            ${{ runner.temp }}/offline-evidence/**/server-*.log
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Retain tested customer ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-customer-bundle
+          path: |
+            ${{ runner.temp }}/bundle/*.zip
+            ${{ runner.temp }}/bundle/bundle.json
+            ${{ runner.temp }}/bundle/README.txt
+            ${{ runner.temp }}/bundle/content-audit.json
+          if-no-files-found: error
+          retention-days: 7

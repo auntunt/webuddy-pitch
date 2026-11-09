@@ -4,6 +4,7 @@ No business Platform is constructed in this process. Gateway admission and
 worker execution recheck the same context under the registry guard. The worker
 owns the execution lock so gateway death cannot release an unfinished mutation.
 """
+from .http_encoding import encode_json
 from contextlib import closing
 from dataclasses import dataclass
 from http.cookies import CookieError, SimpleCookie
@@ -90,6 +91,7 @@ def make_handler(registry, workers, *, brand="webuddy"):
             return code, body, content_type, headers
 
         def _flush(self, code, body, content_type, headers):
+            body, headers = encode_json(body, content_type, self.headers.get("Accept-Encoding", ""), headers)
             self.send_response(code)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(body)))
@@ -160,6 +162,9 @@ def make_handler(registry, workers, *, brand="webuddy"):
             return self._send(303, headers={"Location": nxt, "Set-Cookie": [done, self._cookie(session, login.SESSION_DAYS * 86400)]})
 
         def _scheme(self):
+            public = urlsplit(os.environ.get("TMH_PUBLIC_URL", ""))
+            if public.scheme in ("http", "https") and public.netloc:
+                return public.scheme
             # Forwarded transport is accepted only from the loopback reverse proxy.
             return "https" if self.client_address[0] in ("127.0.0.1", "::1") and self.headers.get("X-Forwarded-Proto") == "https" else "http"
 
@@ -169,7 +174,9 @@ def make_handler(registry, workers, *, brand="webuddy"):
                 raise error(403, "拒绝跨站请求", "origin_denied")
             if origin:
                 parsed = urlsplit(origin)
-                if parsed.scheme != self._scheme() or parsed.netloc != self.headers.get("Host") or parsed.path not in ("", "/"):
+                expected = urlsplit(self._base())
+                if (parsed.scheme != expected.scheme or parsed.netloc != expected.netloc
+                        or parsed.netloc != self.headers.get("Host") or parsed.path not in ("", "/")):
                     raise error(403, "请求来源与当前站点不同", "origin_denied")
 
         def _body(self, maximum=5 * 1024 * 1024):
@@ -260,7 +267,7 @@ def make_handler(registry, workers, *, brand="webuddy"):
                            'X-Webuddy-Context': tool_access.context_token(connection),
                            'X-Webuddy-Tool': connection['id'],
                            'X-Webuddy-Agent': self.headers.get('X-Webuddy-Agent', 'tool')}
-                if connection['scope'] == 'execute' and self.headers.get('X-Webuddy-Execution') == '1':
+                if connection['scope'] in ('execute', 'develop') and self.headers.get('X-Webuddy-Execution') == '1':
                     headers['X-Webuddy-Execution'] = '1'
                 return PendingProxy(tenant, connection['user'], method, '/api/agent/' + operation,
                                     raw, headers, {}, False)
@@ -311,7 +318,8 @@ def make_handler(registry, workers, *, brand="webuddy"):
                     return response(reg, static[1], int(static[2]), static[3], user,
                                     self._scheme()+'://'+self.headers.get('Host',''))
                 if not user:
-                    if method == "GET" and (url.path == "/" or re.fullmatch(r"/t/[A-Za-z0-9_-]+/?", url.path)):
+                    if method == "GET" and (url.path == "/" or re.fullmatch(r"/t/[A-Za-z0-9_-]+/?", url.path)
+                                            or re.fullmatch(r"(?:/t/[A-Za-z0-9_-]+)?/next(?:/.*)?", url.path)):
                         return self._send(303, headers={"Location": "/login?next=" + quote(self.path, safe="")})
                     raise error(401, "请使用个人账号登录", "session_invalid")
                 if url.path == "/logout":

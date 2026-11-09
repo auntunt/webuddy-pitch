@@ -42,7 +42,42 @@ assert.equal(selectedProjectAgent('A'),'agent-a','a saved choice cannot bypass a
         result = subprocess.run(['node', '-e', source], text=True, capture_output=True, timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("saveProjectAgent(d.project.key,e.target.value)", JS)
-        self.assertIn("run(m,$('#ag')?.value||defAgent(),'auto')", JS)
+        self.assertIn("run(m,$('#naAg')?.value||$('#ag')?.value||defAgent(),'auto')", JS)
+
+    def test_unloaded_project_follows_default_route_and_quota_failure_offers_another_agent(self):
+        helpers = JS.split('function projectAgents(', 1)[1].split('function newTicket(', 1)[0]
+        pick = JS.split('function nextAction(', 1)[1].split('function nextActionCore(', 1)[0]
+        source = r'''
+const assert=require('node:assert/strict');
+const h=x=>String(x),moLabel=m=>({analyze:'分析定位'}[m]||m);
+const values=new Map();const localStorage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v)};
+const S={proj:'OLD',projects:[{key:'OLD',agent_route:{agent:'cloudwave-codex'}}],meta:{user:'li',
+ agent_route_default:{agent:'cloudwave-codex',allowed_agents:['claude','cloudwave-codex']},
+ agents:[{name:'claude',title:'Claude',available:true},{name:'codex',title:'Codex',available:true},{name:'cloudwave-codex',title:'Cloudwave Codex',available:true}]}};
+let core={tone:'info',text:'还没有分析。',btns:'<button id="naAn" class="primary">分析定位</button>'};
+const nextActionCore=()=>core;
+''' + 'function projectAgents(' + helpers + 'function nextAction(' + pick + r'''
+assert.equal(preferredAgent('NEW'),'cloudwave-codex','a project the page has not loaded uses the default route, not the first agent');
+assert.deepEqual(projectAgents('NEW').map(a=>a.name),['cloudwave-codex','claude']);
+let d={project:{key:'NEW'},runs:[]};
+let r=nextAction(d,{});
+assert.match(r.btns,/id="naAg"/);assert.match(r.btns,/value="cloudwave-codex" selected/);
+d.runs=[{mode:'analyze',status:'failed',agent:'claude',result:'Failed to authenticate. API Error: 403 预扣费额度失败'}];
+saveProjectAgent('NEW','claude');
+core={tone:'bad',text:'最近一次分析定位未完成。',btns:'<button id="naLog" class="primary">查看停止原因</button>'};
+r=nextAction(d,{});
+assert.match(r.text,/Claude.*额度不足/);
+assert.match(r.btns,/id="naAn" class="primary">换执行器重新分析定位/);
+assert.match(r.btns,/id="naLog" class="ghost"/);
+assert.match(r.btns,/value="cloudwave-codex" selected/,'the executor out of quota is not preselected again');
+d.runs=[{mode:'analyze',status:'failed',agent:'claude',result:'编译错误'}];
+r=nextAction(d,{});
+assert.equal(r.btns,core.btns,'an ordinary failure keeps its own next step');
+core={tone:'info',text:'已闭环',btns:'<button id="naReopen">重新打开</button>'};d.runs=[];
+assert.equal(nextAction(d,{}),core);
+'''
+        result = subprocess.run(['node', '-e', source], text=True, capture_output=True, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_project_choices_saved_preferences_and_unavailable_route(self):
         helpers = JS.split('function projectAgents(', 1)[1].split('function newTicket(', 1)[0]

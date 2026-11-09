@@ -96,7 +96,7 @@ def _features(t):
     return {"flows": set(links.get("flows") or []), "files": set(files), "errors": set(errors),
             "words": learn._grams(text) - _GENERIC,
             "title": re.sub(r"\W", "", t["title"].lower()),
-            "kind": "reform" if links.get("reform") else t.get("type", "bug")}
+            "kind": t.get("type", "bug")}
 
 
 def _similar(a, b, fa=None, fb=None):
@@ -120,24 +120,6 @@ def _similar(a, b, fa=None, fb=None):
         reasons.append("具体问题标题相同")
     reasons.append("描述词重合 %.0f%%" % (similarity * 100))
     return {"score": round(similarity, 3), "reasons": reasons, "same_cause_confirmed": False}
-
-
-def similar_tickets(P, ticket, limit=5):
-    """Read-only recommendations for a ticket page, preserving original links."""
-    t = P.store.ticket(ticket) if not isinstance(ticket, dict) else ticket
-    if not t:
-        raise ApiError(404, "工单不存在")
-    p = _project(P, t["project_id"])
-    excluded = {tuple(sorted((x, y))) for c in _load(P, p)["clusters"] for x, y in c.get("excluded_pairs", [])}
-    out = []
-    for other in _tickets(P, p):
-        if other["id"] == t["id"] or tuple(sorted((t["key"], other["key"]))) in excluded:
-            continue
-        match = _similar(t, other)
-        if match:
-            out.append({"key": other["key"], "title": other["title"], "status": other["status"],
-                        "project": p["key"], **match})
-    return sorted(out, key=lambda x: (-x["score"], x["key"]))[:limit]
 
 
 def _member(t):
@@ -466,6 +448,10 @@ def dispatch_read(P, query, user):
     if not isinstance(key, str) or not isinstance(q, str):
         raise ApiError(400, "project 和 q 必须是文字")
     p = _project(P, key) if key else None
+    from .tenant_policy import visible_projects, require_member
+    projects = visible_projects(P, user)
+    if p:
+        require_member(P, user, p, "viewer")
     if section == "brief":
         return read_brief(P, key, query.get("revision") or "")
     if section == "clusters":
@@ -473,9 +459,10 @@ def dispatch_read(P, query, user):
     items = _lesson_workspace(P, p, q)
     # Organization knowledge is a browsing catalog, not an authorization to
     # inject its full private project contents into other projects' tasks.
-    browsing = {"include_drafts": bool(p), "project_key": p["key"] if p else ""}
+    browsing = {"include_drafts": bool(p), "project_key": p["key"] if p else "",
+                "allowed_project_keys": {x["key"] for x in projects}}
     knowledge = org_knowledge.search(P.store, q, limit=200, **browsing) if q else org_knowledge.build(P.store, **browsing)["items"]
-    result = {"section": section, "project": p, "query": q, "projects": [{"key": x["key"], "name": x["name"]} for x in P.store.projects()],
+    result = {"section": section, "project": p, "query": q, "projects": [{"key": x["key"], "name": x["name"]} for x in projects],
               "lessons": items, "knowledge": knowledge, "readonly": True,
               "scope_notice": "项目知识保留来源；组织目录用于查阅。跨项目自动使用仅限人工共享并由当前项目引入的经验或明确绑定的固定知识。",
               "summary": {"lessons": len(items), "active": sum(x.get("auto_use", False) for x in items),

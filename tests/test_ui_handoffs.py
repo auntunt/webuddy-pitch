@@ -23,7 +23,7 @@ let wsData=workspace(),details=new Map([['APP-1',detail()],['APP-2',detail('APP-
 getHandler=url=>url.startsWith('/api/workspace')?wsData:details.get(new URL('http://local'+url).searchParams.get('ticket'));
 postHandler=async(url,body)=>({...details.get(body.ticket),receipt:{request_id:body.request_id}});
 const draftSend=()=>{for(const [field,value]of Object.entries({receiver:'测试乙',stage:'testing',note:'完整交接说明',materials:'完整测试和未决问题'})){const node=main.querySelector('[data-hf-field="'+field+'"]');node.value=value;node.fire('input')}};
-const open=async()=>{await vWorkspace();assert.ok($('#hfForm'))};
+const open=async()=>{await vWorkspace('APP-1');assert.ok($('#hfForm'),$('#wsQueueNotice').textContent)};
 """
 
 

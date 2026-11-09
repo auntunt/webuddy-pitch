@@ -1,9 +1,9 @@
 # 部署手册（Webuddy / tmh 运维平台）
 
-面向**专用机器直接部署**：Linux 服务器上从分支拉代码、装 Python 依赖（零第三方运行时依赖）、起服务、
+面向**专用机器直接部署**：Linux 服务器上安装交付记录中的固定代码版本、装 Python 依赖（零第三方运行时依赖）、起服务、
 Caddy 反代、systemd 托管，并给出备份/升级/回滚/冒烟/安全清单。
 
-- 目标运行环境：**Tencent Cloud Linux**（Ubuntu 22.04 / 24.04 或同代 CentOS/OpenCloudOS 均可），Python **3.12.3**。
+- 目标运行环境：**Linux**（现役 43 环境；其他 Ubuntu/CentOS/OpenCloudOS 版本需按本手册另行验证），Python **3.12.3**。
 - 本仓库运行时**没有第三方依赖**（`pyproject.toml` 的 `dependencies = []`）；`pyproject.toml` 声明
   `requires-python >= 3.8`，但生产/CI 目标是 3.11–3.12，3.8 仅保证语法兼容。
 - 唯一可选依赖是 **MCP**：`pip install ".[mcp]"`（需要 `mcp>=1.30`，仅使用平台/工作台的 stdio MCP 时才需要）。
@@ -35,12 +35,20 @@ sudo mkdir -p /opt/webuddy && sudo chown deploy:deploy /opt/webuddy
 
 ## 2. 安装
 
-### 2.1 拉分支 + venv + `pip install .`
+### 2.1 固定交付提交 + venv + `pip install .`
+
+从本轮交付记录取得通过目标平台必需检查的完整代码 SHA，设置 `WEBUDDY_RELEASE_SHA`。不要把开发分支 HEAD、文档提交或包显示版本号当成已验证发布版本；尚无通过记录时停止正式安装，先做隔离验证。
 
 ```sh
 sudo -u deploy -i            # 之后都用 deploy 用户
-git clone -b iteration/context-pack-v2 https://github.com/auntunt/webuddy-pitch.git /opt/webuddy/app
+# 从受权发行渠道取得源码地址和已验证的完整提交号。
+: "${WEBUDDY_SOURCE_URL:?请提供受权源码地址}"
+: "${WEBUDDY_RELEASE_SHA:?请提供已验证的完整提交号}"
+git clone "$WEBUDDY_SOURCE_URL" /opt/webuddy/app
 cd /opt/webuddy/app
+git fetch origin "$WEBUDDY_RELEASE_SHA"
+git checkout --detach "$WEBUDDY_RELEASE_SHA"
+test "$(git rev-parse HEAD)" = "$WEBUDDY_RELEASE_SHA"
 git log -1 --oneline         # 记录发布提交，回滚要用
 
 python3 -m venv /opt/webuddy/venv
@@ -53,7 +61,7 @@ python -m pip install .                 # 运行时零依赖；只装 tmh 包本
 安装后验证 CLI 入口：
 
 ```sh
-tmh --version            # 必须输出 0.4.0
+tmh --version            # 包版本仅供诊断；代码 SHA 才是交付版本
 webuddy --help | head     # workbench CLI 存在
 python -c "import tmh; print(tmh.__version__)"
 ```
@@ -279,16 +287,17 @@ TMH_USER=admin TMH_PASS=*** node ops/ops.mjs evidence verify <工单号> --ancho
 cd /opt/webuddy/app
 git log -1 --oneline | tee /opt/webuddy/backups/last-good.txt
 # 1) 备份（同 §6）
-# 2) 拉分支
+# 2) 获取已通过目标平台检查的交付提交
 git fetch origin
 git status --porcelain            # 必须为空；有本地改动先停手
-git checkout iteration/context-pack-v2
-git pull --ff-only origin iteration/context-pack-v2
+git fetch origin "$WEBUDDY_RELEASE_SHA"
+git checkout --detach "$WEBUDDY_RELEASE_SHA"
+test "$(git rev-parse HEAD)" = "$WEBUDDY_RELEASE_SHA"
 git log -1 --oneline
 # 3) 重装到 venv
 . /opt/webuddy/venv/bin/activate
-python -m pip install --upgrade .
-python -c "import tmh; print(tmh.__version__)"     # 必须等于 CHANGELOG 里的版本
+python -m pip install --force-reinstall .
+python -c "import tmh; print(tmh.__version__)"     # 包版本仅供诊断，核对交付 SHA 与运行文件清单
 # 4) 重启并冒烟
 sudo systemctl restart webuddy
 sleep 3 && systemctl is-active webuddy
@@ -302,7 +311,7 @@ bash scripts/release-check.sh
 cd /opt/webuddy/app
 git checkout <last-good-commit>
 . /opt/webuddy/venv/bin/activate
-python -m pip install --upgrade .
+python -m pip install --force-reinstall .
 sudo systemctl restart webuddy
 ```
 
@@ -324,10 +333,12 @@ sudo systemctl restart webuddy
 
 ## 10. 常见问题
 
-**Q1：Windows 上测试跑不全 / `os.O_NOFOLLOW` 报错？**
-`tests/test_platform.py` 等少数用例按 Linux 设计（`os.O_NOFOLLOW`、符号链接、进程组），Windows 上会报
-`AttributeError`/skip，属已知平台限制，不是本轮改动引入。生产门禁以 Linux 为准；本地开发用 WSL2 跑全量最接近。
-`audit/ci-test-report.md` 记录了 Windows 失败分类。
+**Q1：Windows 完整测试失败或跳过，是否还能使用 MCP？**
+须区分平台服务端、项目执行机、个人 CLI/MCP 和浏览器访问。服务端仍有 POSIX API、Unix socket、私有文件描述符与文件权限依赖；不能把 Linux 的成功或 Windows 安装成功当作原生 Windows 全套通过。
+
+Windows 官方 MCP SDK 的 stdio 和生成客户端配置测试可以运行；个人连接的安全凭据存储仍明确返回 `credential_platform_unsupported`，这条接入路径尚未可用。共享令牌协议夹具通过不能替代个人项目权限、撤权与凭据保护验证。WSL/虚拟机可作为后续接入选择，但必须在实际选定环境验证，不能预先宣称完成。
+
+当前精确版本的自有测试机、GitHub Windows、跳过原因及失败原件见 [Windows 完整测试记录](self-improvement/evidence/windows-full-20261107/README.md)。该记录同时区分完整执行与全部通过。
 
 **Q2：`git` 版本太老导致平台分支工作树/候选操作失败？**
 平台大量使用 `git worktree`、`git merge-tree`、`show-ref` 等新行为。要求 **git ≥ 2.38**；
@@ -352,3 +363,19 @@ sudo systemctl restart webuddy
 **Q7：证书没自动续上？**
 Caddy 需要 80/443 可达；检查 `journalctl -u caddy`、DNS 是否指向本机；内网环境改用内部 CA 或
 `tls internal`，并把相应根证书发给用户。
+
+
+## 客户安装支持边界与现场核对
+
+| 角色 | 当前依据与条件 | 客户现场状态 |
+|---|---|---|
+| 平台主机 | 默认路径为 Linux + Python 3.11/3.12 + Git + Node（项目测试适配器）；43 是 Linux 测试服务，不代表任意发行版均验证 | 甲方电脑系统、CPU、管理员权限待确认；原生 Windows 平台完整套件未通过 |
+| 个人 CLI/MCP | macOS/Linux 的个人凭据路径；Python 与 MCP 依赖按当前包安装；宿主 Codex/Claude Code 需重启 MCP 进程 | 杭州终端系统、模型通道、个人账号待确认 |
+| Windows 个人 MCP | 原生凭据权限隔离仍有 unsupported 门禁，不可删除后宣称支持；WSL/虚拟机只是候选路径 | 自有 Windows 设备本轮已验证安装与相关回归，个人凭据仍明确拒绝；客户 Windows/WSL 尚未实测 |
+| 项目执行/测试机 | 项目自身构建、数据库、浏览器及账号依赖；按项目 readiness 分别核对记录、执行、验证、发布条件 | 怀柔源码、数据库副本、账号、业务规则与测试命令待提供 |
+
+本轮安装检查结果见进度记录；目标系统未实测的格子保持“未验证”。平台源码保存在 app，平台工单/知识/证据在指定 data，客户项目代码及 `.tmh` 在登记仓库。模型请求可能包含所选任务、代码差异、引用和日志；本地保存不等于内容不出网。现场须核对 `agents.json`、执行器环境和已配置网关的实际目的地与发送范围，不在说明中填写真实密钥。
+
+客户远程连接优先使用其批准的 VPN/反向代理与 HTTPS，浏览器访问平台，个人工具只使用授权项目连接。不要直接开放数据库、共享管理员账号或把 MCP 的任务读取等同于无人值守远程执行。连接、执行位置与职责核对见 [终端协作](developer-terminal.md#客户接入核对与两机演练)。
+
+客户端下载后按网页命令强制重装；仅覆盖安装文件不会更新已启动的 MCP 进程，须断开并重连。升级平台时保留完整旧程序、数据与配置备份，核对数据库副本迁移、精确运行文件和即时/延迟健康。程序回滚只切换代码；不要用旧数据库覆盖升级后新写入。数据库恢复属单独的故障恢复操作，需先保全当前数据并明确恢复范围。

@@ -6,7 +6,7 @@ description: 给任务契约定验收层级并做 L1 核对：每条验收标准
 # 验收分流与 L1 核对
 
 目的：让每条验收标准在开工前就知道“靠什么证明”，改完后先用读代码和图谱能做的检查挡掉明显问题。
-规则见 `docs/acceptance.md`。你可以推进到 `implementing`、`verify_local`、`needs_human`，**不能确认、不能关单**。
+规则见 `.tmh/docs/acceptance.md`。你可以推进到 `implementing`、`verify_local`、`needs_human`，**不能确认、不能关单**。
 
 ## 开工前：分流
 

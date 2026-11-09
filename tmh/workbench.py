@@ -44,6 +44,19 @@ def parser():
     def request(q):
         q.add_argument("--request-id", required=True, help="重试复用原编号；新意图用新编号")
 
+    q = add("develop", "个人终端问答、需求确认、Leader复核和合并；凭据不交给MCP")
+    q.add_argument("ticket")
+    q.add_argument("--action", choices=["status","ask","confirm","assess","review","reject","merge","execution"],default="ask")
+    q.add_argument("--mode", choices=["system", "local"], help="明确选择执行位置；不会自动启动开发")
+    q.add_argument("--candidate-id",type=int)
+    q.add_argument("--user",help="个人登录账号，密码交互输入")
+    q = add("ci-config", "项目管理员配置必需CI检查")
+    q.add_argument("project")
+    q.add_argument("--repository",required=True)
+    q.add_argument("--required-check",action="append",required=True)
+    q.add_argument("--provider", choices=["gitlab", "gitea", "jenkins"])
+    q.add_argument("--connection", help="管理员登记的CI连接名称")
+    q.add_argument("--user")
     add("status", "检查连接、执行器和能力边界")
     q = add("connect", "验证网页登录签发的个人工具凭据并保存到私有文件")
     q.add_argument("--stdin", action="store_true", help="从标准输入读取完整凭据 JSON 或令牌；不放入命令参数")
@@ -54,8 +67,13 @@ def parser():
     q.add_argument("--project")
     q.add_argument("--status")
     q.add_argument("--query", dest="q")
+    q = add("delivery", "读取产出、测试方案、原始结果与复核合并历史")
+    q.add_argument("ticket")
     q = add("ticket", "读取完整任务与证据包")
     q.add_argument("ticket")
+    q = add("preflight", "只读核对当前本地目录、项目仓库、固定基线和知识版本")
+    q.add_argument("ticket")
+    q.add_argument("--directory", required=True, help="当前开发工作目录的绝对路径")
     q = add("create", "创建需求；暂停自动执行")
     q.add_argument("project")
     q.add_argument("title")
@@ -202,12 +220,12 @@ def configuration(a, client):
 
 def _tenant_execution(client, wanted):
     """A personal connection may start runs only when the web granted the execute scope."""
-    if client.tenant and wanted and client.connection_status()["tool_connection"]["scope"] != "execute":
+    if client.tenant and wanted and client.connection_status()["tool_connection"]["scope"] not in ("execute", "develop"):
         raise ClientError("这个个人工具连接没有授权启动运行；请在网页「工具连接」新建「执行」范围的连接，或移除 --allow-execution", "tool_operation_forbidden")
 
 
 def _arguments(a):
-    names = {"projects": "projects_list", "tickets": "tickets_list", "ticket": "ticket_get", "create": "ticket_create", "send": "message_send", "inbox": "messages_list", "request": "request_get", "run": "run_get", "start": "run_start", "cancel": "run_cancel", "retry": "run_retry", "recheck": "run_recheck"}
+    names = {"projects": "projects_list", "tickets": "tickets_list", "ticket": "ticket_get", "delivery": "delivery_get", "create": "ticket_create", "send": "message_send", "inbox": "messages_list", "request": "request_get", "run": "run_get", "start": "run_start", "cancel": "run_cancel", "retry": "run_retry", "recheck": "run_recheck"}
     names.update({"candidates": "candidates_list", "candidate": "candidate_get", "acceptance": "candidate_get", "submit": "candidate_submit", "verify": "candidate_verify", "cancel-verification": "candidate_cancel", "candidate-preview": "candidate_preview", "assess": "candidate_assess", "approve": "candidate_decide", "reject": "candidate_decide"})
     names["hold"] = "ticket_hold"
     names.update({"harness-recipes": "harness_recipes", "harness-probe": "harness_probe_start", "harness-report": "harness_probe_get", "harness-stop": "harness_probe_cancel", "harness-library": "harness_library"})
@@ -293,11 +311,11 @@ def overview(a):
     if saved:
         client = Client(a.endpoint, a.agent, timeout=a.timeout, credential_file=saved)
         result["tool_connection"] = client.connection_status()["tool_connection"]
-        result["next"] = ["webuddy config codex >> ~/.codex/config.toml（Claude Code 用 config claude，Cursor 用 config cursor）", "重启工具后让它列出网梯运维系统里能看到的项目", "webuddy --help 查看全部命令"]
+        result["next"] = ["webuddy config codex >> ~/.codex/config.toml（Claude Code 用 config claude，Cursor 用 config cursor）", "重启工具后让它列出 Webuddy 里能看到的项目", "webuddy --help 查看全部命令"]
     elif endpoint:
         result["next"] = [f"登录 {endpoint}/tools 创建工具连接，下载凭据文件", "webuddy connect --stdin < ~/Downloads/webuddy-credential.json", "webuddy status"]
     else:
-        result["next"] = ["请从网梯运维系统「我的工具连接」页下载客户端；或用 --endpoint https://<服务器>/t/<租户> 指定地址"]
+        result["next"] = ["请从 Webuddy「我的工具连接」页下载客户端；或用 --endpoint https://<服务器>/t/<租户> 指定地址"]
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 
@@ -305,6 +323,9 @@ def overview(a):
 def main(argv=None):
     a = parser().parse_args(argv)
     try:
+        if a.command in ("develop", "ci-config"):
+            from .developer_terminal import run
+            return run(a)
         if a.command is None:
             return overview(a)
         if a.command == "connect":
@@ -324,6 +345,11 @@ def main(argv=None):
             except ImportError:
                 raise ClientError("MCP 需要 Python 3.10+ 和可选依赖：python -m pip install -e '.[mcp]'。CLI 无需该依赖。", "missing_mcp_sdk")
             return serve(client, read_only=a.read_only, allow_execution=a.allow_execution and not a.read_only) or 0
+        if a.command == "preflight":
+            from .workspace_preflight import inspect
+            result = inspect(client, a.ticket, a.directory)
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0 if result["ready"] else 1
         op, args = _arguments(a)
         if a.command in ("approve", "reject"):
             if not sys.stdin.isatty():
@@ -365,6 +391,9 @@ def main(argv=None):
             time.sleep(min(1, max(0, deadline - time.monotonic())))
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
+    except (EOFError, KeyboardInterrupt):
+        print("操作已中断；如请求已发出，请先核对任务与请求回执。", file=sys.stderr)
+        return 130
     except (ClientError, credentials.CredentialError, OSError, UnicodeError) as e:
         error = e.as_dict() if isinstance(e, ClientError) else {"error": str(e), "code": getattr(e, "code", "input_error")}
         print(json.dumps(error, ensure_ascii=False), file=sys.stderr)

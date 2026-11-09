@@ -457,7 +457,7 @@ class PlatformApiTest(unittest.TestCase):
             self.assertEqual(fx["verify"]["check"], "skip")
             self.assertFalse(fx["decision"])
             n_runs = len(d["runs"])
-            # the build works now: built again, not redone, and committed as if its own run had passed
+            # A changed check contract invalidates the old diagnosis: build again without rewriting code.
             (self.data / "autoflow.json").write_text(json.dumps({"on": True, "agent": "fixer", "check": ok}), encoding="utf-8")
             code, v = self.call("POST", "/api/runs/%d/recheck" % fx["id"], {"wait": True})
             self.assertEqual(code, 200, v)
@@ -466,7 +466,16 @@ class PlatformApiTest(unittest.TestCase):
             _, d = self.call("GET", "/api/tickets/" + t["key"])
             self.assertEqual(len(d["runs"]), n_runs, "no agent ran again")
             fx = [r for r in d["runs"] if r["mode"] == "fix"][0]
-            self.assertTrue(fx["decision"].startswith("accepted:"), [e["body"] for e in d["events"]])
+            self.assertFalse(fx["decision"], "changed checks require a new review before adoption")
+            self.assertEqual(v["verdict"], "unknown")
+            self.assertIn("检查契约", v["diagnosis_invalidated"])
+            self.assertTrue(v["previous_verifications"], "retain historical evidence")
+            # Explicit synthetic human review preserves coverage of rechecking an adopted commit.
+            code, accepted = self.call("POST", "/api/runs/%d/decide" % fx["id"], {"decision": "accept"})
+            self.assertEqual(code, 200, accepted)
+            _, d = self.call("GET", "/api/tickets/" + t["key"])
+            fx = next(r for r in d["runs"] if r["id"] == fx["id"])
+            self.assertTrue(fx["decision"].startswith("accepted:"))
             self.assertEqual(d["ticket"]["status"], "verify")
             self.assertTrue(any("重新验证了运行" in e["body"] and "构建通过" in e["body"] for e in d["events"]))
             # an adopted change is built from its commit, in a worktree that is gone afterwards
@@ -543,11 +552,14 @@ class PlatformApiTest(unittest.TestCase):
             vf.write_text(json.dumps(v, ensure_ascii=False), encoding="utf-8")
             (self.data / "autoflow.json").write_text(json.dumps({"on": True, "agent": "fixer", "check": ok}), encoding="utf-8")
             code, v = self.call("POST", "/api/runs/%d/recheck" % fx["id"], {"wait": True})
-            self.assertEqual((code, v["check"], v["verdict"]), (200, "pass", "fail"), v)
+            self.assertEqual((code, v["check"], v["verdict"]), (200, "pass", "unknown"), v)
+            self.assertIn("检查契约", v["diagnosis_invalidated"])
+            self.assertTrue(any(old["verification"].get("diagnosis", {}).get("cause", "").startswith("遗漏方案")
+                                for old in v["previous_verifications"]))
             _, d = self.call("GET", "/api/tickets/" + t["key"])
             fx = [r for r in d["runs"] if r["mode"] == "fix"][0]
             self.assertFalse(fx["decision"], "not committed")
-            self.assertTrue(any("诊断认为还没解决" in e["body"] and "Controller" in e["body"] for e in d["events"]), [e["body"] for e in d["events"]])
+            self.assertNotEqual(v["verdict"], "pass", "失效诊断不能放行当前改动")
         finally:
             conf.pop("fixer", None)
             (self.data / "agents.json").write_text(json.dumps(conf), encoding="utf-8")
@@ -1624,131 +1636,6 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             os.environ.pop("TMH_TEST_ALERT", None)
             (self.data / "alerts.json").unlink()
 
-    def test_reform_plan_splits_by_domain_and_releases_in_waves(self):
-        key = self.project()
-        code, d = self.call("GET", "/api/projects/OA/reforms")
-        self.assertEqual(code, 200, d)
-        self.assertTrue(d["built"] and d["domains"])
-        self.assertIn("upgrade", d["kinds"])
-        code, pv = self.call("POST", "/api/projects/OA/reforms", {"preview": True})
-        self.assertEqual([i["order"] for i in pv["items"]], list(range(1, len(pv["items"]) + 1)))
-        self.assertEqual(pv["items"], sorted(pv["items"], key=lambda i: (i["score"], i["title"])))  # least entangled first
-        code, bad = self.call("POST", "/api/projects/OA/reforms", {"title": "x"})
-        self.assertEqual(code, 400)
-        code, p = self.call("POST", "/api/projects/OA/reforms", {"kind": "upgrade", "title": "Spring 升级", "goal": "Spring 4 升到 5",
-                                                                 "keep": "对外接口不变", "wave": 1})
-        self.assertEqual(code, 200, p)
-        self.assertEqual(p["counts"]["released"], 0)  # nothing opens until someone releases the first wave
-        code, r = self.call("POST", "/api/projects/OA/reforms/%s" % p["id"], {"action": "release"})
-        self.assertEqual(code, 200, r)
-        self.assertEqual(len(r["opened"]), 1)
-        t = self.P.store.ticket(r["opened"][0])
-        self.assertEqual((t["type"], t["links"]["reform"]["plan"]), ("change", p["id"]))
-        self.assertIn("对外接口不变", t["body"])
-        self.assertIn(r["items"][0]["title"], t["title"])
-        self.assertEqual(r["items"][0]["status"], t["status"])
-        code, deps = self.call("GET", "/api/projects/OA/reforms/deps")
-        self.assertTrue(any(x["system"] == "Maven" for x in deps["deps"]), deps)
-        self.call("POST", "/api/projects/OA/reforms/%s" % p["id"], {"action": "remove"})
-        code, d = self.call("GET", "/api/projects/OA/reforms")
-        self.assertFalse([x for x in d["plans"] if x["id"] == p["id"]])
-        self.assertTrue(self.P.store.ticket(t["id"]))  # its tickets stay
-
-    def test_reform_plan_advances_on_acceptance_like_a_fix_is_redone_on_rejection(self):
-        self.project()
-        self.untrain()  # pieces wait for people; only the plan-level loop is under test
-        u = "/api/projects/OA/reforms"
-        code, p = self.call("POST", u, {"kind": "restructure", "title": "分层整理", "goal": "理清分层", "wave": 1})
-        self.assertEqual(code, 200, p)
-        self.assertTrue(p["auto"])
-        if len(p["items"]) < 3:
-            self.skipTest("the sample project needs three business domains")
-        code, r = self.call("POST", u + "/" + p["id"], {"action": "release"})
-        k1 = r["opened"][0]
-        code, a = self.call("POST", "/api/tickets/%s/accept" % k1, {"result": "pass", "note": "审批页的按钮顺序别动"})
-        self.assertEqual(code, 200, a)
-        code, d = self.call("GET", u)
-        v = next(x for x in d["plans"] if x["id"] == p["id"])
-        self.assertEqual(v["counts"]["released"], 2, "a passed wave releases the next one by itself")
-        k2 = v["items"][1]["ticket"]
-        self.assertIn("审批页的按钮顺序别动", self.P.store.ticket(k2)["body"], "what acceptance said carries to later pieces")
-        self.call("POST", "/api/tickets/%s/accept" % k2, {"result": "fail", "note": "导出的报表少了一列"})
-        code, d = self.call("GET", u)
-        v = next(x for x in d["plans"] if x["id"] == p["id"])
-        self.assertIn("导出的报表少了一列", v.get("paused", ""), "a piece nobody will redo automatically pauses the plan")
-        self.call("POST", "/api/tickets/%s/accept" % k2, {"result": "pass"})
-        code, d = self.call("GET", u)
-        self.assertEqual(next(x for x in d["plans"] if x["id"] == p["id"])["counts"]["released"], 2, "paused: no new wave")
-        code, v = self.call("POST", u + "/" + p["id"], {"action": "resume"})
-        self.assertNotIn("paused", v)
-        code, v = self.call("POST", u + "/" + p["id"], {"action": "release"})
-        self.assertIn("导出的报表少了一列", self.P.store.ticket(v["opened"][0])["body"])
-        code, v = self.call("POST", u + "/" + p["id"], {"action": "auto", "on": False})
-        self.assertFalse(v["auto"])
-        self.assertTrue(any("关闭" in x["text"] for x in v["log"]))
-        # two services: reform pieces have their own list and stay off the 运维 board and its numbers
-        code, rt = self.call("GET", "/api/tickets?svc=reform&project=OA")
-        self.assertIn(k1, [t["key"] for t in rt])
-        code, ot = self.call("GET", "/api/tickets?svc=ops&project=OA")
-        self.assertFalse({k1, k2} & {t["key"] for t in ot})
-        code, allt = self.call("GET", "/api/tickets?project=OA")
-        code, loop = self.call("GET", "/api/projects/OA/loop")
-        self.assertEqual(loop["open"] + loop["closed"], len(ot))
-        self.assertIn("kb_built", loop)  # the first-run card on an empty board ticks this step off
-        self.assertGreater(len(allt), len(ot))
-
-    def test_reform_lead_goes_first_and_later_pieces_start_from_its_commit(self):
-        self.project()
-        self.untrain()
-        u = "/api/projects/OA/reforms"
-        code, bad = self.call("POST", u, {"kind": "rewrite", "title": "Java 重写", "goal": "用 Java 重写"})
-        self.assertEqual(code, 400, "a rewrite needs a target folder")
-        code, p = self.call("POST", u, {"kind": "rewrite", "title": "Java 重写", "goal": "用 Spring Boot 重写全部接口", "target": "java/", "wave": 5,
-                                        "lead": {"title": "工程骨架", "body": "建 Maven 工程、配置、实体和登录鉴权"}})
-        self.assertEqual(code, 200, p)
-        self.assertEqual((p["target"], p["items"][0]["order"], p["items"][0]["lead"]), ("java", 0, True))
-        code, r = self.call("POST", u + "/" + p["id"], {"action": "release"})
-        self.assertEqual(len(r["opened"]), 1, "only the lead goes out first")
-        lead = self.P.store.ticket(r["opened"][0])
-        self.assertEqual(lead["links"]["reform"]["order"], 0)
-        self.assertIn("先导", lead["title"])
-        self.assertIn("java/", lead["body"])
-        code, e = self.call("POST", u + "/" + p["id"], {"action": "release"})
-        self.assertEqual(code, 400, "the rest waits for the lead")
-        code, rt = self.call("GET", "/api/tickets?svc=reform&project=OA")
-        self.assertIn(lead["key"], [t["key"] for t in rt], "the lead is a reform ticket from the start")
-        # the lead's automatic change, committed on its own branch
-        root = self.repo
-        br = "tmh/%s-lead" % lead["key"]
-        subprocess.run(["git", "branch", br, "HEAD"], cwd=root, check=True)
-        wt = Path(tempfile.mkdtemp()) / "wt"
-        subprocess.run(["git", "worktree", "add", "-q", str(wt), br], cwd=root, check=True)
-        (wt / "java").mkdir()
-        (wt / "java" / "pom.xml").write_text("<project/>", encoding="utf-8")
-        subprocess.run(["git", "add", "-A"], cwd=wt, check=True)
-        subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "skeleton"], cwd=wt, check=True)
-        tip = subprocess.run(["git", "rev-parse", "HEAD"], cwd=wt, capture_output=True, text=True).stdout.strip()
-        self.P.store.event(lead["id"], "tmh", "adopt", "采纳", {"commit": tip, "branch": br, "run": None})
-        code, a = self.call("POST", "/api/tickets/%s/accept" % lead["key"], {"result": "pass"})
-        self.assertEqual(code, 200, a)
-        code, d = self.call("GET", u)
-        v = next(x for x in d["plans"] if x["id"] == p["id"])
-        self.assertEqual(v["base"], tip)
-        self.assertGreater(v["counts"]["released"], 1, "a passed lead releases the domains by itself")
-        nxt = [self.P.store.ticket(i["ticket"]) for i in v["items"] if i.get("ticket") and not i.get("lead")]
-        self.assertTrue(all(t["links"]["base"] == tip for t in nxt))
-        self.assertIn(tip[:10], nxt[0]["body"])
-        self.assertIn("接口规范测试", nxt[0]["body"])
-        # the coding line starts those changes from the lead's commit
-        seen = {}
-        orig = self.P.flow.runner.start
-        self.P.flow.runner.start = lambda *a, **k: seen.update(base=k.get("base")) or {"id": 0}
-        try:
-            self.P.flow._flow_fix(self.P.project("OA"), nxt[0]["id"], {}, "fake")
-        finally:
-            self.P.flow.runner.start = orig
-        self.assertEqual(seen["base"], tip)
-
     def test_three_layers_only_meet_at_their_interfaces(self):
         """Knowledge knows nothing above it; the coding line knows no app; apps use only the line's public calls."""
         import ast
@@ -1761,15 +1648,14 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
                 if isinstance(n, ast.ImportFrom) and n.level == 1:
                     out |= {n.module} if n.module else {a.name for a in n.names}
             return out
-        above = {"server", "orchestra", "apps", "reform", "alerts", "learn", "ui"}
+        above = {"server", "orchestra", "apps", "alerts", "learn", "ui"}
         self.assertFalse(imports("knowledge.py") & above)
-        self.assertFalse(imports("orchestra.py") & {"server", "apps", "reform", "alerts", "ui"})
-        for app in ("reform.py", "alerts.py", "apps.py"):
+        self.assertFalse(imports("orchestra.py") & {"server", "apps", "alerts", "ui"})
+        for app in ("alerts.py", "apps.py"):
             src = (base / app).read_text(encoding="utf-8")
             self.assertNotRegex(src, r"\b(flow|kb)\._", app)
             self.assertFalse(imports(app) & {"server", "orchestra"}, app)
         self.assertIsInstance(self.P.flow.listeners, list)
-        self.assertTrue(any(getattr(f, "app", "") == "改造计划" for f in self.P.flow.listeners))
 
     def test_fix_gate_keeps_test_edits_and_deletions_for_people(self):
         p = {"root": str(self.repo)}
@@ -1878,7 +1764,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             if v["state"] in ("done", "stopped", "failed"):
                 break
             time.sleep(0.1)
-        self.assertEqual(v["state"], "done", v["log"])
+        self.assertEqual(v["state"], "stopped", v["log"])  # pending pages remain: not a finished batch
         self.assertEqual((v["ok"], v["failed"]), (3, 0), v["log"])
         self.assertEqual(v["pending"], before - 3)
         self.assertTrue(all(kb.load_registry(self.repo)[f["page"]]["status"] == "待确认" for f in v["finished"]))
@@ -1906,10 +1792,10 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         Survey.resume_all(self.P)  # what Platform() does on start
         v = self.wait_survey(key)
         self.assertTrue(v["resumed"])
-        self.assertEqual((v["state"], v["ok"]), ("done", 2), v["log"])
+        self.assertEqual((v["state"], v["ok"]), ("stopped", 2), v["log"])
         self.assertTrue(v["hit_limit"])
         self.assertIn(first, [f["page"] for f in v["finished"]])  # the old claim did not block it
-        self.assertIn("不是全部写完", "\n".join(v["log"]))
+        self.assertIn("页待写", "\n".join(v["log"]))
         self.assertNotIn(str(pid), json.loads((self.data / "surveys.json").read_text()))
 
     def wait_survey(self, key):
@@ -2142,27 +2028,6 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         code, dd = self.call("GET", "/api/projects/%s/arch/%s" % (key, urllib.request.quote(did)))
         self.assertEqual(code, 200, dd)
         self.assertTrue(all(f.get("file") for f in dd["flows"]))
-
-    def test_project_atlas(self):
-        key = self.project()
-        code, t = self.call("POST", "/api/tickets", {"project": key, "title": "请假申请提交后审批状态不对", "body": "提交请假后状态没变", "type": "缺陷"})
-        code, rel = self.call("GET", "/api/tickets/%s/related" % t["key"])
-        fid = rel["flows"][0]["id"]
-        self.call("POST", "/api/tickets/" + t["key"], {"link_flow": fid})
-        code, at = self.call("GET", "/api/projects/%s/atlas" % key)
-        self.assertEqual(code, 200, at)
-        self.assertTrue(at["built"] and at["domains"] and at["tables"])
-        self.assertEqual(at["stats"]["flows"], len(at["flows"]))
-        f = next(x for x in at["flows"] if x["id"] == fid)
-        self.assertIn(t["key"], [x["key"] for x in f["tickets"]])
-        self.assertTrue(all(x["domain"] in {d["id"] for d in at["domains"]} for x in at["flows"]))
-        code, fl = self.call("GET", "/api/projects/%s/atlas/flow/%s" % (key, urllib.request.quote(fid)))
-        self.assertEqual(code, 200, fl)
-        self.assertTrue(fl["steps"])
-        self.assertTrue(all(s["layer"] in ("入口", "业务", "数据", "其他") for s in fl["steps"]))
-        self.assertIn(t["key"], [x["key"] for x in fl["tickets"]])
-        code, _ = self.call("GET", "/api/projects/%s/atlas/flow/nope" % key)
-        self.assertEqual(code, 404)
 
     def test_question_words_do_not_steer_search(self):
         from tmh.context import query_terms, search
@@ -2915,7 +2780,7 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
         self.assertEqual((code, u["upstream"]["repo"], u["label"]), (200, "apache/ofbiz-framework", "未开始"))
         self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "submit"})[0], 409)  # nothing approved
         draft = {"action": "draft", "title": "Fixed: missing permission check in OrderServices", "body": "AI-assisted, reviewed by a person.",
-                 "head": "auntunt:fix-order-perm", "base": "trunk"}
+                 "head": "example-owner:fix-order-perm", "base": "trunk"}
         self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, draft)[0], 200)
         self.assertEqual(self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "approve"}, {"X-TMH-User": "agent"})[0], 403)
         # no evidence package with gates behind this ticket: approving takes a written reason
@@ -2944,19 +2809,19 @@ print("结论：%s %s %d" % (mode, "续" if sid else "新", len(p)))
             with mock.patch.dict("os.environ", {"GITHUB_TOKEN": "x"}):
                 code, u = self.call("POST", "/api/tickets/%s/upstream" % k, {"action": "submit", "confirm": True})
         self.assertEqual((code, u["upstream"]["pr"], u["state"]), (200, "2300", "open"), u)
-        self.assertEqual(FakeHub.sent, [("auntunt:fix-order-perm", "trunk", draft["title"])])
+        self.assertEqual(FakeHub.sent, [("example-owner:fix-order-perm", "trunk", draft["title"])])
 
         def status(state, reviews, commits, merged=""):
-            return {"number": 2300, "url": "https://github.com/apache/ofbiz-framework/pull/2300", "title": draft["title"], "author": "auntunt",
+            return {"number": 2300, "url": "https://github.com/apache/ofbiz-framework/pull/2300", "title": draft["title"], "author": "example-owner",
                     "state": state, "draft": False, "created": "2026-10-16T02:00:00Z", "updated": "", "closed": merged, "merged": merged,
                     "merged_by": "jacopoc" if merged else "", "merge_commit": "", "head": "abc", "head_ref": "fix-order-perm", "base": "trunk",
                     "additions": 6, "deletions": 1, "changed_files": 1, "ci": {"state": "success", "checks": []}, "reviews": reviews,
                     "review_comments": [], "comments": [], "commits": commits}
         ask = {"by": "jacopoc", "state": "CHANGES_REQUESTED", "at": "2026-10-16T05:00:00Z", "body": "Please use hasEntityPermission"}
-        c1 = {"sha": "a1", "author": "auntunt", "at": "2026-10-16T02:00:00Z", "message": "Fixed"}
+        c1 = {"sha": "a1", "author": "example-owner", "at": "2026-10-16T02:00:00Z", "message": "Fixed"}
         u = upstream.sync(self.P, self.P.store.ticket(k), status=status("open", [ask], [c1]))
         self.assertEqual((u["state"], u["summary"]["rounds"]), ("changes", 1))
-        c2 = {"sha": "a2", "author": "auntunt", "at": "2026-10-16T06:00:00Z", "message": "Use hasEntityPermission"}
+        c2 = {"sha": "a2", "author": "example-owner", "at": "2026-10-16T06:00:00Z", "message": "Use hasEntityPermission"}
         ok = {"by": "jacopoc", "state": "APPROVED", "at": "2026-10-16T07:00:00Z", "body": ""}
         c3 = {"sha": "a3", "author": "jacopoc", "at": "2026-10-16T07:30:00Z", "message": "Tidy"}
         u = upstream.sync(self.P, self.P.store.ticket(k), status=status("merged", [ask, ok], [c1, c2, c3], "2026-10-16T08:00:00Z"))

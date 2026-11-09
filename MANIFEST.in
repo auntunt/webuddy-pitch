@@ -1,11 +1,51 @@
-include tmh.py README.md pyproject.toml
-recursive-include templates *.md *.py
-recursive-include skills *.md
-recursive-include agents *.md
-recursive-include kb *.md
-include docs/platform.md docs/knowledge-base.md docs/integrations.md
-include docs/acceptance.md docs/evidence-flow.md docs/agent-commands.md docs/dead-ends.md
-include docs/self-improvement/verification-preview-health-2026-10-19.md
-include docs/self-improvement/verification-runtime-2026-10-18.md
-include docs/self-improvement/verification-external-candidate-2026-10-19.md
-include docs/self-improvement/verification-harness2-2026-10-19.md
+# Customer source distribution: explicit resources; keep internal documentation in the repository.
+exclude README.md
+prune docs
+prune audit
+prune tests
+include tmh.py
+include pyproject.toml
+include docs/agent-commands.md
+include docs/customer/README.md
+include docs/customer/installation.md
+include docs/customer/knowledge.md
+include docs/customer/acceptance.md
+include docs/customer/operating-boundaries.md
+include agents/code-cartographer.md
+include agents/impact-analyst.md
+include agents/independent-verifier.md
+include agents/kb-writer.md
+include agents/sql-dialect-converter.md
+include kb/crypto-sm.md
+include kb/db-dialects.md
+include kb/dotnet.md
+include kb/frontend.md
+include kb/middleware.md
+include kb/os-arch.md
+include skills/acceptance-l2/SKILL.md
+include skills/acceptance-route/SKILL.md
+include skills/business-flow/SKILL.md
+include skills/dotnet-modernize/SKILL.md
+include skills/knowledge-upkeep/SKILL.md
+include skills/legacy-feature/SKILL.md
+include skills/legacy-onboard/SKILL.md
+include skills/ops-tools/SKILL.md
+include skills/xinchuang-assess/SKILL.md
+include skills/xinchuang-migrate/SKILL.md
+include templates/AGENTS.block.md
+include templates/CLAUDE.block.md
+include templates/integration_plugin_example.py
+include templates/knowledge-README.md
+include skills/migrate-to-java/LICENSE
+include skills/migrate-to-java/NOTICE
+include skills/migrate-to-java/references/java-engineering.md
+include skills/migrate-to-java/assets/migration-blueprint.md
+include skills/migrate-to-java/assets/acceptance.md
+include skills/xinchuang-migrate/LICENSE
+include skills/xinchuang-migrate/NOTICE
+include skills/xinchuang-migrate/references/platform-adaptation.md
+include skills/xinchuang-migrate/assets/target-environment.yaml
+include skills/xinchuang-migrate/assets/compatibility-matrix.csv
+include skills/xinchuang-migrate/assets/cutover-rollback.md
+include skills/migrate-to-java/SKILL.md
+global-exclude __pycache__ *.pyc .DS_Store *.db *.sqlite *.sqlite3 *.log

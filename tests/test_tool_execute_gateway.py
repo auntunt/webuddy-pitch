@@ -93,6 +93,5 @@ class ToolExecuteGatewayTests(unittest.TestCase):
         self.assertEqual(status, 403, out)
         self.assertEqual(self.hold(data, ticket['id']), 'alice')
 
-
 if __name__ == '__main__':
     unittest.main()

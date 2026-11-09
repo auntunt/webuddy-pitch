@@ -7,7 +7,7 @@
 
 核心原则：能确定的事交给工具，需要判断的事才交给模型；事实与理解分开标注；AI 备齐证据，验收和关单只由人做。
 
-> 当前状态、已知限制与下一轮优先级：[docs/NEXT-STEPS.md](docs/NEXT-STEPS.md) · 部署：[docs/DEPLOY.md](docs/DEPLOY.md) · 变更日志：[CHANGELOG.md](CHANGELOG.md) · 历次上线验证：[audit/](audit/)
+> 当前状态、已知限制与下一轮优先级：[docs/NEXT-STEPS.md](docs/NEXT-STEPS.md) · 部署：[docs/DEPLOY.md](docs/DEPLOY.md) · 变更日志：[CHANGELOG.md](CHANGELOG.md)
 
 ## 能力一览
 
@@ -28,6 +28,8 @@
 ## 快速开始
 
 环境：CLI 只依赖 Python 3.8+ 标准库；平台里的项目 Codex 执行需要 Python 3.11+（读取 TOML 配置）。
+
+服务端包、配置外置与后续容器化准备见 [部署配置说明](docs/deployment-config.md)。
 
 **路径一：装进项目，在 Codex / Claude Code 里用**
 
@@ -194,7 +196,7 @@ python -m pip install pytest
 python -m pytest tests -q -p no:cacheprovider
 ```
 
-CI（`.github/workflows/ci.yml`）在 Linux / macOS / Windows 上跑全量测试和安装包冒烟。测试数量随版本变化，不在这里写死；每次上线的实测结果记在 [audit/](audit/)。部分用例依赖可选的 MCP SDK、Git 2.38+ 等环境，缺失时跳过或给出提示。
+CI（`.github/workflows/ci.yml`）在 Linux / macOS / Windows 上跑全量测试和安装包冒烟。测试数量随版本变化，不在这里写死；各次交付仅公开非敏感验证摘要，内部上线原始记录保存在本地私有目录。部分用例依赖可选的 MCP SDK、Git 2.38+ 等环境，缺失时跳过或给出提示。
 
 ## AI 记忆与接续文件
 
@@ -203,11 +205,7 @@ CI（`.github/workflows/ci.yml`）在 Linux / macOS / Windows 上跑全量测试
 | 文件 | 作用 |
 |---|---|
 | [AGENTS.md](AGENTS.md) | 本仓库的开发、发布和安全约定，助手开工必读 |
-| [docs/self-improvement/ralph-port-progress.md](docs/self-improvement/ralph-port-progress.md) | 接续记忆：长期有效的约定与边界 + 最近几轮记录，新记录追加在末尾 |
-| [docs/self-improvement/progress-archive/](docs/self-improvement/progress-archive/) | 更早的进度记录，按阶段原样归档，需要时再查 |
-| [STATUS.md](docs/self-improvement/STATUS.md)、[BACKLOG.md](docs/self-improvement/BACKLOG.md) | 自进化循环的接续基线、用户划定的边界和 SI 待办 |
-| [docs/dead-ends.md](docs/dead-ends.md) 与 4 份 `verification-*.md` | 已知死路和替代做法；列在 `tmh/resources.py` 中，随工具安装到目标项目 |
-| `docs/self-improvement/verification-*.md`、`evidence/` | 各轮验证记录和原始证据；`evidence/` 也被测试当作样例读取，不能直接移走 |
+| [客户手册](docs/customer/README.md) | 安装配置、知识构建、证据和运行边界；客户资源按逐文件白名单发布 |
 
 ## 与原维护交付工作台（webuddy maintenance-harness）的关系
 
@@ -229,15 +227,11 @@ skills/ agents/ templates/   安装到目标项目的技能、子代理和 AGENT
 examples/       Java（Spring + MyBatis）与 .NET（MVC + WCF）样例
 tests/          pytest 测试
 scripts/ tools/ 部署、冒烟和实验脚本
-docs/           功能说明、端到端记录；docs/self-improvement/ 为 AI 记忆与验证记录
-audit/          历次生产发布与勘误记录
+docs/           产品说明、客户手册与公开设计资料
+tests/fixtures/ 回归使用的独立合成样例
 ```
 
 ## 汇报材料
 
-- `Webuddy-产品介绍（甲方版）.pptx`：给甲方和投资人的产品介绍；`src/build_deck_产品版.py` / `src/build_deck_模块版.py` 重新生成（python-pptx）
-- `老项目运维提效-立项汇报.pptx`、`运维智能体-立项汇报（业务版）.pptx`、`老项目运维提效-工作拆解树（立项稿）.md`：立项材料
-- `平台工作原理图.pptx`、`应用场景页-四个版本.pptx` 及对应预览图；`总体架构图-图片生成提示词*.md`
-- `截图-新/`、`src/img/`：平台界面截图
+- `src/img/`：平台界面截图
 - `PPT写作规则（去AI味）.md`：写作约定
-- `重构实测/`：RealWorld 跨语言重写实测报告

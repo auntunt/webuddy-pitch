@@ -1,0 +1,52 @@
+// The controller owns this script. CANDIDATE_SHA selects immutable project code.
+pipeline {
+  agent any
+  options { disableConcurrentBuilds(); timeout(time: 30, unit: 'MINUTES') }
+  parameters { string(name: 'CANDIDATE_SHA', defaultValue: '', description: 'Full candidate Git commit') }
+  stages {
+    stage('固定候选') {
+      steps {
+        deleteDir()
+        script {
+          if (!(params.CANDIDATE_SHA ==~ /[0-9a-f]{40}/)) { error('A full commit is required') }
+          checkout([$class: 'GitSCM', branches: [[name: params.CANDIDATE_SHA]],
+                    userRemoteConfigs: [[url: 'ssh://git@webuddy-demo-git/repos/erp.git', credentialsId: 'demo-git']]])
+        }
+        sh 'test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"'
+      }
+    }
+    stage('后端构建与回归') {
+      steps {
+        sh '''#!/bin/bash
+set -euo pipefail
+export JAVA_HOME=/opt/java8
+export PATH=/opt/java8/bin:/opt/maven/bin:$PATH
+mvn -s /var/jenkins_home/.m2/settings.xml -B -f jshERP-boot/pom.xml -Dmaven.test.failure.ignore=false -DfailIfNoTests=true package
+'''
+      }
+    }
+    stage('前端回归与构建') {
+      steps {
+        sh '''#!/bin/bash
+set -euo pipefail
+mkdir -p target
+node --experimental-vm-modules --test --test-reporter=junit --test-reporter-destination=target/frontend.xml .webuddy-tests/frontend.test.cjs
+cd jshERP-web
+npm ci --legacy-peer-deps --no-audit --no-fund
+npm run build
+'''
+      }
+    }
+    stage('真实数据库接口与页面') {
+      steps { sh 'python3 /var/jenkins_home/demo-proof/business.py' }
+    }
+  }
+  // Build tools must not silently rewrite the tracked candidate.
+  post {
+    success { sh 'git diff --exit-code HEAD -- . && test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"' }
+    always {
+      archiveArtifacts artifacts: 'jshERP-boot/target/surefire-reports/*,target/*.xml,target/business/*.json,target/business/*.png,target/business/*.log,jshERP-boot/target/jshERP.jar,jshERP-web/dist/**', allowEmptyArchive: true
+      junit testResults: 'jshERP-boot/target/surefire-reports/*.xml,target/frontend.xml', allowEmptyResults: false
+    }
+  }
+}

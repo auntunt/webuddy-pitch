@@ -1,8 +1,9 @@
-"""Install the harness into a target repository for Claude Code and/or Codex."""
+"""Install the harness into a target repository for Claude Code, Codex and Cursor."""
 from __future__ import annotations
 
 import json
 import shutil
+import sys
 from pathlib import Path
 
 from . import config as cfgmod
@@ -33,22 +34,29 @@ def _copytree(src: Path, dst: Path) -> None:
         return
     if dst.exists():
         shutil.rmtree(dst)
-    shutil.copytree(src, dst, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    prefix = src.relative_to(HOME).as_posix() + "/"
+    for source, name in resources.files(HOME):
+        if name.startswith(prefix):
+            target = dst / name[len(prefix):]
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
 
 
 def _upsert_block(path: Path, block: str, header: str = "") -> None:
     wrapped = "%s\n%s\n%s" % (BEGIN, block.strip(), END)
     if path.exists():
-        text = path.read_text(encoding="utf-8")
+        with path.open(encoding="utf-8", newline="") as source:
+            text = source.read()
         if BEGIN in text and END in text:
             pre, rest = text.split(BEGIN, 1)
             post = rest.split(END, 1)[1]
             text = pre + wrapped + post
         else:
-            text = text.rstrip() + "\n\n" + wrapped + "\n"
+            text = text + ("\n" if text.endswith("\n") else "\n\n") + wrapped + "\n"
     else:
         text = (header + "\n\n" if header else "") + wrapped + "\n"
-    path.write_text(text, encoding="utf-8")
+    with path.open("w", encoding="utf-8", newline="") as target:
+        target.write(text)
 
 
 # Codex hooks (.codex/hooks.json). Codex has no $CLAUDE_PROJECT_DIR, so resolve the
@@ -113,6 +121,99 @@ def _write_claude_mcp(repo: Path) -> None:
     p.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def _write_cursor_mcp(repo: Path) -> None:
+    """Direct stdio launch works with spaces and native Windows, without sh."""
+    path = repo / ".cursor" / "mcp.json"
+    data = json.loads(path.read_text(encoding="utf-8") or "{}") if path.exists() else {}
+    data.setdefault("mcpServers", {})["tmh"] = {
+        "command": sys.executable,
+        "args": [str(repo / ".tmh" / "tool" / "tmh.py"), "mcp", "--repo", str(repo)],
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def _write_cursor_permissions(repo: Path) -> None:
+    """Cursor rejects a cli.json whose permissions lack `deny`; merge the narrow
+    rules a Webuddy knowledge run needs, preserving existing allow/deny entries."""
+    path = repo / ".cursor" / "cli.json"
+    data = json.loads(path.read_text(encoding="utf-8") or "{}") if path.exists() else {}
+    permissions = data.setdefault("permissions", {})
+    allow = permissions.setdefault("allow", [])
+    deny = permissions.setdefault("deny", [])
+    if not isinstance(allow, list) or not isinstance(deny, list):
+        raise ValueError("Invalid Cursor permissions in " + str(path))
+    for token in ("Shell(tmh-kb.cmd)", "Write(.tmh/knowledge/**)"):
+        if token not in allow:
+            allow.append(token)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+KB_BRIDGE = '''"""Knowledge command bridge for Windows Cursor runs; accepts only fixed subcommands."""
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+PAGE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,200}")
+
+
+def validate(args):
+    if args in (["notes"], ["status"]):
+        return
+    if len(args) == 3 and args[:2] == ["next", "--page"]:
+        page = args[2]
+    elif len(args) == 2 and args[0] == "done":
+        page = args[1]
+    else:
+        raise ValueError("Allowed: notes | status | next --page ID | done ID")
+    if not PAGE.fullmatch(page):
+        raise ValueError("Invalid page ID")
+
+
+def main(args):
+    validate(args)
+    if Path.cwd().resolve() != ROOT:
+        raise ValueError("Knowledge bridge must run in the project root")
+    if args == ["status"]:
+        print("WEBUDDY_KB_BRIDGE_OK")
+        return 0
+    if args == ["notes"]:
+        name = os.environ.get("TMH_NOTES")
+        if not name:
+            print("No notes configured")
+            return 0
+        path = Path(name).resolve()
+        if path.name != "notes.md" or path.parent.parent.name != "runs" or not path.parent.name.isdigit():
+            raise ValueError("Notes must be a Webuddy run notes.md file")
+        print(path.read_text(encoding="utf-8") if path.is_file() else "No notes")
+        return 0
+    tool = ROOT / ".tmh" / "tool" / "tmh.py"
+    return subprocess.call([sys.executable, "-B", str(tool), "kb", *args, "--repo", str(ROOT)], cwd=str(ROOT))
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main(sys.argv[1:]))
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        raise SystemExit(2)
+'''
+
+
+def _write_kb_bridge(repo: Path) -> None:
+    """`.tmh/tool/tmh-kb.cmd`: the only Shell entry a Windows Cursor knowledge run
+    needs. It pins the platform's own interpreter, never `python3` (WindowsApps stub)."""
+    tool = cfgmod.tmh_dir(repo) / "tool"
+    tool.mkdir(parents=True, exist_ok=True)
+    (tool / "tmh_kb_bridge.py").write_text(KB_BRIDGE, encoding="utf-8")
+    cmd = '@echo off\r\n"%s" -B "%%~dp0tmh_kb_bridge.py" %%*\r\nexit /b %%ERRORLEVEL%%\r\n' % sys.executable
+    (tool / "tmh-kb.cmd").write_text(cmd, encoding="utf-8")
+
+
 def _write_codex_mcp(repo: Path) -> None:
     """[mcp_servers.tmh] in .codex/config.toml. Codex passes only a few env vars to MCP servers,
     so the credential variable names configured in integrations are forwarded via env_vars."""
@@ -151,7 +252,11 @@ def vendor_tool(repo: Path, strict: bool = True) -> Path:
     if not PKG.is_relative_to(tool.resolve()):
         shutil.rmtree(tool, ignore_errors=True)
     tool.mkdir(exist_ok=True)
-    _copytree(PKG, tool / "tmh")
+    for source, relative in resources.code_files(PKG):
+        target = tool / "tmh" / relative
+        if source.resolve() != target.resolve():
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
     # Keep the vendored command self-contained, including reinstallation and
     # offline-pack. Wheel assets and checkout assets have the same layout.
     for source, relative in assets:
@@ -166,6 +271,8 @@ def vendor_tool(repo: Path, strict: bool = True) -> Path:
 
 
 def install(repo: Path, engines: list[str], git_hook: bool = False) -> list[str]:
+    if set(engines) - {"claude", "codex", "cursor"}:
+        raise ValueError("支持的宿主为 claude、codex、cursor")
     repo = repo.resolve()
     done = []
     x = cfgmod.tmh_dir(repo)
@@ -192,24 +299,33 @@ def install(repo: Path, engines: list[str], git_hook: bool = False) -> list[str]
     agents_block = (HOME / "templates" / "AGENTS.block.md").read_text(encoding="utf-8")
     (x / "docs").mkdir(exist_ok=True)
     shutil.copy(HOME / "docs" / "agent-commands.md", x / "docs" / "agent-commands.md")
+    for name in ("acceptance.md", "operating-boundaries.md"):
+        shutil.copy(HOME / "docs" / "customer" / name, x / "docs" / name)
     _upsert_block(repo / "AGENTS.md", agents_block, "# AGENTS.md")
     done.append("AGENTS.md（插入 tmh 区块，保留原有内容）")
-    skills = sorted(p for p in (HOME / "skills").iterdir() if (p / "SKILL.md").exists())
+    skills = sorted(HOME / name.rsplit("/", 1)[0] for name in resources.FILES if name.startswith("skills/") and name.endswith("/SKILL.md"))
     if "claude" in engines:
         _upsert_block(repo / "CLAUDE.md", "@AGENTS.md\n\n" + (HOME / "templates" / "CLAUDE.block.md").read_text(encoding="utf-8"), "# CLAUDE.md")
         for s in skills:
             _copytree(s, repo / ".claude" / "skills" / s.name)
-        for a in sorted((HOME / "agents").glob("*.md")):
+        for a in sorted(HOME / name for name in resources.FILES if name.startswith("agents/") and name.endswith(".md")):
             (repo / ".claude" / "agents").mkdir(parents=True, exist_ok=True)
             shutil.copy(a, repo / ".claude" / "agents" / a.name)
         _merge_hooks(repo / ".claude" / "settings.json")
         _write_claude_mcp(repo)
         done.append("CLAUDE.md、.claude/skills (%d)、.claude/agents、.claude/settings.json 钩子、.mcp.json（tmh MCP 服务）" % len(skills))
+    if "cursor" in engines:
+        for skill in skills:
+            _copytree(skill, repo / ".cursor" / "skills" / skill.name)
+        _write_cursor_mcp(repo)
+        _write_cursor_permissions(repo)
+        _write_kb_bridge(repo)
+        done.append(".cursor/skills (%d)、.cursor/mcp.json（本地知识 MCP）、.cursor/cli.json 权限、.tmh/tool/tmh-kb.cmd（Windows 知识命令入口）；共用 AGENTS.md，不修改其他 Cursor 审批策略" % len(skills))
     if "codex" in engines:
         for s in skills:
             _copytree(s, repo / ".agents" / "skills" / s.name)
         done.append(".agents/skills (%d)（Codex 技能目录）" % len(skills))
-        for a in sorted((HOME / "agents").glob("*.md")):
+        for a in sorted(HOME / name for name in resources.FILES if name.startswith("agents/") and name.endswith(".md")):
             (repo / ".codex" / "agents").mkdir(parents=True, exist_ok=True)
             (repo / ".codex" / "agents" / (a.stem + ".toml")).write_text(_codex_agent(a), encoding="utf-8")
         _merge_codex_hooks(repo / ".codex" / "hooks.json")

@@ -31,13 +31,13 @@ class LearningFactsTests(unittest.TestCase):
         self.regpath = self.page.parent / ".pages.json"
         self.evidence = self.root / "src" / "app.js"
         self.evidence.parent.mkdir()
-        self.evidence.write_text("export const approved = true;\n", encoding="utf-8")
+        self.evidence.write_text("export const approved = true;\n", encoding="utf-8", newline="")
         self.original = ("---\nid: index\ntitle: 业务系统\nsummary: 说明审批业务\nstatus: 已确认\n"
                          "custom: 原样保留的未知字段\n---\n# 业务系统\n\n" + kb.FACTS_START +
                          "\n固定生成事实。\n" + kb.FACTS_END + "\n\n" +
                          "\n\n".join("## " + title + "\n完整说明，依据 `src/app.js:1`。"
                                       for title in kb.SECTIONS["index"]) + "\n")
-        self.page.write_text(self.original, encoding="utf-8")
+        self.page.write_text(self.original, encoding="utf-8", newline="")
         kb.save_registry(self.root, {"index": {"status": kb.STATUS_OK, "title": "业务系统", "summary": "说明审批业务",
                                                "confirmed_by": "原确认者", "confirmed_at": "2026-10-20",
                                                "confirm_note": "原始完整说明", "custom": {"keep": [1, 2, 3]}}})
@@ -87,7 +87,7 @@ class LearningFactsTests(unittest.TestCase):
         with self.assertRaises(ApiError):
             F.revision_token(self.P, self.p, "index")
         self.assertEqual(self.snapshot(), before)
-        self.regpath.write_text("not json", encoding="utf-8")
+        self.regpath.write_text("not json", encoding="utf-8", newline="")
         before = self.snapshot()
         self.assertIsNone(F.active_revision(self.P, self.p, "index"))
         self.assertEqual(self.snapshot(), before)
@@ -134,15 +134,15 @@ class LearningFactsTests(unittest.TestCase):
     def test_concurrent_page_or_registry_change_rejects_original_token(self):
         for change in ("body", "registry"):
             with self.subTest(change=change):
-                self.page.write_text(self.original, encoding="utf-8")
+                self.page.write_text(self.original, encoding="utf-8", newline="")
                 reg = self.raw()
                 reg["index"].pop("review_note", None)
-                self.regpath.write_text(json.dumps(reg, ensure_ascii=False), encoding="utf-8")
+                self.regpath.write_text(json.dumps(reg, ensure_ascii=False), encoding="utf-8", newline="")
                 if change == "body":
-                    self.page.write_text(self.original + "\n人刚刚修改了正文。", encoding="utf-8")
+                    self.page.write_text(self.original + "\n人刚刚修改了正文。", encoding="utf-8", newline="")
                 else:
                     reg["index"]["review_note"] = "人刚刚修改了登记"
-                    self.regpath.write_text(json.dumps(reg, ensure_ascii=False), encoding="utf-8")
+                    self.regpath.write_text(json.dumps(reg, ensure_ascii=False), encoding="utf-8", newline="")
                 body, registry = self.page.read_bytes(), self.regpath.read_bytes()
                 with self.assertRaises(ApiError):
                     self.publish()
@@ -181,7 +181,7 @@ class LearningFactsTests(unittest.TestCase):
     def test_new_legacy_human_confirmation_has_its_own_hash_and_clears_old_machine_adoption(self):
         self.publish()
         updated = self.revision["content"] + "\n人工新补充的完整业务说明。\n"
-        self.page.write_text(updated, encoding="utf-8")
+        self.page.write_text(updated, encoding="utf-8", newline="")
         note = "完整人工说明。" * 300
         with patch.object(kb.activity, "log"):
             kb.confirm(self.root, "index", "下一位人工", note)
@@ -238,15 +238,15 @@ class LearningFactsTests(unittest.TestCase):
 
     def test_pending_retry_never_overwrites_newer_body_or_registry(self):
         self.break_after_prepare()
-        self.page.write_text(self.original + "\n发布后有人新增的完整说明。", encoding="utf-8")
+        self.page.write_text(self.original + "\n发布后有人新增的完整说明。", encoding="utf-8", newline="")
         before = self.snapshot()
         with self.assertRaises(ApiError):
             self.publish()
         self.assertEqual(self.snapshot(), before)
-        self.page.write_text(self.original, encoding="utf-8")
+        self.page.write_text(self.original, encoding="utf-8", newline="")
         reg = self.raw()
         reg["index"]["note"] = "更新后的登记不能被覆盖"
-        self.regpath.write_text(json.dumps(reg, ensure_ascii=False), encoding="utf-8")
+        self.regpath.write_text(json.dumps(reg, ensure_ascii=False), encoding="utf-8", newline="")
         before = self.snapshot()
         with self.assertRaises(ApiError):
             self.publish()
@@ -254,12 +254,12 @@ class LearningFactsTests(unittest.TestCase):
 
     def test_pending_retry_rechecks_all_evidence_and_workspace_binding(self):
         self.break_after_prepare()
-        self.evidence.write_text("export const approved = false;\n", encoding="utf-8")
+        self.evidence.write_text("export const approved = false;\n", encoding="utf-8", newline="")
         before = self.snapshot()
         with self.assertRaises(ApiError):
             self.publish()
         self.assertEqual(self.snapshot(), before)
-        self.evidence.write_text("export const approved = true;\n", encoding="utf-8")
+        self.evidence.write_text("export const approved = true;\n", encoding="utf-8", newline="")
         with patch.object(L.library, "bindings", return_value=[{"revision": "changed"}]):
             with self.assertRaises(ApiError):
                 self.publish()
@@ -273,7 +273,7 @@ class LearningFactsTests(unittest.TestCase):
             nonlocal calls
             calls += 1
             if calls == 3:
-                self.evidence.write_text("export const changed = true;\n", encoding="utf-8")
+                self.evidence.write_text("export const changed = true;\n", encoding="utf-8", newline="")
             return real(*args)
 
         with patch.object(F, "_sources_current", side_effect=changing):
@@ -285,7 +285,7 @@ class LearningFactsTests(unittest.TestCase):
 
     def test_post_publication_content_change_and_newline_change_invalidate_confirmation(self):
         self.publish()
-        self.page.write_text(self.revision["content"] + "\n未确认的新内容。", encoding="utf-8")
+        self.page.write_text(self.revision["content"] + "\n未确认的新内容。", encoding="utf-8", newline="")
         before = self.snapshot()
         self.assertEqual(kb.load_registry(self.root)["index"]["status"], "需更新")
         self.assertEqual(_pages(self.page.parent)[0]["status"], "需更新")
@@ -313,7 +313,7 @@ class LearningFactsTests(unittest.TestCase):
 
     def test_stale_sources_preserve_human_pointer_for_revocation_without_revalidation(self):
         self.publish()
-        self.evidence.write_text("changed evidence\n", encoding="utf-8")
+        self.evidence.write_text("changed evidence\n", encoding="utf-8", newline="")
         with patch.object(L.library, "bindings", return_value=[{"revision": "changed"}]):
             self.assertFalse(L.revision_current(self.P, self.p, self.revision))
             self.assertEqual(F.active_revision(self.P, self.p, "index"), self.revision["id"])
@@ -331,7 +331,7 @@ class LearningFactsTests(unittest.TestCase):
                 if content is None:
                     self.page.unlink()
                 else:
-                    self.page.write_text(content, encoding="utf-8")
+                    self.page.write_text(content, encoding="utf-8", newline="")
                 before = self.snapshot()
                 with patch.object(L.library, "bindings", return_value=[{"revision": "changed"}]):
                     self.assertEqual(self.publish(), result)
@@ -342,7 +342,7 @@ class LearningFactsTests(unittest.TestCase):
         self.publish()
         reg = self.raw()
         reg["index"]["learning"]["receipts"]["decision-1"]["result"]["content_sha256"] = "forged"
-        self.regpath.write_text(json.dumps(reg, ensure_ascii=False), encoding="utf-8")
+        self.regpath.write_text(json.dumps(reg, ensure_ascii=False), encoding="utf-8", newline="")
         before = self.snapshot()
         with self.assertRaisesRegex(ApiError, "回执不完整"):
             self.publish()
@@ -354,7 +354,7 @@ class LearningFactsTests(unittest.TestCase):
         for state in ({}, None, {"confirmed_sha256": ""}, {"receipts": []}):
             with self.subTest(state=state):
                 reg["index"]["learning"] = state
-                self.regpath.write_text(json.dumps(reg, ensure_ascii=False), encoding="utf-8")
+                self.regpath.write_text(json.dumps(reg, ensure_ascii=False), encoding="utf-8", newline="")
                 before = self.snapshot()
                 self.assertNotEqual(kb.load_registry(self.root)["index"]["status"], kb.STATUS_OK)
                 self.assertNotEqual(_pages(self.page.parent)[0]["status"], kb.STATUS_OK)
@@ -414,11 +414,11 @@ class LearningFactsTests(unittest.TestCase):
     def test_abandon_preserves_changed_body_and_history_and_remains_unconfirmed(self):
         self.break_after_prepare()
         updated = self.original + "\n发布期间人工新增的完整说明。\n"
-        self.page.write_text(updated, encoding="utf-8")
-        self.evidence.write_text("new evidence requiring a new capture\n", encoding="utf-8")
+        self.page.write_text(updated, encoding="utf-8", newline="")
+        self.evidence.write_text("new evidence requiring a new capture\n", encoding="utf-8", newline="")
         reg = self.raw()
         reg["index"]["note"] = "现场登记也完整保留"
-        self.regpath.write_text(json.dumps(reg, ensure_ascii=False), encoding="utf-8")
+        self.regpath.write_text(json.dumps(reg, ensure_ascii=False), encoding="utf-8", newline="")
         page_before = self.page.read_bytes(), self.page.stat().st_mtime_ns
         token = F.revision_token(self.P, self.p, "index")
         result = self.abandon(expected_token=token)

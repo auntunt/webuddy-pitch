@@ -16,6 +16,15 @@ def T(status="doing", **links):
 
 
 class TableTest(unittest.TestCase):
+    def test_boolean_handwork_is_not_a_person(self):
+        t = T(handwork=True, hold=True)
+        self.assertEqual(decide(t, ON)['label'], '待分配 在写')
+        t['assignee'] = 'developer'
+        self.assertEqual(decide(t, ON)['label'], 'developer 在写')
+        t['links']['handwork'] = 'historical-owner'
+        self.assertEqual(decide(t, ON)['label'], 'historical-owner 在写')
+        self.assertEqual(decide(t, dict(ON, live={'mode':'fix','status':'running'}))['key'], 'running')
+
     def test_every_row_is_known_and_once(self):
         keys = [r[0] for r in stage.TABLE]
         self.assertEqual(len(keys), len(set(keys)))

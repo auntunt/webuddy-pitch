@@ -16,29 +16,31 @@ AI 让改代码变快以后，团队卡在“写得快，却不敢合、不敢�
 |---|---|---|---|
 | `draft_contract` 草拟契约 | 契约在写 | `tmh task new` 自动 | — |
 | `implementing` 实现中 | 可以动代码了 | 实现方 | 第 4 节每条 AC 都有**条款、层级（L1–L4）、检查方式**；从检查状态退回时必须写原因 |
-| `verify_local` 本地验证通过 | 本地证据齐了 | 实现方或独立验收 | 最近一次 `tmh verify` 通过，且**入口路径检查**通过（见第 3 节）；图谱看不到的改动记成阻塞 `path_unverified` |
+| `verify_local` 本地验证通过 | 本地证据齐了 | 实现方或独立验收 | 本任务、当前代码和契约对应的 `tmh verify` 实际执行测试并通过，且**入口路径检查**通过（见第 3 节）；图谱看不到的改动记成阻塞 `path_unverified` |
 | `merged` 已合并 | 代码进了目标分支 | 任何人（或集成钩子，见第 6 节） | 写明 `--ref` 提交号或合并请求 |
 | `deployed_awaiting_verify` 已部署待回测 | 部署到了可测环境 | 任何人（或集成钩子） | 写明 `--build` 构建号或版本 |
-| `auto_verified` 自动证据齐全 | L1–L3 都有“通过”结果 | 独立验收 | 第 4 节每条 AC 的结果都是“通过”，没有 L4 条款，没有阻塞；否则只能去 `needs_human` |
-| `needs_human` 待人工验收 | 证据不够，或有 L4 条款 | 任何人 | — |
+| `auto_verified` 自动证据齐全 | 每条自动检查有有效用例证据 | 独立验收 | CLI 当前支持 L2 用例映射；全部通过、没有 L4 和阻塞。L1/L3 需走平台候选复核，不接受结果栏文字 |
+| `needs_human` 待技术处理 | 规则冲突、证据缺口或返修停止 | 任何人 | 写明原因；不能直接签收 |
+| `blocked` 验证受阻 | 缺环境、账号、数据或执行条件 | 任何人 | 写明原因，补齐后退回实现并复验 |
+| `awaiting_business` 待业务验收 | 技术前置证据齐全，等待业务判断 | 独立验收 | 非 L4 条目有有效证据、无阻塞，且已登记部署；只有人可确认 |
 | `user_confirmed_fix` 用户已确认 | 业务方或提报人确认修好了 | **只能是人** | `--who <姓名>`；在智能体会话里（`CLAUDECODE`、`CODEX_SANDBOX`、平台运行的 `TMH_RUN`）直接拒绝 |
 | `closed` 已关闭 | 结束 | **只能是人** | **只能从 `user_confirmed_fix` 进入** |
 
 合法的迁移（其他一律拒绝，并提示能去哪）：
 
 ```text
-draft_contract → implementing → verify_local → merged → deployed_awaiting_verify → auto_verified → user_confirmed_fix → closed
-                                    │             │               │                     │   ↑                   │
-                                    └─────────────┴───────────────┴──→ needs_human ─────┴───┘                   │
-verify_local / merged / deployed_awaiting_verify / auto_verified / needs_human / user_confirmed_fix → implementing（退回，写原因）
-closed → implementing（人重新打开）
+draft_contract → implementing → verify_local → merged → deployed_awaiting_verify
+                                                        ├→ auto_verified ───────┐
+                                                        └→ awaiting_business ──┴→ user_confirmed_fix → closed
+证据不足 → needs_human / blocked → implementing（写原因、补条件后复验）
+检查/验收状态 → implementing（返修）；closed → implementing（只能由人重新打开）
 ```
 
 硬规则（不可削弱）：
 
 1. **关单只认用户确认。** 实现方自测通过、CI 绿、已合并都只是证据，`closed` 只能从 `user_confirmed_fix` 进入，而这两步只能由人在自己的终端（`tmh accept confirm|close --who 姓名`）或平台“验收通过”上做。智能体执行这两条命令会被 Bash 钩子拦下，绕过钩子直接调也会因为环境变量被拒。
 2. **没有验收标准不进实现。** `draft_contract → implementing` 检查第 4 节，缺条款、缺检查方式、缺层级都拒绝。
-3. **“通过”要有证据。** 进 `verify_local` 要读到通过的 `verify-latest.json`；进 `auto_verified` 要每条 AC 的结果栏写着“通过”。
+3. **“通过”要有证据。** `verify-latest.json` 只作定位入口，验收保存 UUID 报告地址和摘要。报告绑定任务、完整 HEAD、工作区文件字节、配置、基线和契约。测试未运行、仅构建、执行期间身份变化均不能通过。合并、登记部署、提交验收和签收时再次核对原报告及原始用例文件；手写“通过”不能代替用例记录。
 
 ## 2. 分层验收（L1–L4）
 
@@ -50,7 +52,7 @@ closed → implementing（人重新打开）
 | L1 契约与业务流核对 | diff 是否只做了契约里的事；AC 能不能检查；改动接上入口没有；扇出 | `tmh accept check`、`tmh accept path-check`、`tmh flows --changed`、`tmh impact`、技能 `acceptance-route` | **已做** |
 | L2 独立环境复验 | 不改产品代码、不改基线测试，重跑特征测试和 `tmh verify` | `tmh verify --task`、钩子锁基线、子代理 `independent-verifier`、技能 `acceptance-l2` | **已做** |
 | L3 部署后回测 | 等部署事件，在同一可测构建上回测同一批 AC | 状态 `merged`/`deployed_awaiting_verify`，字段 `ref`/`build_id` | **预留**：状态和字段已有，事件自动推进未做（第 6 节） |
-| L4 真人/业务方确认 | 列清步骤、数据前提、找谁确认 | 契约第 4、6 节；状态 `needs_human` | **清单约定**：写在契约第 4 节，L4 条款存在时不能进 `auto_verified` |
+| L4 真人/业务方确认 | 列清步骤、数据前提、找谁确认 | 契约第 4、6 节；状态 `awaiting_business` | **清单约定**：写在契约第 4 节，L4 条款存在时不能进 `auto_verified` |
 
 ## 3. 入口路径检查（`tmh accept path-check` / `tmh verify --task`）
 
@@ -93,7 +95,7 @@ T001 例子：入口 `LeaveController.list`，改 `LeaveService.list` 和 `Leave
 |---|---|
 | 新建 / 分析中 / 待确认 | `draft_contract` |
 | 处理中 | `implementing` |
-| 待验证 | `verify_local`、`merged`、`deployed_awaiting_verify`、`auto_verified`、`needs_human` |
+| 待验证 | `verify_local`、`merged`、`deployed_awaiting_verify`、`auto_verified`、`awaiting_business`、`needs_human`、`blocked` |
 | 已关闭 | `user_confirmed_fix` + `closed`（“验收通过”一步完成，记录验收人） |
 
 平台上的同样两条硬规则：
@@ -110,7 +112,7 @@ tmh accept advance T001 --to merged --ref <提交号或合并请求>            
 tmh accept advance T001 --to deployed_awaiting_verify --build <构建号>    # Jenkins 部署成功事件
 ```
 
-部署后超时没有回测结果，或环境不可达，转 `needs_human`。这些事件目前由人或脚本手工调用。
+部署后缺回测或环境不可达，转 `blocked` 并写明原因。`ref`、`build_id` 只是登记信息，不能证明合并或部署成功，也不能作为 L3 证据。CLI 暂不产生 L1/L3 的逐项机器证据；这些任务使用平台候选、独立复核和部署回执。不能为了通过而降低 AC 层级。
 
 ## 7. 按可测构建组织验收（约定）
 
@@ -218,3 +220,24 @@ tmh accept confirm T001 --who 姓名 / close T001 --who 姓名   # 只能由人
 tmh accept status [T001] [--build 构建号]
 tmh accept correct T001 --kind too-big --note "…"
 ```
+
+
+## CLI 用例报告与迁移
+
+在建立基线前配置 `.tmh/config.json`，由测试命令实际生成 JSON 或 JUnit 报告：
+
+```json
+{
+  "commands": {
+    "test": "python -m project_checks",
+    "test_report": {"format": "json", "path": ".tmh/test-output/cases.json"},
+    "criteria": {"A1": ["refund.single.save_and_read"]}
+  }
+}
+```
+
+JSON 使用 `{"cases":[{"id":"refund.single.save_and_read","status":"pass","input":"12.50","expected":"-12.5","actual":"-12.5"}]}`。用例 ID 必须唯一；失败、跳过、空报告、旧报告不通过。每次执行前旧报告移入历史存档，执行后原样保存新报告和完整命令输出。CLI 与平台复用同一个 JSON/JUnit 解析器。
+
+没有用例报告时，实际测试命令仍可形成“本地验证通过”，但不能证明某条 AC。配置、测试、要求变化会让旧报告失效。旧版报告缺少身份字段，需重新验证；旧 `needs_human` 不再允许直接确认。保留 L1–L4 原定义，不引入 PDF 的另一套同名分级。
+
+平台自动返修次数按同一验证契约累计，`rounds` 继续表示首次尝试后的返修数；重开运行不重置预算。单次运行连续三次相同失败或跨运行预算耗尽记为 `technical_required`。环境受阻记为 `blocked`。技术负责人修复后可执行测试与 Review 复验；证据重新通过才解除停止状态。需求或验证配置明确变化后使用新契约预算。基线失败保留原始记录，不自动认定当前失败由本次变更引入。

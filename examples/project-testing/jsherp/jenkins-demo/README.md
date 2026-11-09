@@ -1,0 +1,76 @@
+# 自建 Jenkins 与 JSHERP 演示
+
+这套资产在本机隔离 Docker 环境实施。它演练真实 Git checkout、构建、数据库/API/浏览器验证和 Webuddy 必需 CI 查询；客户仓库、客户 Jenkins、业务人员验收尚未接入。
+
+当前实例目录：`../部署包/jenkins-erp-demo-20261106`（相对 Webuddy 仓库）。`erp/` 是独立源码副本；`git/` 是初始种子；实际远端在 `webuddy-demo-git-data` 卷；`jenkins/` 保存任务和构建记录；`proof/` 保存运行回执。`private/` 保存本机生成的演示凭据和CA，禁止提交、截图或发到聊天。
+
+- Jenkins：<https://127.0.0.1:18443/job/erp-verification/>。本地CA需安装到访问者信任库；API通过指定CA严格验证。也可本机访问 <http://127.0.0.1:18080/>。仅绑定回环，不是客户可公网访问的地址。
+- Git：`ssh://git@127.0.0.1:12222/repos/erp.git`，显式主机指纹与专用演示密钥。
+- MySQL/Redis：只在Docker专用网络；无宿主公网端口。
+- Jenkins账号与ERP账号是合成演示身份。默认ERP种子账号不是生产认证配置。
+
+## 已建实例的操作
+
+```sh
+python3 examples/project-testing/jsherp/jenkins-demo/manage.py status
+python3 examples/project-testing/jsherp/jenkins-demo/manage.py start
+```
+
+停止前先检查 Jenkins 没有运行中的构建，再执行 `manage.py stop`。该脚本只操作列出的五个现有容器，不删除卷或重置数据。重启不代表业务验证通过，需查看精确提交的最近构建和报告。
+
+## 源码与测试资产
+
+- `Dockerfile`：固定镜像来源的 Jenkins，Java8用于该ERP，Java21运行控制器，Node/Chromium/Python/MySQL客户端用于构建与实测。插件依赖版本以实际镜像为准，不称任意未来版本均已验证。
+- `Dockerfile.git`、`git-sshd.conf`：专用私有Git服务；禁止密码、root及转发。
+- `init.groovy`：首次初始化合成管理员、只读CI账号、Git凭据与显式主机指纹。已有初始化标记时不覆盖。
+- `Jenkinsfile`：控制侧保存，候选参数只选择完整提交。每次清空专属工作区，再checkout；测试脚本非候选自报结果。
+- `business.py`、`serve.py`、`verify.mjs`：在隔离执行机启动固定JAR、真实数据库接口和Chromium。记录提交/源码差异摘要、JAR与首页摘要、进程身份；执行后清理进程。没有挂载宿主Docker socket。
+- `apply_refund.py` 与 `overlay/`：把明确标注的退款说明演示规则应用到独立ERP源码，不修改Webuddy的模型调用内核。
+- [演示与追问](演示与追问.md)：分轮澄清、独立预期、角色操作与失败分支。
+
+全新机器还需构建镜像、创建隔离网络与卷、生成专用SSH密钥/CA/合成账号、导入公开ERP种子、设置控制器任务及只读连接。本目录不应被描述为已经验证的一键客户安装包；现有实例启动与全新机器安装是两项结论。
+
+## 证据边界
+
+构建成功、测试通过、Leader复核、业务验收、负责人合并和正式发布分别显示。网页/MCP只读交付依据不能代人批准。ERP原有财务过账和库存审核不在本次范围；通过保存/回读不能证明完整财务流程正确。
+
+原始截图不缩放像素、不重新编码压缩。失败构建和失败输入保留。依赖源、锁文件或测试宿主变化需要重新形成证据，不把旧版本成功挪给新版本。
+
+此实例为单人受控演示，构建运行在控制器容器，只使用公开源码和合成凭据，**不是不可信多租户执行隔离方案**。客户接入应使用其已有受限构建节点和凭据管理，不能让任意项目代码读取控制器主目录。演示数据库采用Docker内网明文连接，和该ERP既有JDBC配置一致；Jenkins外部API始终使用校验证书的HTTPS。不能直接把这些演示网络与数据库设置复制为客户生产配置。
+
+## 本次已跑通的入口（2026-11-06）
+
+| 入口 | 用途 |
+|---|---|
+| <http://127.0.0.1:18981/> | 定制ERP，Jenkins #8归档产物，候选4172462 |
+| <http://127.0.0.1:18985/#/t/ERP-1> | Webuddy隔离演示任务、待澄清方案与交付依据下载 |
+| <http://127.0.0.1:18080/job/erp-verification/> | Jenkins原始失败/成功构建、报告和归档 |
+
+这些地址只在当前Mac本机可用。ERP公开种子账号为 `jsh`，演示密码 `123456`；Webuddy为 `demo-owner`，密码读取本机 `private/accounts.json` 的 admin_password；Jenkins管理员账号读取同文件的 admin_user。该文件为本机合成凭据，不提交、不复制到分享材料。外部演示需要另行确定网络访问方式。
+
+Jenkins #7：基线75a9311，原57项JUnit通过，但新增业务检查发现空说明被接受并写库，整体失败。#8：候选4172462，60项JUnit和14条真实业务检查通过；说明校验有新增的3项后端测试。Webuddy通过只读Jenkins账号核对该仓库和完整SHA，得到pass。浏览器另外验证说明字段错误出现与合法值恢复，未提交这张补充检查表单。
+
+Webuddy中的两条运行明确标为 `external:jenkins-import / external_test`，是实际Jenkins回执的历史导入，**不是Webuddy自动执行器从需求到交付的完整运行记录**。网页下载与官方MCP SDK经真实stdio/HTTP读取同样的方案和完整输出，均保持 `current_validity=not_checked`、`ready_to_merge=null`。本次MCP使用隔离实例合成操作令牌和只读客户端；不是客户个人工具连接联调。
+
+任务仍待人回答并确认；没有代人批准、签收或合并。ERP定制由本轮工程实现完成，未记录平台内置模型自动改码的收益。本次没有财务过账、库存审核或跨真实客户系统验证。手机截图保留了原ERP导航抽屉遮挡情况，不称移动端适配完成；演示以桌面为主。
+
+若两个Python演示服务停止，可在安装了本版本Webuddy的Python3.11环境分别运行：
+
+```sh
+python3.11 examples/project-testing/jsherp/jenkins-demo/preview_server.py "<演示根目录>/preview/4172462/dist"
+python3.11 examples/project-testing/jsherp/jenkins-demo/evidence_server.py "<演示根目录>"
+```
+
+ERP后台容器另用 `docker start webuddy-demo-erp` 启动；五个基础容器用 manage.py。不要同时重复启动同一端口。已生成 `erp-demo.bundle` 并通过git bundle verify，可离线保留源码与前后版本；它不包含数据库、Jenkins账号或私钥。
+
+本轮证据：[Jenkins/ERP验证记录](../../../../docs/self-improvement/evidence/jenkins-erp-20261106/README.md)。
+
+Cursor/Claude Code 的本机只读演示MCP配置已生成在 `<演示根目录>/private/cursor-mcp.json`。它调用 `mcp_launcher.py`，令牌只在进程启动时从本机演示凭据读取，不写入配置或源码。已用官方MCP SDK执行这份配置、列工具和读取ERP-1完整交付依据；未自动修改用户现有Cursor配置，也未宣称Cursor桌面人工操作已验证。该配置引用本机MCP虚拟环境，迁移机器需按实际Python位置更新。正式客户接入仍走产品个人工具连接及其授权范围。
+
+## 全过程留痕
+
+从本轮起按 [逐步操作与测试记录](操作留痕.md) 执行：区分Agent命令、自动测试、真人界面操作和业务决定。14步现场人工流程均列出输入、动作、预期及待填记录；未真实执行的不勾选。命令操作使用capture_step.py保存原始stdout/stderr、时间、退出码与摘要。早期没有逐步记录的过程明确标缺失，不根据结果倒填。当前补测见 [本轮留痕回执](../../../../docs/self-improvement/evidence/jenkins-erp-20261106/operation-trace/README.md)。
+
+## 私有仓库全流程演练
+
+现有SSH Git仓库可直接复用，无需把Jenkins当作仓库。[全流程设计与操作](私有仓库全流程演练.md)提供隔离主分支/功能分支、真实基线与候选CI、原始报告下载、Git合并回执及网页/MCP阅读步骤。演练Git合并不等于平台真人复核或业务验收。

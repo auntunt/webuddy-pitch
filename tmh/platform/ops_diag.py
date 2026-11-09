@@ -72,6 +72,29 @@ def _postgres(c: dict, sql: str):
     return (rows[0] if rows else []), rows[1:]
 
 
+def tables(c: dict) -> list:
+    """What can be queried, so the person filling in the query box sees the real table and column names."""
+    try:
+        if c.get("kind") == "sqlite":
+            db = sqlite3.connect(f"file:{Path(c['path']).resolve()}?mode=ro", uri=True, timeout=2)
+            try:
+                names = [r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name NOT LIKE 'sqlite_%' ORDER BY name LIMIT 30")]
+                return [{"name": n, "columns": [r[0] for r in db.execute("SELECT name FROM pragma_table_info(?)", (n,))][:40]} for n in names]
+            finally:
+                db.close()
+        if c.get("kind") == "postgres":
+            _, rows = _postgres(c, "SELECT table_name, column_name FROM information_schema.columns WHERE table_schema NOT IN "
+                                      "('pg_catalog','information_schema') ORDER BY table_name, ordinal_position")
+            out: dict = {}
+            for name, col in rows:
+                if name in out or len(out) < 30:
+                    out.setdefault(name, []).append(col)
+            return [{"name": n, "columns": v[:40]} for n, v in out.items()]
+    except (sqlite3.Error, ValueError, OSError, subprocess.SubprocessError):
+        return []
+    return []
+
+
 def query(P, t: dict, sql: str, by: str) -> dict:
     project = t["key"].rsplit("-", 1)[0]
     c = source(P.data_dir, project)
@@ -120,7 +143,7 @@ def look(P, t: dict) -> dict:
                 "kind": by_id[h["key"]].get("kind", "")} for h in hits]
     ev = P.store.events(t["id"])
     c = source(P.data_dir, project)
-    return {"datasource": {"kind": c["kind"]} if c else None, "tickets": tickets, "lessons": lessons,
+    return {"datasource": {"kind": c["kind"], "tables": tables(c)} if c else None, "tickets": tickets, "lessons": lessons,
             "queries": [dict(e["data"] or {}, ts=e["ts"], by=e["author"], text=e["body"]) for e in ev if e["kind"] == "ops_query"][-20:],
             "conclusion": next((dict(e["data"] or {}, ts=e["ts"], by=e["author"], text=e["body"]) for e in reversed(ev) if e["kind"] == "ops_conclusion"), None),
             "causes": CAUSES}

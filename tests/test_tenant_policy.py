@@ -75,17 +75,37 @@ class TenantPolicyTest(unittest.TestCase):
         self.assertIn(caught.exception.code, (401, 403, 404))
         self.assertEqual(dump_store(self.store), before)
 
+    def test_external_requirement_sync_is_project_scoped_content_only(self):
+        path='/api/projects/ALPHA/external-requirements'
+        self.auth(path,method='POST',actor='bob')
+        self.denied(path,method='POST',actor='reader')
+        self.denied(path,method='POST',actor='outsider')
+        self.context.people['bob']['project_grants']={}
+        self.denied(path,method='POST',actor='bob')
+
+    def test_saved_maps_require_current_project_content_permission(self):
+        path='/api/projects/ALPHA/maps'
+        self.auth(path,actor='reader')
+        self.auth(path,method='POST',actor='bob')
+        self.denied(path,method='POST',actor='reader')
+        self.denied(path,actor='outsider')
+        self.denied(path,method='POST',actor='outsider')
+        self.context.people['bob']['project_grants']={}
+        self.denied(path,method='POST',actor='bob')
+
     def test_inventory_is_exact_and_every_entry_matches(self):
         from tmh.platform import server
-        tree = ast.parse(Path(server.__file__).read_text(encoding="utf-8"))
         actual = set()
-        for node in tree.body:
-            if isinstance(node, ast.FunctionDef):
-                for item in node.decorator_list:
-                    if isinstance(item, ast.Call) and isinstance(item.func, ast.Name) and item.func.id == "route":
-                        actual.add(tuple(ast.literal_eval(arg) for arg in item.args))
+        for source in [Path(server.__file__), *sorted((Path(server.__file__).parent / "api").glob("*.py"))]:
+            tree = ast.parse(source.read_text(encoding="utf-8"))
+            for node in tree.body:
+                if isinstance(node, ast.FunctionDef):
+                    for item in node.decorator_list:
+                        if isinstance(item, ast.Call) and isinstance(item.func, ast.Name) and item.func.id == "route":
+                            actual.add(tuple(ast.literal_eval(arg) for arg in item.args))
         self.assertEqual(actual, policy.API_ROUTES)
-        self.assertEqual(len(actual), 193)  # Original 167 + four personal trial routes + project mode and rollback + code repository and team group + Git/zip import + statecharts and their renderer + page check + production release requests + run steering + systems.
+        self.assertEqual(len(actual), 219)  # Includes explicit map GET and POST routes.
+        self.assertTrue({('GET','/api/projects/<key>/maps'),('POST','/api/projects/<key>/maps')}.issubset(actual))
         import re
         for method, template in actual:
             with self.subTest(method=method, template=template):
@@ -93,6 +113,13 @@ class TenantPolicyTest(unittest.TestCase):
                 self.assertEqual(policy._match(method, path)[0], template)
         from tmh.agent_contract import SPECS
         self.assertEqual(set(SPECS), policy.AGENT_OPERATIONS)
+
+    def test_delivery_packet_uses_ticket_project_scope_and_read_permission(self):
+        for actor in ('alice','bob','reader'):
+            self.auth('/api/tickets/ALPHA-1/delivery', actor=actor)
+        self.denied('/api/tickets/BETA-1/delivery', actor='alice')
+        self.denied('/api/tickets/ALPHA-1/delivery', actor='outsider')
+        self.denied('/api/tickets/ALPHA-1/delivery', actor='alice', method='POST')
 
     def test_unknown_routes_and_methods_deny_even_platform_owner(self):
         for path, method in (("/api/new-admin-feature", "POST"), ("/api/projects/ALPHA", "DELETE"),
@@ -123,12 +150,28 @@ class TenantPolicyTest(unittest.TestCase):
         self.assertEqual(scope["authz_revision"], 2)
 
     def test_global_aggregates_are_not_enabled_by_fake_project_filters(self):
+        platform_owner_only = ("/api/agent-scan", "/api/agent-test")
         for path in policy.ADMIN_GLOBAL:
             with self.subTest(path=path):
                 self.denied(path, query={"project": ["ALPHA"]})
-                self.auth(path, actor="admin")
+                if path in platform_owner_only:
+                    self.denied(path, actor="admin")
+                else:
+                    self.auth(path, actor="admin")
         self.denied("/api/stats")
         self.auth("/api/stats", query={"project": ["ALPHA"]})
+
+    def test_all_project_boards_require_authorized_aggregation(self):
+        for path in ("/api/projects/*/loop", "/api/projects/all/inbox"):
+            with self.subTest(path=path):
+                for actor in ("alice", "reader"):
+                    scope = self.auth(path, actor=actor)
+                    self.assertTrue(scope["filter_required"])
+                    self.assertEqual(scope["allowed_project_keys"], ["ALPHA"])
+                self.auth(path, actor="admin")
+        self.auth("/api/projects/ALPHA/loop")
+        self.denied("/api/projects/BETA/loop")
+        self.denied("/api/projects/*/catchup", actor="admin", method="POST")
 
     def test_direct_and_nested_resource_ids_use_the_same_tenant_store(self):
         for kind, ident in (("tickets", "BETA-1"), ("runs", self.runs["BETA"]["id"])):
@@ -149,8 +192,39 @@ class TenantPolicyTest(unittest.TestCase):
                 self.auth(path, actor="admin", query=query, body=body, method=method)
             self.assertEqual(caught.exception.code, 400)
 
+    def test_knowledge_catalog_filters_before_merge_count_and_project_picker(self):
+        from tmh.platform import memory, server
+        for key, project in self.projects.items():
+            folder = Path(project['root']) / '.tmh' / 'knowledge'
+            folder.mkdir(parents=True)
+            (folder / 'decisions.md').write_text('- 共享标题：' + key + ' confidential rule\n')
+        # Include a private lesson from the unreadable project, too.
+        (self.P.data_dir / 'lessons.jsonl').write_text(json.dumps({
+            'id': 'secret', 'project': 'BETA', 'status': 'active',
+            'symptom': 'private BETA', 'fix': 'hidden lesson'}) + '\n')
+        for actor in ('alice', 'reader'):
+            self.auth('/api/org/knowledge', actor=actor)
+            self.auth('/api/memory', actor=actor)
+            req = SimpleNamespace(user=actor, arg=lambda key: '')
+            result = server.api_org_knowledge(self.P, req)
+            self.assertEqual(result['count'], 1)
+            self.assertEqual(result['returned'], 1)
+            self.assertEqual(result['provenance_projects'], ['ALPHA'])
+            self.assertNotIn('BETA', json.dumps(result))
+            result = memory.dispatch_read(self.P, {'section': 'knowledge'}, actor)
+            self.assertEqual([p['key'] for p in result['projects']], ['ALPHA'])
+            self.assertNotIn('BETA', json.dumps(result))
+            with self.assertRaises(ApiError):
+                memory.dispatch_read(self.P, {'project': 'BETA'}, actor)
+        self.context.people['alice']['project_grants'] = {}
+        result = server.api_org_knowledge(self.P, SimpleNamespace(user='alice', arg=lambda key: ''))
+        self.assertEqual(result['count'], 0)
+        self.assertEqual(result['projects'], [])
+        self.assertEqual(memory.dispatch_read(self.P, {}, 'alice')['projects'], [])
+
     def test_memory_and_client_links_do_not_trust_a_project_selector(self):
-        self.denied("/api/memory", query={"project": ["ALPHA"]})
+        self.auth("/api/memory", query={"project": ["ALPHA"]})
+        self.denied("/api/memory", query={"project": ["BETA"]})
         self.auth("/api/memory", actor="admin", query={"project": ["ALPHA"]})
         for fields in ({"client": 1}, {"client_name": "foreign client"}):
             self.denied("/api/workbench/intake", method="POST", body={"project": "ALPHA", "model": False, **fields})
@@ -378,6 +452,112 @@ class TenantPolicyTest(unittest.TestCase):
         self.assertEqual(len(policy.visible_projects(self.P, "")), 2)
         self.assertTrue(self.auth("/legacy-unregistered", actor="", method="POST")["legacy"])
         policy.require_execution(self.P, "")
+
+
+    def test_agent_settings_read_cannot_be_widened_by_scope(self):
+        for query in ({},{'project':['ALPHA']},{'project':['*']},{'scope':['ALPHA']}):
+            for actor in ('alice','reader','outsider'):
+                self.denied('/api/agent-settings',actor=actor,query=query)
+            self.auth('/api/agent-settings',actor='admin',query=query)
+        self.denied('/api/today',query={'project':['ALPHA']})
+
+    def test_executor_and_listening_config_is_platform_owner_only(self):
+        for method, path in (("GET", "/api/access-config"), ("POST", "/api/access-config"),
+                             ("GET", "/api/agent-scan"), ("POST", "/api/agent-test")):
+            self.denied(path, method=method, actor="bob")
+            self.denied(path, method=method, actor="reader")
+        self.auth("/api/access-config", actor="admin")
+        for method, path in (("POST", "/api/access-config"), ("GET", "/api/agent-scan"), ("POST", "/api/agent-test")):
+            self.denied(path, method=method, actor="admin")
+        self.context.tenant_id = "default"
+        self.auth("/api/access-config", actor="owner")
+        self.auth("/api/agent-scan", actor="owner")
+        self.auth("/api/agent-test", method="POST", actor="owner")
+
+    def test_candidate_report_resolve_and_gate_ack_follow_tool_scopes_and_project_visibility(self):
+        from tmh.platform import candidates
+        candidates.schema(self.store)
+        alpha = self.tickets["ALPHA"]
+        self.store.x("INSERT INTO code_candidates(ticket_id,run_id,agent,base_commit,commit_sha,requirement_hash,configuration_hash,criteria,summary,fingerprint,ref,artifact_dir,created) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                     (alpha["id"], self.runs["ALPHA"]["id"], "agent:writer", "a" * 40, "b" * 40, "r", "c", "[]", "s", "f1", "refs/x", "/tmp/x", "2026-11-10 00:00:00"))
+        cid = self.store.one("SELECT id FROM code_candidates WHERE ticket_id=?", (alpha["id"],))["id"]
+        def tool(actor, scope):
+            return dict(policy.identity(self.P, actor), tool_connection={"scope": scope})
+        ack = {"candidate_id": cid, "reason": "reviewed", "request_id": "ack-1"}
+        with self.assertRaises(ApiError) as caught:
+            policy._agent(self.P, tool("owner", "develop"), "candidate_gate_ack", ack)
+        self.assertEqual(caught.exception.code, 403)
+        report = {"candidate_id": cid, "export_id": "a" * 64}
+        with self.assertRaises(ApiError) as caught:
+            policy._agent(self.P, tool("outsider", "read"), "candidate_report_get", report)
+        self.assertEqual(caught.exception.code, 403)
+        with self.assertRaises(ApiError) as caught:
+            policy._agent(self.P, tool("bob", "read"), "candidate_report_create", {"candidate_id": cid, "request_id": "rc-1"})
+        self.assertEqual(caught.exception.code, 403)
+        projects = policy._agent(self.P, tool("bob", "read"), "candidate_report_get", report)
+        self.assertEqual([p["key"] for p in projects], ["ALPHA"])
+        with self.assertRaises(ApiError) as caught:
+            policy._agent(self.P, tool("bob", "develop"), "candidate_resolve", {"ticket": alpha["key"], "base": "main", "commit": "main"})
+        self.assertEqual(caught.exception.code, 403)
+
+    def test_candidate_resolve_and_report_actions_are_ungated_and_project_scoped(self):
+        from tmh.platform import candidates
+        candidates.schema(self.store)
+        alpha = self.tickets["ALPHA"]
+        self.store.x("INSERT INTO code_candidates(ticket_id,run_id,agent,base_commit,commit_sha,requirement_hash,configuration_hash,criteria,summary,fingerprint,ref,artifact_dir,created) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                     (alpha["id"], self.runs["ALPHA"]["id"], "agent:writer", "a" * 40, "b" * 40, "r", "c", "[]", "s", "f2", "refs/y", "/tmp/y", "2026-11-10 00:00:00"))
+        cid = self.store.one("SELECT id FROM code_candidates WHERE ticket_id=?", (alpha["id"],))["id"]
+        def team(action, actor, **extra):
+            return self.auth("/api/team", method="POST", actor=actor, body=dict({"ticket": "ALPHA-1", "action": action, "request_id": "r-" + action}, **extra))
+        self.assertEqual(self.context.tenant_id, "customer")
+        self.context.people["watcher"] = {"role": "member", "project_grants": {"ALPHA": "viewer"}}
+        for actor in ("watcher", "bob", "alice"):
+            team("candidate_resolve", actor, base="main", commit="main")
+            team("candidate_report_get", actor, candidate_id=cid, export_id="a" * 64)
+        self.denied("/api/team", method="POST", actor="outsider", body={"ticket": "ALPHA-1", "action": "candidate_resolve", "base": "main", "commit": "main", "request_id": "r-o"})
+        self.denied("/api/team", method="POST", actor="outsider", body={"ticket": "ALPHA-1", "action": "candidate_report_get", "candidate_id": cid, "export_id": "a" * 64, "request_id": "r-o2"})
+        team("candidate_report_create", "bob", candidate_id=cid)
+        self.denied("/api/team", method="POST", actor="watcher", body={"ticket": "ALPHA-1", "action": "candidate_report_create", "request_id": "r-rc"})
+        self.denied("/api/team", method="POST", actor="reader", body={"ticket": "ALPHA-1", "action": "candidate_resolve", "base": "main", "commit": "main", "request_id": "r-rv"})
+        self.denied("/api/team", method="POST", actor="outsider", body={"ticket": "ALPHA-1", "action": "candidate_report_create", "request_id": "r-oc"})
+
+    def test_static_next_shell_is_read_only_for_tenant_members_only(self):
+        for actor in ("alice", "bob", "reader", "outsider", "owner"):
+            for path in ("/next", "/next/", "/next/p/ALPHA/verify", "/next/assets/index-abc.js"):
+                with self.subTest(actor=actor, path=path):
+                    self.assertEqual(self.auth(path, actor=actor)["route"], "/next" if path == "/next" else "/next/<path>")
+        for path in ("/next/p/ALPHA/verify", "/next/assets/index-abc.js"):
+            self.denied(path, actor="not-a-member")
+            self.denied(path, actor="")
+            self.denied(path, actor="alice", method="POST", body={"x": 1})
+        self.denied("/next/", actor="alice", method="PUT")
+
+    def test_candidate_resolve_dispatch_only_runs_rev_parse(self):
+        from unittest import mock
+        from tmh.platform import candidates, team
+        calls = []
+        def fake_git(root, *args):
+            calls.append(args)
+            return "c" * 40 + "\n"
+        with mock.patch.object(candidates, "_git", fake_git), \
+             mock.patch.object(team, "_request", side_effect=AssertionError("read must not write a receipt")), \
+             mock.patch.object(team, "_guard", side_effect=AssertionError("read must not take the ticket lock")):
+            self.context.people["watcher"] = {"role": "member", "project_grants": {"ALPHA": "viewer"}}
+            result = team.dispatch_action(self.P, {"ticket": "ALPHA-1", "action": "candidate_resolve", "base": "main", "commit": "main", "request_id": "r-d"}, "watcher")
+        self.assertTrue(result["result"]["base"]["resolved"])
+        self.assertEqual([c[0] for c in calls], ["rev-parse", "rev-parse"])
+        self.assertTrue(all("--verify" in c for c in calls))
+        self.assertEqual(self.store.one("SELECT COUNT(*) AS n FROM team_requests")["n"] if self.store.one("SELECT name FROM sqlite_master WHERE type='table' AND name='team_requests'") else 0, 0)
+
+    def test_entries_detect_is_project_scoped_and_execution_gated(self):
+        path = "/api/projects/ALPHA/entries/detect"
+        self.assertNotIn(("/api/projects/<key>/entries/detect"), policy.SAFE_POSTS)
+        self.denied(path, method="POST", actor="reader")
+        self.denied(path, method="POST", actor="outsider")
+        self.denied(path, method="POST", actor="bob")
+        self.context.tenant_id = "default"
+        self.denied(path, method="POST", actor="bob")
+        self.auth(path, method="POST", actor="owner")
 
 
 if __name__ == "__main__":

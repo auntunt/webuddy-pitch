@@ -1,0 +1,181 @@
+# 复制到项目 WORK 目录后填写。unknown 是待确认信息；不得把模板当作实测记录。
+# 不存放密码、令牌、完整连接串或敏感业务数据。多个目标元组分别建文件。
+schema_version: 1
+project: unknown
+contract_revision: unknown
+source_revision: unknown
+last_updated: unknown
+scope:
+  application_components: []
+  adaptation_layers: []
+  language_rewrite_required: unknown
+  language_rewrite_reason: unknown
+  excluded_components: []
+  contractual_behavior_reference: unknown
+  approved_requirements_reference: unknown
+source:
+  cpu:
+    vendor: unknown
+    model: unknown
+    isa: unknown
+    bitness: unknown
+    endianness: unknown
+  os:
+    vendor: unknown
+    product: unknown
+    edition: unknown
+    version: unknown
+    service_pack_or_patch: unknown
+    kernel: unknown
+    libc: unknown
+  runtimes: []
+  application_server:
+    applicability: unknown
+    product: unknown
+    edition: unknown
+    version_and_patch: unknown
+    ee_specification: unknown
+    servlet_version: unknown
+  database:
+    applicability: unknown
+    product: unknown
+    edition: unknown
+    version_and_patch: unknown
+    compatibility_mode: unknown
+    charset: unknown
+    collation: unknown
+    timezone: unknown
+    driver_version: unknown
+  baseline_evidence: []
+target:
+  cpu:
+    vendor: unknown
+    model: unknown
+    isa: unknown
+    bitness: unknown
+    endianness: unknown
+    required_instruction_extensions: []
+    actual_probe_evidence: unknown
+  os:
+    vendor: unknown
+    product: unknown
+    edition: unknown
+    version: unknown
+    service_pack_or_patch: unknown
+    kernel: unknown
+    libc: unknown
+    package_manager: unknown
+    security_policy: unknown
+  # 非 Java 项目同样适用；按实际语言填写并可增加运行时条目。
+  runtimes:
+    - language: unknown
+      applicability: unknown
+      distribution: unknown
+      full_version: unknown
+      build: unknown
+      architecture: unknown
+      artifact_hash: unknown
+      native_dependencies: []
+  java:
+    applicability: unknown
+    not_applicable_reason: unknown
+    distribution: unknown
+    full_version: unknown
+    build: unknown
+    architecture: unknown
+    compile_release: unknown
+    jvm_options_reference: unknown
+    truststore_reference: unknown
+  application_server:
+    applicability: unknown
+    not_applicable_reason: unknown
+    vendor: unknown
+    product: unknown
+    edition: unknown
+    version_and_patch: unknown
+    ee_specification: unknown
+    servlet_version: unknown
+    deployment_format: unknown
+    classloader_configuration: unknown
+  database:
+    applicability: unknown
+    not_applicable_reason: unknown
+    vendor: unknown
+    product: unknown
+    edition: unknown
+    version_and_patch: unknown
+    compatibility_mode: unknown
+    charset: unknown
+    collation: unknown
+    timezone: unknown
+    identifier_case_rules: unknown
+    isolation_level: unknown
+    key_configuration_reference: unknown
+    driver:
+      type: unknown
+      vendor: unknown
+      artifact_coordinates_or_filename: unknown
+      full_version: unknown
+      checksum_sha256: unknown
+      required_runtime: unknown
+      native_architecture: unknown
+      support_matrix_reference: unknown
+  middleware: []
+  native_components: []
+  # 字体、打印机、报表、OCR、加密设备等按实际型号/版本/授权逐项登记。
+  desktop_and_device_components: []
+requirements:
+  performance_slo_reference: unknown
+  availability_slo_reference: unknown
+  rpo: unknown
+  rto: unknown
+  offline_required: unknown
+  security_requirements_reference: unknown
+  cryptography_requirements: unknown
+  official_certification_required: unknown
+  certification_scope_and_evidence: unknown
+  # 工程测试通过不是认证证书；unknown 不能自动视为无认证要求。
+offline_delivery:
+  artifact_manifest_reference: unknown
+  dependency_or_sbom_reference: unknown
+  source_and_license_evidence: unknown
+  checksums_reference: unknown
+  architecture_verified: unknown
+  activation_and_internal_services_plan: unknown
+  disconnected_installation_status: not-run
+  disconnected_installation_evidence: []
+validation:
+  real_target_available: unknown
+  native_target_verified: false
+  environment_tuple_matches_contract: unknown
+  evidence_revision: unknown
+  core_business_acceptance: not-run
+  database_parity: not-run
+  performance_acceptance: not-run
+  permissions_acceptance: not-run
+  recovery_rehearsal: not-run
+  new_write_rollback_rehearsal: not-run
+  required_test_cases_reference: unknown
+  evidence: []
+  not_applicable_decisions: []
+  # 不适用决定应包含项目、理由、证据和责任人；不可用不等于不适用。
+cutover:
+  production_authorization_reference: unknown
+  readiness: blocked
+  active_writer_before_cutover: unknown
+  write_freeze_window: unknown
+  final_incremental_position: unknown
+  new_write_recovery_method: unknown
+  rollback_trigger_reference: unknown
+  runbook_reference: unknown
+  blockers:
+    - Exact target tuple has not been verified
+    - Required real-target acceptance and recovery tests have not run
+checkpoint:
+  current_phase: unknown
+  completed_batches: []
+  current_batch: unknown
+  next_batch: unknown
+  blockers: []
+  status_file: migration-status.md
+  evidence_log: "待填写平台运行与操作回执引用"

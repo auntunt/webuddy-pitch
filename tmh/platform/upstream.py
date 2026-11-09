@@ -99,7 +99,7 @@ def draft(P, t: dict, by: str, title: str, body: str, head: str, base: str) -> d
     d = {"repo": up["repo"], "title": (title or "").strip()[:200], "body": (body or "").strip()[:20000],
          "head": (head or "").strip(), "base": (base or "").strip() or "trunk"}
     if not d["title"] or not d["head"]:
-        raise ApiError(400, "PR 要有标题和分支（head，如 auntunt:fix-order-permission）")
+        raise ApiError(400, "PR 要有标题和分支（head，如 owner:fix-order-permission）")
     d["hash"] = _draft_hash(d)
     st = load(P.data_dir, t["key"])
     st.update({"draft": d, "approved": None, "state": "draft"})

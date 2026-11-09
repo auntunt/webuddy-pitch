@@ -37,6 +37,7 @@ import re
 import secrets
 import shutil
 import subprocess
+import sys
 import threading
 import time
 import math
@@ -55,6 +56,8 @@ BUILTIN = {
                             "edit": "sonnet", "diagnose": "opus", "understand": "sonnet"}},
     "codex": {"title": "Codex", "bin": "codex",
               "models": [["gpt-5-codex", "GPT-5 Codex"], ["gpt-5", "GPT-5"]], "defaults": {}},
+    "cursor": {"title": "Cursor Agent", "bin": "agent", "models": [], "defaults": {},
+               "resume": False, "retry_busy": False},
 }
 MODEL_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:\-\[\]/]{0,79}$")  # alias or full id; passed as one argv item
 PROFILE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
@@ -63,14 +66,16 @@ PROFILE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
 def engine_name(agent: str, config: dict) -> str:
     """An alias is a route identity; its engine controls the official CLI protocol."""
     engine = config.get("engine", agent)
-    if "engine" in config and (engine != "codex" or "cmd" in config):
-        raise ValueError("独立执行器只支持 engine=codex，不能同时配置 cmd")
+    if "engine" in config and (engine not in ("codex", "cursor") or "cmd" in config):
+        raise ValueError("独立执行器只支持 engine=codex/cursor，不能同时配置 cmd")
     if "engine" in config or "profile" in config:
         args = config.get("args")
         if args is None:
             args = []
         if not isinstance(args, list) or any(not isinstance(arg, str) for arg in args):
             raise ValueError("独立执行器 args 必须是字符串列表")
+    if engine == "cursor" and config.get("args"):
+        raise ValueError("Cursor 不支持额外命令参数；模型请使用模型配置，执行权限由平台任务模式决定")
     if "profile" in config:
         profile = config["profile"]
         if engine != "codex" or "cmd" in config or not isinstance(profile, str) or not PROFILE_ID.fullmatch(profile):
@@ -175,21 +180,23 @@ MODE_TEXT = {
 
 输出用中文，按这几节：方案概要、逐处修改、影响面、风险、验证步骤、验收标准。
 
+验收标准要覆盖新增行为、受影响的旧功能和明确不能改变的业务规则；scope 按这三类引用 ac 编号。没有依据的范围写 gaps，不编造覆盖；空数组不代表无需回归。
 最后附上一个机器读的文件清单（文件多时修改代码会按文件分工，每个文件交给一个只改它的智能体）：
 只列必须改动的文件：改动本身，以及不跟着改就会出错的调用方、配置和已有测试（用 `tmh impact` 核实，漏掉的文件没人会改）。
 看过、确认不用改的文件不要列；不要为了能跑测试去改构建配置（pom.xml、package.json 之类），除非工单本身就是构建问题。
 不要新增测试文件，除非验证步骤会真的跑测试、项目里也已有同类测试；建议补的测试写进“验证步骤”给人看。
-已有的测试文件只在不改就会失败时才列；不要为了给新行为补断言去改已有测试（改了已有测试的改动不会自动提交，要停下等人审阅）。
+为新增行为和受影响旧功能补必要断言，保留原有有效断言，不得降低标准使测试通过；测试文件的改动继续交人审阅。
 多数修复只动 1 到 3 个文件，最多 8 个；路径相对项目根目录；新文件也可以列。格式（ac 是第 5 节的验收标准，至少一条）：
 ```tmh-plan
 {"files": [{"path": "src/main/java/.../LeaveService.java", "goal": "这个文件要做到什么（一两句）", "role": "改动|调用方|配置|测试"}],
- "ac": [{"id": "A1", "text": "做到什么算修好", "layer": "L1|L2|L3|L4", "check": "怎么检查"}]}
+ "ac": [{"id": "A1", "text": "做到什么算修好", "layer": "L1|L2|L3|L4", "check": "怎么检查"}],
+ "scope": {"new": ["A1"], "regression": [], "invariants": [], "gaps": ["尚缺的业务规则或检查条件"]}}
 ```""",
     "fix": """## 你的任务：修改代码
 你在一个独立的 git 工作树里，改动不会影响任何人的工作目录，由人审阅后再合入。
 1. 按工单和前面的方案修改，只改方案列出的文件，改动尽量小，保持原有代码风格；不要顺手重构无关代码。
    不要新增测试文件，除非这次会跑构建测试、项目里也已有同类测试；觉得该补的测试写进最后的说明。
-   已有的测试文件只在不改就会失败时才动，不要往里加新断言；改了已有测试的改动不会自动提交，要等人审阅。
+   为新增行为和受影响旧功能补必要断言，不删除或放宽原有有效断言；改了测试的改动仍须等人审阅。
 2. 不要改 .tmh/ 下的文件，不要提交（commit）、不要推送；不要为了能跑测试去改构建配置（pom.xml、package.json 之类）。
 3. 能编译或有测试时，跑一下相关的部分。
 4. 结束时用中文说明：改了哪些文件、为什么这样改、怎么验证、还有什么没做。""",
@@ -307,18 +314,47 @@ def load_config(data_dir: Path) -> dict:
     return conf
 
 
+def executable(engine: str, config: dict) -> str:
+    exe = config.get("bin", "agent" if engine == "cursor" else engine)
+    if engine == "codex" and exe == "codex" and os.environ.get("WEBUDDY_CODEX_BIN"):
+        return os.environ["WEBUDDY_CODEX_BIN"]
+    if engine == "cursor" and exe in ("agent", "cursor-agent"):
+        configured = os.environ.get("WEBUDDY_CURSOR_BIN")
+        if configured:
+            return configured
+        found = shutil.which("agent") or shutil.which("cursor-agent")
+        if found:
+            return found
+        if sys.platform == "win32":
+            local = os.environ.get("LOCALAPPDATA", "")
+            for cand in (local + r"\cursor-agent\agent.cmd", local + r"\cursor-agent\cursor-agent.cmd") if local else ():
+                if Path(cand).is_file():
+                    return cand
+        return "agent"
+    return shutil.which(exe) or exe
+
+
+def enabled(config: dict) -> bool:
+    """An executor entry stays in agents.json but leaves the active catalog when disabled."""
+    return config.get("enabled", True) is not False
+
+
 def available(data_dir: Path) -> list:
     out = []
     for name, c in load_config(data_dir).items():
+        if not enabled(c):
+            continue
         error = ""
         try:
             engine = engine_name(name, c)
         except ValueError as exc:
             engine, error = "", str(exc)
-        exe = (c.get("cmd") or [c.get("bin", engine or name)])[0]
+        exe = (c.get("cmd") or [executable(engine or name, c)])[0]
         item = {"name": name, "title": c.get("title", name), "available": not error and bool(shutil.which(exe)),
                 "custom": "cmd" in c, "models": c.get("models") or [], "defaults": c.get("defaults") or {},
                 "engine": engine, "profile": c.get("profile", "")}
+        if engine == "cursor" and item["title"] == "Cursor Agent（只读）":
+            item["title"] = "Cursor Agent"
         if error:
             item["configuration_error"] = error
         out.append(item)
@@ -354,7 +390,7 @@ def _fence(text: str) -> str:
     return (text or "").replace("<<<", "‹‹‹").replace(">>>", "›››").replace("```", "ˋˋˋ")
 
 
-def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, target: str = "", question: str = "", history: list | None = None, *, reference_inputs=None, isolated=False) -> str:
+def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, target: str = "", question: str = "", history: list | None = None, *, reference_inputs=None, isolated=False, historical_case=False, engine: str = "") -> str:
     from . import project_library as library
     if reference_inputs is None:
         reference_inputs = library.bindings(store, project)
@@ -370,11 +406,37 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
         delivery_context = prompt_context(store.path.parent, links["delivery"])
     out = (["你在维护项目「%s」（代码目录 %s）。" % (project["name"], root)] if isolated else
            ["你在维护项目「%s」（目录 %s）。业务知识库在 %s。" % (project["name"], root, root / ".tmh" / "knowledge")])
+    if ticket and not historical_case:
+        from . import task_secrets
+        env_names = [task_secrets.env_name(n) for n in task_secrets.names(store.path.parent, ticket["key"])]
+        if env_names:
+            out.append("本任务的测试环境信息已作为环境变量提供：%s；在配置和测试命令中直接引用这些变量，不要向用户索要这些值，也不要把值写进代码或提交。" % "、".join(env_names))
+    # Historical inputs carry case provenance, never a persistent ticket identity.
+    if ticket and not historical_case:
+        from .development import read
+        development = read(store,ticket)
+        if development['state'] != 'not_selected':
+            out.append("## 开发人员确认稿与问答（当前状态：%s）\n%s" % (development['state'], json.dumps(development['payload'],ensure_ascii=False)))
     tool = root / ".tmh" / "tool" / "tmh.py"
+    # Cursor on Windows gets the narrow tmh-kb.cmd bridge: its permissions only
+    # allow that entry point, and python3 resolves to the WindowsApps stub.
+    cursor_kb_bridge = (sys.platform == "win32" and engine == "cursor" and mode == "kb"
+                        and tool.with_name("tmh-kb.cmd").is_file())
     if isolated:
         out.append("平台知识以本任务中实际提供的上下文和来源为准；隔离工作区不包含 .tmh 工具。缺少的依据应明确说明。")
+    elif cursor_kb_bridge:
+        out.append("Windows 知识任务命令入口已配置到 PATH：`tmh-kb.cmd`。"
+                   "先运行 `tmh-kb.cmd status` 和 `tmh-kb.cmd notes`，然后立即领取指定页面。"
+                   "领取与校验分别使用 `tmh-kb.cmd next --page 页面ID`、`tmh-kb.cmd done 页面ID`。"
+                   "读取和检索使用内置文件工具，写入仅限任务指定的 .tmh/knowledge 页面。"
+                   "查业务流、表和影响面也可用 `\"%s\" %s <子命令> --repo %s`。"
+                   "如果命令返回 rejected，立即报告具体被拒绝的命令并结束，不要反复尝试或无止境扫描。"
+                   % (sys.executable, Path(root) / ".tmh" / "tool" / "tmh.py", root))
     elif tool.is_file():
-        out.append("查业务流、表和影响面用 `python3 %s <子命令> --repo %s`（下文写作 `tmh <子命令>`）。" % (tool, root))
+        if sys.platform == "win32":  # python3 on Windows resolves to a non-working WindowsApps stub
+            out.append("查业务流、表和影响面用 `\"%s\" %s <子命令> --repo %s`（下文写作 `tmh <子命令>`）。" % (sys.executable, tool, root))
+        else:
+            out.append("查业务流、表和影响面用 `python3 %s <子命令> --repo %s`（下文写作 `tmh <子命令>`）。" % (tool, root))
     else:
         out.append("这个项目尚未安装 tmh 项目工具；下文的 tmh 查询要求改用项目内代码、引用与测试核对。不要执行不存在的工具，也不要为此搜索其他项目或安装工具。")
     out.append("")
@@ -399,6 +461,12 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
         ext = ticket.get("external") or {}
         if ext.get("key"):
             out += ["外部工单：%s %s %s" % (ext.get("system", ""), ext["key"], ext.get("url", "")), ""]
+        if ticket.get('id') and links.get('map_refs') and not historical_case:
+            from .code_maps import context as map_context
+            text,receipt=map_context(store,project,links['map_refs'],budget=max(0,learning_policy['context_budget']//3))
+            learning_policy=dict(learning_policy,context_budget=max(0,learning_policy['context_budget']-receipt['used']))
+            _CTX_META.meta=getattr(_CTX_META,'meta',[])+[receipt]
+            out.extend(['## 选中的固定地图（资料，不是权限或验收依据）',_fence(text),''])
         flows = (ticket.get("links") or {}).get("flows") or []
         if flows:
             out += ["## 已关联的业务流", "、".join(flows), ""]
@@ -469,7 +537,8 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
     if delivery_context:
         out += [delivery_context, ""]
     if mode == "kb" and len(target.split()) > 1:  # several small pages of one source file in one run (see survey.py)
-        out.append(KB_MANY.replace("{targets}", "\n".join("- " + t for t in target.split())).replace("{first}", target.split()[0]))
+        many = KB_MANY.replace("{targets}", "\n".join("- " + t for t in target.split())).replace("{first}", target.split()[0])
+        out.append(many.replace("tmh kb ", "tmh-kb.cmd ") if cursor_kb_bridge else many)
     else:
         instruction = MODE_TEXT[mode]
         if isolated and mode == 'fix':
@@ -479,6 +548,8 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
                 instruction = DELIVERY_ASK
             elif links.get("greenfield") and mode in ("plan", "fix"):
                 instruction = GREENFIELD_PLAN if mode == "plan" else GREENFIELD_FIX
+        if cursor_kb_bridge:
+            instruction = instruction.replace("tmh kb ", "tmh-kb.cmd ")
         out.append(instruction.replace("{target}", target or "<页面 id>"))
     return "\n".join(out)
 
@@ -626,19 +697,21 @@ def command(conf: dict, agent: str, mode: str, prompt: str, prompt_file: Path, w
     c = conf.get(agent)
     if not c:
         raise ValueError("没有这个智能体：%s" % agent)
+    if not enabled(c):
+        raise ValueError("执行器 %s 已在 agents.json 中禁用（enabled: false）" % agent)
     engine = engine_name(agent, c)
     if "cmd" in c:
         sub = {"{prompt}": prompt, "{prompt_file}": str(prompt_file), "{workdir}": str(workdir), "{mode}": mode, "{model}": model,
                "{resume}": resume}
         return [sub.get(a, a) for a in c["cmd"]]
-    exe = c.get("bin", engine)
+    exe = executable(engine, c)
     extra = list(c.get("args") or [])
     if model:  # the model picked for this run wins over one fixed in agents.json args
         for flag in ("--model", "-m"):
             while flag in extra:
                 i = extra.index(flag)
                 del extra[i:i + 2]
-        extra = (["--model", model] if engine == "claude" else ["-m", model]) + extra
+        extra = (["--model", model] if engine in ("claude", "cursor") else ["-m", model]) + extra
     if engine == "claude":
         read = READ_TOOLS + (["Bash(python3 %s:*)" % tool] if tool else [])
         cmd = [exe, "-p", "--output-format", "stream-json", "--verbose"] + (["--resume", resume] if resume else [])  # prompt on stdin
@@ -653,6 +726,8 @@ def command(conf: dict, agent: str, mode: str, prompt: str, prompt_file: Path, w
         return cmd + extra
     if engine == "codex":
         sandbox = "workspace-write" if mode in ("fix", "edit", "kb", "chart") else "read-only"
+        if sys.platform == "win32":
+            sandbox = "danger-full-access"  # the Windows sandbox blocks every shell call; read-only is enforced by readonly_guard
         if c.get("profile"):
             extra = ["--profile", c["profile"]] + extra
         if c.get("engine") == "codex" and "--json" not in extra:
@@ -660,6 +735,18 @@ def command(conf: dict, agent: str, mode: str, prompt: str, prompt_file: Path, w
         prompt_arg = "-" if c.get("prompt_transport") == "stdin" else prompt
         return [exe, "exec", "--sandbox", sandbox, "--skip-git-repo-check", "-C", str(workdir),
                 "--output-last-message", str(last_msg)] + extra + (["resume", resume] if resume else []) + [prompt_arg]
+    if engine == "cursor":
+        # Platform authorization selects the mode; readonly calls never receive write permission.
+        # --trust is scoped to this run's workspace, which the platform controls.
+        # Native Windows has no Cursor OS sandbox: keep CLI permissions and drop
+        # --force (user approved running Cursor's own checks instead).
+        if sys.platform == "win32":
+            # Write modes need --force: without it every shell call is rejected on site.
+            policy = ["--force"] if mode in ("fix", "edit", "kb", "chart") else ["--mode", "ask"]
+            argv = [exe, "--trust", "--print", "--output-format", "stream-json", "--sandbox", "disabled"] + policy + extra + (["--resume", resume] if resume else [])
+            return argv
+        policy = ["--force"] if mode in ("fix", "edit", "kb", "chart") else ["--mode", "ask"]
+        return [exe, "--trust", "--print", "--output-format", "stream-json", "--sandbox", "enabled"] + policy + extra + (["--resume", resume] if resume else [])
     raise ValueError("智能体 %s 没有配置 cmd" % agent)
 
 
@@ -672,10 +759,35 @@ class StreamParser:
         self.text = []
         self.session = ""  # the agent's own session id, to continue it in the next step
         self.usage = {}
+        self.reported_cost_usd = None
+        self.reported_model = None
         self.completed = False
         self.failed = False
+        self.rejected = []
+        self._reject_streak = 0
+        self.stopped_rejections = ""
 
     def feed(self, line: str) -> str:
+        if self.agent == "cursor" and line.lstrip().startswith("{"):
+            try:
+                ev = json.loads(line)
+            except ValueError:
+                ev = None
+            if isinstance(ev, dict) and ev.get("type") == "tool_call" and ev.get("subtype") == "completed":
+                call = ev.get("tool_call") or {}
+                for key in ("shellToolCall", "mcpToolCall", "editToolCall"):
+                    tc = call.get(key)
+                    if not isinstance(tc, dict):
+                        continue
+                    if "rejected" in json.dumps(tc.get("result") or {}):
+                        cmd = str(tc.get("args") or tc.get("command") or key)[:120]
+                        self.rejected.append(cmd)
+                        self._reject_streak += 1
+                        if self._reject_streak >= 3:
+                            self.stopped_rejections = ("连续 %d 次命令被拒绝，已停止运行：%s"
+                                                       % (self._reject_streak, "；".join(self.rejected[-3:])))
+                        return "被拒绝的命令：%s\n" % cmd
+                    self._reject_streak = 0
         if self.agent == "codex" and line.lstrip().startswith("{"):
             try:
                 ev = json.loads(line)
@@ -705,7 +817,7 @@ class StreamParser:
                     self.text.append(text + "\n")
                     return text + "\n"
                 return ""
-        if self.agent != "claude":
+        if self.agent not in ("claude", "cursor"):
             self.text.append(line)
             m = None if self.session else re.match(r"\s*session id:\s*(\S+)", line)
             if m:
@@ -729,12 +841,20 @@ class StreamParser:
                     out.append("▸ %s %s\n" % (b.get("name"), _brief(b.get("input"))))
             return "".join(out)
         if t == "result":
+            if self.agent == "cursor":
+                self.completed = ev.get("subtype") == "success" and ev.get("is_error") is False
+                self.failed = not self.completed
+                self.session = ev.get("session_id") or self.session
             self.result = ev.get("result") or ""
             cost = ev.get("total_cost_usd")
+            self.reported_cost_usd = cost if type(cost) in (int,float) and math.isfinite(cost) and cost>=0 else None
+            if isinstance(ev.get('usage'),dict):
+                self.usage = dict(ev['usage']) # Preserve CLI cumulative/cache semantics, do not add assistant events.
             return "— 结束：%s，%d 轮%s\n" % ("成功" if not ev.get("is_error") else "出错", ev.get("num_turns") or 0,
                                          "，约 $%.2f" % cost if cost else "")
         if t == "system" and ev.get("subtype") == "init":
             self.session = ev.get("session_id") or self.session
+            self.reported_model = ev.get("model")
             return "— 启动 %s（模型 %s）\n" % (ev.get("cwd", ""), ev.get("model", ""))
         return ""
 
@@ -904,10 +1024,16 @@ CONTINUES = {"plan": ("analyze",), "fix": ("plan", "analyze")}  # a step continu
 STEER_MODES = ("analyze", "plan", "fix", "understand", "chart", "kb")
 
 
-def steer_hint(mode: str) -> str:
+def steer_hint(mode: str, engine: str = "") -> str:
     """People can add a word while a run is going (POST /api/runs/<rid>/say); the agent reads it between steps."""
     if mode not in STEER_MODES:
         return ""
+    if sys.platform == "win32":
+        read = ("tmh-kb.cmd notes" if engine == "cursor" else
+                '"%s" -B -c "import os,sys;sys.stdout.write(open(os.environ[\'TMH_NOTES\'],encoding=\'utf-8\').read())"' % sys.executable)
+        return ("\n\n## 执行中人可能插话\n负责的人会在你执行过程中补充要求或纠正方向，写在环境变量 TMH_NOTES 指向的文件里。"
+                "开始时和每做完一步（改文件、跑命令之前），运行 `%s` 看有没有新的话；"
+                "有就以最新的话为准调整做法，并在最后的回复里写明收到了哪句话、怎么处理的。文件不存在或为空就照原计划做。\n" % read)
     return ("\n\n## 执行中人可能插话\n负责的人会在你执行过程中补充要求或纠正方向，写在环境变量 TMH_NOTES 指向的文件里。"
             "开始时和每做完一步（改文件、跑命令之前），运行 `cat \"$TMH_NOTES\" 2>/dev/null` 看有没有新的话；"
             "有就以最新的话为准调整做法，并在最后的回复里写明收到了哪句话、怎么处理的。文件不存在或为空就照原计划做。\n")
@@ -1261,7 +1387,25 @@ def make_worktree(data_dir: Path, project: dict, ticket: dict | None, rid: int, 
     wt = Path(data_dir) / "worktrees" / name
     wt.parent.mkdir(parents=True, exist_ok=True)
     git(root, "worktree", "add", "-b", branch, str(wt), base or "HEAD")
+    _exclude_build_output(root)
     return wt, branch
+
+
+BUILD_OUTPUT = ("target/", "build/", "out/", "bin/", "obj/", "node_modules/", "dist/", ".gradle/", "*.class",
+                "__pycache__/", ".pytest_cache/")
+
+
+def _exclude_build_output(root: Path) -> None:
+    """Build output stays out of the change's diff. Written to .git/info/exclude, so the project's own files are untouched."""
+    common = subprocess.run(["git", "-C", str(root), "rev-parse", "--git-common-dir"], capture_output=True, text=True)
+    if common.returncode != 0:
+        return
+    path = (Path(root) / common.stdout.strip()) / "info" / "exclude"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    current = path.read_text(encoding="utf-8") if path.exists() else ""
+    missing = [p for p in BUILD_OUTPUT if p not in current.splitlines()]
+    if missing:
+        path.write_text(current + ("" if current.endswith("\n") or not current else "\n") + "\n".join(missing) + "\n", encoding="utf-8")
 
 
 def worktree_diff(wt: Path) -> str:
@@ -1355,6 +1499,7 @@ class Runner:
         self.store = store
         self.data_dir = Path(data_dir)
         self.procs = {}
+        self.threads = {}  # thread completion includes events, charging and callbacks
         self.controls = {}  # one execution budget across calls, retries and local checks
         self.owners = {}  # per-run OS leases; a second service cannot recover a live owner
         self.member_authorities = {}  # in-memory personal grants; never replay after service loss
@@ -1385,10 +1530,13 @@ class Runner:
                 limit = float(settings.get("run_timeout") or settings.get("timeout") or 1800)
                 if not math.isfinite(limit) or limit <= 0:
                     raise ValueError("运行总时限必须是正数秒")
+                invocation_limit=settings.get('max_model_invocations')
+                if invocation_limit is not None and (type(invocation_limit) is not int or invocation_limit<1):
+                    raise ValueError('模型进程调用次数上限必须是正整数')
                 owner = self._claim(rid)
                 self.controls[rid] = {"event": threading.Event(), "start": time.monotonic(),
                     "started_at": now(), "timeout_seconds": limit, "stopped_reason": "",
-                    "attempts": [], "finished": False, "owner": owner}
+                    "attempts": [], "finished": False, "owner": owner, "max_model_invocations": invocation_limit}
                 self._save_lifecycle(rid)
             return self.controls[rid]
 
@@ -1444,7 +1592,8 @@ class Runner:
         label = {"timeout": "达到整次任务总时限", "cancelled": "已请求取消",
                  "orphaned": "启动器退出后仍有子进程存活", "cleanup_failed": "进程回收未完成",
                  "owner_lost": "平台连接中断，受管进程已停止",
-                 "error": "执行或证据保存发生错误"}.get(reason, reason)
+                 "model_invocation_limit": "达到模型进程调用次数上限", "error": "执行或证据保存发生错误",
+                 "rejected": "连续多次命令被执行器拒绝"}.get(reason, reason)
         return "运行停止：%s。原始输出、过程证据和已有改动已保留；检查后可新建运行继续。" % label if reason else ""
 
     def finish_invocation(self, rid, code, result):
@@ -1467,6 +1616,10 @@ class Runner:
         from . import project_library as library
         project = self.store.project(project['id'])
         library.require_development(self.store, project)
+        development = None
+        if ticket and mode == 'fix':
+            from .development import require_execution
+            development = require_execution(self.store,self.store.ticket(ticket['id']), 'system')
         reference_inputs = library.bindings(self.store, project)
         if any(not r['available'] for r in reference_inputs):
             raise ValueError('项目参考授权已变化，请先处理不可用引用')
@@ -1495,7 +1648,7 @@ class Runner:
             from .agent_api import _requirement
             from .project_mcp import BoundJob
             from .project_snapshot import resolve as resolve_source
-            member_ref = code_at(ticket) or 'HEAD'
+            member_ref = development['execution']['base_commit'] if development and development['execution'].get('current') else code_at(ticket) or 'HEAD'
             pending_job = BoundJob(author,project['key'],(self.data_dir/'runs'/'pending').resolve(),authority.image)
             member_base = resolve_source(authority.image,Path(project['root']),member_ref,
                                          cancel=lambda:not authority.current(pending_job))
@@ -1508,6 +1661,8 @@ class Runner:
                                  if k in ('assignee','reviewer','revision')}
             member_configuration = candidates.configuration(ctx.platform,project)
         explicit = model not in (None, "auto")  # a model the person picked applies to every step of the run
+        if model is None and ticket:
+            model = (ticket.get("links") or {}).get("model")
         model = pick_model(conf[agent], mode, model)
         recorded = model or (configured_model(conf[agent]) if not authority else "")
         if authority:
@@ -1522,6 +1677,22 @@ class Runner:
             raise ValueError("问题是空的")
         if mode == "fix" and (ticket or {}).get("links", {}).get("delivery"):
             reviewed_delivery_plan(self.store, ticket)
+        if development and development['execution'].get('current') and not authority:
+            selected_base = development['execution']['base_commit']
+            if retry_of is not None:
+                retry_state = self.retry_state(retry_of)
+                if not retry_state['can_retry']:
+                    raise ValueError('；'.join(retry_state['retry_blocked']))
+                self._retry_execution_contract(retry_of, ticket)
+                snapshot = self.store.one("SELECT * FROM run_recovery_snapshots WHERE commit_sha=? AND from_run=?", (base, retry_of))
+                if not snapshot:
+                    if base or self.store.run(retry_of)['workdir']:
+                        raise ValueError('恢复快照未绑定原运行，不能更换执行起点')
+                    base = selected_base
+            elif base and base != selected_base:
+                raise ValueError('执行起点与负责人选择时固定的版本不同，请重新核对交接')
+            else:
+                base = selected_base
         source = delivery_source(self.store, project, ticket, mode, base)
         if source and session_id is not None:
             raise ValueError("固定版本的交付检查必须使用独立运行，不能绑定既有会话")
@@ -1529,15 +1700,28 @@ class Runner:
         if authority:
             from .project_git import personal_scope
             with personal_scope(ctx.platform,author):
-                prompt = build_prompt(self.store,project,ticket,mode,target,question,history,reference_inputs=reference_inputs,isolated=True)
+                prompt = build_prompt(self.store,project,ticket,mode,target,question,history,reference_inputs=reference_inputs,isolated=True,engine=engine)
         else:
-            prompt = "" if source else build_prompt(self.store, project, ticket, mode, target, question, history, reference_inputs=reference_inputs)
+            prompt = "" if source else build_prompt(self.store, project, ticket, mode, target, question, history, reference_inputs=reference_inputs, engine=engine)
         if library.bindings(self.store, project) != reference_inputs:
             raise ValueError('组装提示词期间参考知识已变化，请重新启动任务')
+        def contract_marker(rid):
+            if development and development['execution'].get('current'):
+                from .development import identity, encode, require_execution
+                fresh = self.store.ticket(ticket['id'])
+                current = require_execution(self.store, fresh, 'system')
+                if (not current or current['digest'] != development['digest'] or
+                        current['execution'] != development['execution']):
+                    raise ValueError('登记前执行确认稿已变化，请重新核对')
+                if retry_of is not None:
+                    self._retry_execution_contract(retry_of, fresh)
+                self.store.db.execute('INSERT INTO run_execution_contracts VALUES(?,?,?,?)',
+                    (rid, encode(identity(self.store, ticket['id'])), development['execution']['base_commit'], base))
+
         def register(marker=None):
             return self.store.create_run(project["id"], ticket["id"] if ticket else None, agent, mode, author, prompt, target or question[:200],
                 session_id=session_id, batch=batch, model=recorded, expected_root=project['root'], reference_inputs=reference_inputs,
-                **({'require_idle_ticket':True,'before_commit':marker} if authority else {}),
+                **({'require_idle_ticket':True,'before_commit':marker} if authority else {'before_commit':contract_marker}),
                 **({"retry_of": retry_of} if retry_of is not None else {}))
         if authority:
             from .project_mcp import BoundJob
@@ -1591,7 +1775,7 @@ class Runner:
                 source.update(workdir=str(view), actual_commit=actual["commit"], actual_tree=actual["tree"], prepared_at=now())
                 prompt_project = dict(project, root=str(view))
                 reset_context_meta()
-                prompt = build_prompt(self.store, prompt_project, ticket, mode, target, question, history, reference_inputs=reference_inputs)
+                prompt = build_prompt(self.store, prompt_project, ticket, mode, target, question, history, reference_inputs=reference_inputs, engine=engine)
                 _record_context(self.store, self.data_dir, run["id"], take_context_meta())
                 prompt += ("\n\n## 本次检查的固定代码版本\n提交：%s\n实现运行：#%s；方案运行：%s。\n"
                            "只检查目录 %s 中的这次提交。主干、其他分支和旧知识库不能替代本次代码证据。"
@@ -1627,8 +1811,25 @@ class Runner:
         if then:
             self.after[run["id"]] = then
         th = threading.Thread(target=self._run, args=(run["id"], project, ticket, agent, mode, prompt, conf, model, explicit, base), daemon=True)
-        th.start()
+        with self.lock:
+            self.threads = {rid: worker for rid, worker in self.threads.items() if worker.is_alive()}
+            self.threads[run["id"]] = th
+            th.start()
         return self.store.run(run["id"])
+
+    def wait_for_idle(self, timeout: float) -> bool:
+        """Wait for launched threads, not just terminal run rows. Does not cancel work."""
+        deadline = time.monotonic() + timeout
+        while True:
+            with self.lock:
+                self.threads = {rid: th for rid, th in self.threads.items() if th.is_alive()}
+                pending = list(self.threads.values())
+            if not pending:
+                return True
+            remaining = deadline - time.monotonic()
+            if remaining <= 0 or threading.current_thread() in pending:
+                return False
+            pending[0].join(remaining)
 
     def _run(self, rid, project, ticket, agent, mode, prompt, conf, model="", explicit=False, base=""):
         """Waits for a free slot (ticket steps go before knowledge pages), then runs."""
@@ -1725,6 +1926,8 @@ class Runner:
         from . import project_library as library
         library.require_development(st, st.project(project['id']))
         library.require_run_current(st, project, rid)
+        if ticket and mode == 'fix':
+            self._retry_execution_contract(rid, st.ticket(ticket['id']))
         rdir = self.data_dir / "runs" / str(rid)
         rdir.mkdir(parents=True, exist_ok=True)
         (rdir / "prompt.md").write_text(prompt, encoding="utf-8")
@@ -1887,7 +2090,7 @@ class Runner:
         starts over in a new session with `fresh`, the full prompt. The session id and a time breakdown are kept
         next to the prompt (session<tag>.txt, timing<tag>.json)."""
         from .agent_routes import resolve
-        if resolve(self.data_dir, project, agent) != agent:
+        if resolve(getattr(self, "evidence_root", self.data_dir), project, agent) != agent:
             raise ValueError("项目执行器路由已变化，不能切换既有运行的执行器")
         settings = conf.get(agent) or {}
         engine_name(agent, settings)
@@ -1909,7 +2112,7 @@ class Runner:
                 if (not (rdir / "session-context.json").exists() or not current_project or
                         not learning_context_current(self.store, self.data_dir, current_project, run, running=True)):
                     raise ValueError("学习输入或继承会话已变化；当前冻结提示词及重试已停止，请重新启动任务")
-            if resolve(self.data_dir, project, agent) != agent:
+            if resolve(getattr(self, "evidence_root", self.data_dir), project, agent) != agent:
                 raise ValueError("项目执行器路由已变化，不能切换既有运行的执行器")
             return self._spawn(rid, project, ticket, agent, conf, mode, current_prompt, workdir, model, tag, current_resume)
         if resume and "cmd" in (conf.get(agent) or {}) and "{resume}" not in conf[agent]["cmd"]:  # a custom command that cannot continue
@@ -1958,6 +2161,11 @@ class Runner:
             self.stop_reason(rid)
             timeout = min(float(timeout), self.remaining(rid)) if timeout is not None else self.remaining(rid)
         with self.lock:
+            if active and kind.startswith('model:') and c.get('max_model_invocations') is not None:
+                used=sum(a['kind'].startswith('model:') for a in c['attempts'])
+                if used>=c['max_model_invocations']:
+                    self._stopped(rid,'model_invocation_limit')
+                    raise OSError('达到模型进程调用次数上限；未启动新的进程，不能据此保证CLI内部请求费用上限')
             parent = self.data_dir / "runs" / str(rid) / "attempts"
             parent.mkdir(parents=True, exist_ok=True)
             index = max([int(x.name) for x in parent.iterdir() if x.is_dir() and x.name.isdigit()] or [0]) + 1
@@ -2035,24 +2243,38 @@ class Runner:
         st = self.store
         rdir = self.data_dir / "runs" / str(rid)
         pf, lm = rdir / ("prompt%s.md" % tag), rdir / ("last-message%s.md" % tag)
+        engine = engine_name(agent, conf[agent])
         if not tag and not resume:  # a retry or resumed session already carries it
-            prompt += steer_hint(mode)
+            prompt += steer_hint(mode, engine)
+        from . import testbox, testbox_mcp
+        remote_testing = mode == 'fix' and engine == 'codex' and 'cmd' not in conf[agent] and bool(testbox.settings(self.data_dir))
+        if remote_testing:
+            prompt += testbox_mcp.INSTRUCTION
         pf.write_bytes(prompt.encode("utf-8"))
         if lm.exists():
             # Earlier attempt copies remain in attempts/, including an interrupted final answer.
             lm.unlink()
-        engine = engine_name(agent, conf[agent])
         parser, clock = StreamParser(engine), Timing(resume, notes_file(self.data_dir, rid))
         try:
             cmd = command(conf, agent, mode, prompt, pf, workdir, lm, str(Path(project["root"]) / ".tmh" / "tool" / "tmh.py"), model, resume)
         except ValueError as e:
             st.append_output(rid, "— %s\n" % e)
             return 2, str(e), parser, clock.done()
+        if remote_testing:
+            cmd[2:2] = testbox_mcp.config_args(self.data_dir, rid, workdir)
         env = dict(os.environ, TMH_RUN=str(rid), TMH_TICKET=ticket["key"] if ticket else "", TMH_NOTES=str(notes_file(self.data_dir, rid)))
+        from . import executor_setup
+        env.update(executor_setup.spawn_env(self.data_dir, agent, conf[agent]))
+        if ticket:
+            from . import task_secrets
+            env.update(task_secrets.environment(self.data_dir, ticket["key"]))
         tool = Path(project["root"]) / ".tmh" / "tool"
         if tool.is_dir():
             env["PYTHONPATH"] = str(tool) + os.pathsep + env.get("PYTHONPATH", "")
-        pending, buf, last = "", [], time.monotonic()
+            if sys.platform == "win32" and engine == "cursor" and (tool / "tmh-kb.cmd").is_file():
+                # Cursor's shell resolves the knowledge bridge by name on Windows.
+                env["PATH"] = str(tool) + os.pathsep + env.get("PATH", "")
+        pending, buf, last, stop_reported = "", [], time.monotonic(), False
         def output(chunk, final=False):
             nonlocal pending, buf, last
             pending += chunk
@@ -2066,13 +2288,20 @@ class Runner:
                 text = parser.feed(line)
                 if text:
                     buf.append(text)
+                if parser.stopped_rejections and not stop_reported:
+                    stop_reported = True
+                    buf.append("— %s\n" % parser.stopped_rejections)
+                    self._stopped(rid, "rejected")
             if buf and (final or time.monotonic() - last > 0.4 or len(buf) > 50):
                 st.append_output(rid, "".join(buf))
                 buf, last = [], time.monotonic()
         custom = conf[agent].get("cmd")
-        use_stdin = custom is None and (engine == "claude" or conf[agent].get("prompt_transport") == "stdin")
+        use_stdin = custom is None and (engine in ("claude", "cursor") or conf[agent].get("prompt_transport") == "stdin")
         transport = (["stdin"] if use_stdin else ["argv"]) if custom is None else (
             (["argv"] if "{prompt}" in custom else []) + (["prompt_file_argument"] if "{prompt_file}" in custom else []))
+        from . import readonly_guard
+        read_only = sys.platform == "win32" and mode not in ("fix", "edit", "kb", "chart")
+        before = readonly_guard.snapshot(workdir) if read_only else None
         try:
             process, folder = self.run_command(rid, cmd, workdir, env=env,
                 stdin=prompt if use_stdin else None,
@@ -2086,6 +2315,12 @@ class Runner:
             return 127, msg, parser, clock.done()
         finally:
             output("", final=True)
+        if read_only:
+            touched = readonly_guard.changed(before, readonly_guard.snapshot(workdir))
+            if touched:
+                msg = "只读步骤修改了文件：%s。平台未自动撤销，请人工核对。" % "、".join(touched)
+                st.append_output(rid, "— %s\n" % msg)
+                return 1, msg, parser, clock.done()
         result = parser.final()
         model_reply = parser.result.strip()
         if lm.exists():
@@ -2103,6 +2338,8 @@ class Runner:
             timing["usage"] = parser.usage
             if "input_tokens" in parser.usage and "output_tokens" in parser.usage:
                 timing["tokens"] = parser.usage["input_tokens"] + parser.usage["output_tokens"]
+        timing.update(reported_model=parser.reported_model,reported_cost_usd=parser.reported_cost_usd,
+                      cost_source='CLI report; not supplier invoice' if parser.reported_cost_usd is not None else 'unknown')
         timing.update(process_reason=process.reason, process_seconds=process.elapsed,
                       total_remaining_seconds=round(self.remaining(rid), 3), evidence=str(folder.relative_to(self.data_dir)))
         (folder / "timing.json").write_text(json.dumps(timing, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -2126,9 +2363,9 @@ class Runner:
         if process.reason != "exited":
             st.append_output(rid, "— " + self.stop_message(rid) + "\n")
         code = process.returncode
-        if conf[agent].get("engine") == "codex" and code == 0 and (parser.failed or not parser.completed or not model_reply):
+        if (conf[agent].get("engine") == "codex" or engine == "cursor") and code == 0 and (parser.failed or not parser.completed or not model_reply):
             code = 1
-            result = (result + "\nCodex 没有返回完整的成功回执，请检查原始输出。\n").strip()
+            result = (result + "\n%s 没有返回完整的成功回执，请检查原始输出。\n" % engine).strip()
         return code, result, parser, timing
 
     def _finish_event(self, ticket, rid, agent, mode, status, result, has_diff=False):
@@ -2151,6 +2388,20 @@ class Runner:
         with self.slots:
             self.slots.notify_all()
         return self.store.run(rid)
+
+    def _retry_execution_contract(self, rid: int, ticket: dict) -> None:
+        from .development import require_execution, identity, encode
+        original = self.store.run(rid)
+        if (not original or original['ticket_id'] != ticket['id'] or
+                original['project_id'] != ticket['project_id'] or original['mode'] != 'fix'):
+            raise ValueError('原运行不属于当前项目工单')
+        state = require_execution(self.store, ticket, 'system')
+        binding = self.store.one('SELECT * FROM run_execution_contracts WHERE run_id=?', (rid,))
+        if state and state['execution'].get('current'):
+            if not binding or binding['identity'] != encode(identity(self.store, ticket['id'])):
+                raise ValueError('原运行缺少当前确认稿的执行绑定，请核对原运行与负责人交接')
+        elif binding:
+            raise ValueError('原运行的执行确认稿已变化，请重新核对负责人交接')
 
     def retry_state(self, rid: int) -> dict:
         r = self.store.run(rid)
@@ -2175,6 +2426,13 @@ class Runner:
             blocked.append("请从需求沟通页重新理解")
         if r.get("decision"):
             blocked.append("这次改动已经处理，请从工单继续")
+        if t and r['mode'] == 'fix':
+            try:
+                self._retry_execution_contract(rid, t)
+                from .project_library import require_run_current
+                require_run_current(self.store, self.store.project(r['project_id']), rid)
+            except ValueError as exc:
+                blocked.append(str(exc))
         if t and t["status"] == "closed":
             blocked.append("工单已关闭，先明确新的需求")
         try:
@@ -2240,6 +2498,9 @@ class Runner:
                     tree = snapshot("write-tree").decode().strip()
                     head = snapshot("rev-parse", "HEAD").decode().strip()
                     base = snapshot("commit-tree", tree, "-p", head, "-m", "Unverified recovery snapshot of run #%d" % rid).decode().strip()
+                    snapshot("update-ref", "refs/webuddy/recovery/run-%d/%s" % (rid, base), base)
+                    self.store.x('INSERT OR IGNORE INTO run_recovery_snapshots VALUES(?,?,?,?,?)',
+                                 (base, rid, head, str(wt), now()))
                     (recovery / "source.patch").write_bytes(snapshot("diff", "--binary", head, base))
                     (recovery / "snapshot.json").write_text(json.dumps({"commit": base, "parent": head,
                         "notice": "未验证的恢复快照，不是采纳、签收或发布", "original_worktree": str(wt)}, ensure_ascii=False, indent=2))

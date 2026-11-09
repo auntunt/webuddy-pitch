@@ -104,6 +104,9 @@ def build(root: Path, use_cache: bool = True) -> dict:
     from . import flow as flowmod, mapper, codeindex
     from .parsecache import ParseCache
     root = root.resolve()
+    from . import index_source
+    source_files = index_source.snapshot(root)
+    provenance = index_source.metadata(root, source_files)
     pc = ParseCache(root) if use_cache else None
     m = mapper.build_map(root, pc)
     idx = codeindex.build_index(root, pc)
@@ -332,8 +335,12 @@ def build(root: Path, use_cache: bool = True) -> dict:
     failed_python = sorted({d["file"] for d in diagnostics})
     analysis = {"python": {"files": len(python_files), "parsed": len(python_files) - len(failed_python),
                            "unknown": failed_python}, "diagnostics": diagnostics}
-    _write_db(root, nodes, edges, {"flows": len(flows), "analysis": analysis, **stats})
+    if index_source.digest(index_source.snapshot(root)) != provenance["snapshot_sha256"]:
+        raise ValueError("建图期间源码发生变化；旧索引保持，请重新构建")
+    _write_db(root, nodes, edges, {"flows": len(flows), "analysis": analysis, "provenance": provenance, **stats}, source_files)
     x = tmh_dir(root)
+    m["provenance"] = provenance
+    fdata["provenance"] = provenance
     (x / "map.json").write_text(json.dumps(m, ensure_ascii=False), encoding="utf-8")
     (x / "flows.json").write_text(json.dumps(fdata, ensure_ascii=False), encoding="utf-8")
     cnt = Counter(n["kind"] for n in nodes.values())
@@ -380,10 +387,11 @@ def _cjk_literals(body: str, limit: int = 12) -> list:
     return out or None
 
 
-def _write_db(root: Path, nodes: dict, edges: list, meta: dict) -> None:
+def _write_db(root: Path, nodes: dict, edges: list, meta: dict, sources=None) -> None:
     p = graph_path(root)
     p.parent.mkdir(parents=True, exist_ok=True)
-    tmp = p.with_suffix(".tmp")
+    import uuid
+    tmp = p.with_name(p.name + "." + uuid.uuid4().hex + ".tmp")
     if tmp.exists():
         try:
             tmp.unlink()
@@ -395,6 +403,7 @@ def _write_db(root: Path, nodes: dict, edges: list, meta: dict) -> None:
                        domain TEXT, module TEXT, hash TEXT, data TEXT);
     CREATE TABLE edges(src TEXT, dst TEXT, kind TEXT, op TEXT, file TEXT, line INT);
     CREATE TABLE meta(k TEXT PRIMARY KEY, v TEXT);
+    CREATE TABLE sources(path TEXT PRIMARY KEY, sha256 TEXT, content BLOB);
     """)
     db.executemany("INSERT INTO nodes VALUES(?,?,?,?,?,?,?,?,?,?,?)",
                    [(n["id"], n["kind"], n["name"], n["label"], n["file"], n["line"], n["end"], n["domain"], n["module"], n["hash"],
@@ -402,9 +411,10 @@ def _write_db(root: Path, nodes: dict, edges: list, meta: dict) -> None:
     db.executemany("INSERT INTO edges VALUES(?,?,?,?,?,?)", list(dict.fromkeys(edges)))
     db.executescript("CREATE INDEX e_src ON edges(src); CREATE INDEX e_dst ON edges(dst); CREATE INDEX n_kind ON nodes(kind);")
     db.executemany("INSERT INTO meta VALUES(?,?)", [(k, json.dumps(v)) for k, v in meta.items()])
+    db.executemany("INSERT INTO sources VALUES(?,?,?)", [(name,hashlib.sha256(content).hexdigest(),content) for name,content in (sources or {}).items()])
     db.commit()
     db.close()
-    replace_file(tmp, p)
+    tmp.replace(p)  # Failure must preserve the published index; never copy over it.
 
 
 # ---- reading -------------------------------------------------------------
@@ -415,7 +425,8 @@ class Graph:
         p = graph_path(root)
         if not p.exists():
             raise FileNotFoundError("还没有知识图谱，先运行 tmh kb build")
-        self.db = open_db(p)
+        self.root = Path(root)
+        self.db = sqlite3.connect(p.resolve().as_uri()+"?mode=ro", uri=True)
         self.db.row_factory = sqlite3.Row
 
     def __del__(self):
@@ -450,6 +461,25 @@ class Graph:
 
     def meta(self) -> dict:
         return {r[0]: json.loads(r[1]) for r in self.db.execute("SELECT k, v FROM meta")}
+
+    def provenance(self):
+        from .index_source import snapshot, digest
+        saved = self.meta().get('provenance')
+        if not saved:
+            return {'source_version':'','index_status':'unverifiable','reason':'历史索引未记录来源'}
+        current = digest(snapshot(self.root))
+        return dict(saved, index_status='current' if current==saved['snapshot_sha256'] else 'stale', current_snapshot_sha256=current)
+
+    def source_bytes(self, path):
+        if not self.meta().get('provenance'):
+            raise ValueError('历史索引未记录固定源码，不能读取当前工作树代替')
+        row = self.db.execute('SELECT sha256,content FROM sources WHERE path=?',(path,)).fetchone()
+        if row is None:
+            raise FileNotFoundError('索引未保存此源码')
+        content = bytes(row['content'])
+        if hashlib.sha256(content).hexdigest()!=row['sha256']:
+            raise ValueError('固定源码摘要不匹配')
+        return content
 
     def find(self, text: str, limit: int = 20) -> list[dict]:
         like = "%" + text + "%"

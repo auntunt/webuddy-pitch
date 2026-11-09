@@ -19,11 +19,20 @@ from .errors import ApiError
 API_ROUTES = frozenset(tuple(line.split(" ", 1)) for line in """
 GET /api/meta
 POST /api/agent/<operation>
+POST /api/projects/<key>/external-requirements
+GET /api/projects/<key>/ci
+POST /api/projects/<key>/ci
+GET /api/tickets/<key>/ci
+GET /api/tickets/<key>/delivery
+GET /api/tickets/<key>/development
+POST /api/tickets/<key>/development
 GET /api/workspace
 GET /api/projects/<key>/pilots
 POST /api/projects/<key>/pilots
 GET /api/projects/<key>/pilots/<pid>
 POST /api/projects/<key>/pilots/<pid>
+GET /api/projects/<key>/tasks
+POST /api/projects/<key>/tasks
 GET /api/projects/<key>/meetings
 POST /api/projects/<key>/meetings
 GET /api/projects/<key>/meetings/<mid>
@@ -36,6 +45,7 @@ POST /api/deliveries/<did>/content
 GET /api/deliveries/<did>/coverage
 POST /api/deliveries/<did>/coverage
 GET /api/team
+GET /api/candidates/<cid>
 GET /api/handoffs
 POST /api/handoffs
 POST /api/team
@@ -67,8 +77,8 @@ GET /api/projects/<key>/related
 GET /api/projects/<key>/flows/<fid>
 GET /api/projects/<key>/kb
 GET /api/projects/<key>/kb/tree
-GET /api/projects/<key>/atlas
-GET /api/projects/<key>/atlas/flow/<fid>
+GET /api/projects/<key>/maps
+POST /api/projects/<key>/maps
 GET /api/projects/<key>/statecharts
 GET /api/projects/<key>/statecharts/renderer
 GET /api/projects/<key>/arch
@@ -115,6 +125,7 @@ POST /api/projects/<key>/sessions
 GET /api/sessions/<sid>
 POST /api/sessions/<sid>
 POST /api/sessions/<sid>/messages
+POST /api/sessions/<sid>/assistant
 POST /api/projects/<key>/command
 POST /api/sessions/<sid>/command/<mid>
 POST /api/sessions/<sid>/ticket-draft
@@ -130,10 +141,6 @@ POST /api/projects/<key>/evals/cases
 POST /api/projects/<key>/evals/history
 POST /api/projects/<key>/evals/history/import
 POST /api/projects/<key>/alerts
-GET /api/projects/<key>/reforms
-GET /api/projects/<key>/reforms/deps
-POST /api/projects/<key>/reforms
-POST /api/projects/<key>/reforms/<pid>
 GET /api/tickets
 POST /api/tickets
 GET /api/tickets/<key>
@@ -147,12 +154,31 @@ GET /api/projects/<key>/upstream
 GET /api/projects/<key>/baseline
 POST /api/projects/<key>/baseline/seal
 GET /api/projects/<key>/ledger
+POST /api/projects/<key>/entries/detect
 POST /api/tickets/<key>
+GET /api/agent-settings
+GET /api/agent-page
+GET /api/members
+GET /api/task-executors
+POST /api/projects/<key>/tasks/<tkey>/push
+POST /api/agent-login
+GET /api/agent-login/<sid>
+POST /api/agent-gateway/models
+POST /api/members
+POST /api/agent-settings
+GET /api/access-config
+POST /api/access-config
+GET /api/agent-scan
+POST /api/agent-test
 GET /api/testbox
 GET /api/projects/<key>/releases
 POST /api/tickets/<key>/release
 GET /api/tickets/<key>/preview
 POST /api/tickets/<key>/preview
+GET /api/runs/<rid>/test-report
+POST /api/runs/<rid>/review-feedback
+GET /api/projects/<key>/tests
+POST /api/projects/<key>/tests
 GET /api/projects/<key>/mode
 POST /api/projects/<key>/mode
 POST /api/projects/<key>/releases/<version>/rollback
@@ -214,18 +240,19 @@ GET /api/chats
 
 LEVELS = {"viewer": 1, "contributor": 2, "manager": 3}
 FILTERED_LISTS = frozenset(("/api/projects", "/api/workspace", "/api/tickets", "/api/runs"))
+# Path-keyed boards apply the same authorized project filter before aggregating.
+ALL_PROJECT_PATHS = frozenset(("/api/projects/<key>/loop", "/api/projects/<key>/inbox"))
 PUBLIC_CAPABILITIES = ("/bot/", "/hook/alert/", "/capture/", "/pv/", "/v/", "/sign/", "/ask/")
 # These projections still read across projects, even when their UI shows a
 # project selector. They remain admin-only until their query layer is scoped.
-ADMIN_GLOBAL = frozenset(("/api/org/knowledge", "/api/lead", "/api/readiness", "/api/testbox",
+ADMIN_GLOBAL = frozenset(("/api/lead", "/api/readiness", "/api/testbox",
+                         "/api/agent-settings", "/api/access-config", "/api/agent-scan", "/api/agent-test",
                          "/api/today", "/api/chats", "/api/clients", "/api/requirements"))
-AGENT_OPERATIONS = frozenset("""status projects_list tickets_list ticket_get ticket_create message_send
-messages_list request_get run_get run_start run_cancel run_retry run_recheck preview_get preview_start
-candidates_list candidate_get candidate_submit candidate_verify candidate_cancel candidate_preview
-candidate_assess candidate_decide harness_recipes harness_probe_start harness_probe_get harness_probe_cancel
-harness_library library_get library_search library_read library_build library_cancel library_resume
-library_reference library_unlink ticket_hold""".split())
+AGENT_OPERATIONS = frozenset("""maps_list map_get map_create run_recover status projects_list tickets_list ticket_get delivery_get ticket_create message_send messages_list request_get run_get run_start run_cancel run_retry run_recheck preview_get preview_start candidates_list candidate_get candidate_ci candidate_submit candidate_verify candidate_cancel candidate_preview candidate_resolve candidate_report_create candidate_report_get candidate_gate_ack candidate_assess candidate_decide harness_recipes harness_probe_start harness_probe_get harness_probe_cancel harness_library library_get library_search library_read library_build library_cancel library_resume library_reference library_unlink ticket_hold intake_get intake_start intake_understand intake_answer development_get development_start development_propose development_answer""".split())
 SAFE_POSTS = frozenset((
+    "/api/projects/<key>/maps",
+    "/api/projects/<key>/external-requirements",
+    "/api/runs/<rid>/review-feedback",  # Human observations only; no execution or signoff.
     # Personal trial records only: no models, process launch or task moves.
     "/api/projects/<key>/pilots", "/api/projects/<key>/pilots/<pid>",
     "/api/projects/<key>/meetings", "/api/projects/<key>/meetings/<mid>",
@@ -245,6 +272,9 @@ SPECIAL_ROUTES = (
     ("GET", "/p/<key>/code.bundle", r"/p/(?P<key>[A-Za-z0-9]+)/code\.bundle"),
     ("GET", "/p/<key>/report/<path>", r"/p/(?P<key>[^/]+)/report/.*"),
     ("GET", "/p/<key>/efficiency", r"/p/(?P<key>[^/]+)/efficiency"),
+    # Static shell of the new UI: read-only, no project target, executes nothing.
+    ("GET", "/next", r"/next"),
+    ("GET", "/next/<path>", r"/next/.*"),
 )
 
 
@@ -435,6 +465,13 @@ def _resource_project(P, kind, value):
         if not isinstance(row, dict):
             raise ApiError(404, "没有这个资源")
         return _project(P, row.get("project"))
+    elif kind == "intake":
+        from . import intake
+        try:
+            key = intake.load(P.data_dir, value, P)["project"]
+        except (ApiError, OSError, ValueError):
+            raise ApiError(404, "没有这段需求对话") from None
+        return _project(P, P.store.project(key)["id"])
     elif kind == "probe":
         return _resource_project(P, "candidate", _row(P, "harness_probe_runs", value)["candidate_id"])
     elif kind == "candidate":
@@ -464,9 +501,10 @@ def _agent(P, who, operation, body):
     level = "manager" if operation in ("library_reference", "library_unlink") else "contributor" if spec.get("write") else "viewer"
     projects = []
     for field, kind in (("project", "project"), ("ticket", "ticket"), ("run_id", "run"),
-                        ("candidate_id", "candidate"), ("probe_id", "probe")):
+                        ("candidate_id", "candidate"), ("probe_id", "probe"), ("session", "intake")):
         if field in args:
-            projects.append(_check(P, who, _resource_project(P, kind, args[field]), level))
+            target = _resource_project(P,kind,args[field])
+            projects.append(_check(P,who,target,level))
     if len({p["id"] for p in projects}) > 1:
         raise ApiError(400, "请求中的资源不属于同一项目")
     if operation == "request_get":
@@ -518,7 +556,7 @@ def authorize(P, method, path, query, body, actor):
     scope = {"tenant_id": who["tenant_id"], "actor": actor, "tenant_role": who["role"],
              "platform_owner": who["platform_owner"], "authz_revision": who["authz_revision"],
              "allowed_project_keys": sorted(allowed), "project_roles": allowed,
-             "filter_required": method == "GET" and template in FILTERED_LISTS,
+             "filter_required": method == "GET" and template in FILTERED_LISTS | ALL_PROJECT_PATHS,
              "route": template}
     if template == "/api/agent/<operation>":
         _agent(P, who, params["operation"], body)
@@ -541,9 +579,8 @@ def authorize(P, method, path, query, body, actor):
     if template in ADMIN_GLOBAL or template.startswith("/api/clients/") or template == "/api/learn/holdout" or template.startswith("/api/testbox/"):
         if who["role"] != "admin":
             raise ApiError(403, "此汇总或配置接口仅租户管理员可用")
-    if (method == "GET" and template == "/api/memory" or template == "/api/workbench/intake" and (body.get("client") or body.get("client_name"))) and who["role"] != "admin":
-        # Memory returns the unfiltered project picker; clients have tenant-wide
-        # links. A supplied project field does not scope either projection.
+    if template == "/api/workbench/intake" and (body.get("client") or body.get("client_name")) and who["role"] != "admin":
+        # Client associations remain tenant-wide; a project selector does not scope them.
         raise ApiError(403, "此目录或客户关联尚未提供项目权限过滤")
     # The legacy assistant GET creates a default session when one is missing.
     level = "viewer" if method == "GET" and template != "/api/assist" else "contributor"
@@ -554,15 +591,21 @@ def authorize(P, method, path, query, body, actor):
             template == "/api/tickets/<key>" and "assignee" in body or
             template == "/api/memory" and body.get("action") in ("lesson_share", "lesson_unshare", "lesson_take", "lesson_untake")):
         level = "manager"
+    if method == "POST" and template == "/api/team" and body.get("action") in ("candidate_resolve", "candidate_report_get"):
+        level = "viewer"  # read-only team actions: no execution, no receipt, no Git write
     targets = []
     def add(kind, value):
         if value not in (None, ""):
             targets.append(_check(P, who, _resource_project(P, kind, value), level))
     if "key" in params:
-        add("ticket" if template.startswith(("/api/tickets/", "/e/")) else "project", params["key"])
+        if method == "GET" and template in ALL_PROJECT_PATHS and params["key"] in ("*", "all"):
+            scope["filter_required"] = True
+        else:
+            add("ticket" if template.startswith(("/api/tickets/", "/e/")) else "project", params["key"])
     for prefix, name, kind in (("/api/runs/", "rid", "run"), ("/api/sessions/", "sid", "session"),
                                ("/api/intake/", "sid", "intake"), ("/api/pins/", "pid", "pin"),
-                               ("/api/deliveries/", "did", "delivery")):
+                               ("/api/deliveries/", "did", "delivery"),
+                               ("/api/candidates/", "cid", "candidate")):
         if template.startswith(prefix):
             add(kind, params[name])
     values = body if method == "POST" else {key: _arg(query, key) for key in query}
@@ -582,16 +625,19 @@ def authorize(P, method, path, query, body, actor):
     cross_project = template == "/api/projects/<key>/library" and values.get("action") in ("grant", "revoke")
     if not cross_project and len({p["id"] for p in targets}) > 1:
         raise ApiError(400, "请求中的资源不属于同一项目")
-    if not targets and template not in FILTERED_LISTS and template not in ("/api/meta", "/api/delivery/catalog", "/api/projects/bootstrap") and not (method == "POST" and template.startswith("/api/projects/import")):
+    if not targets and template not in FILTERED_LISTS | ALL_PROJECT_PATHS and template not in ("/api/meta", "/api/delivery/catalog", "/api/projects/bootstrap", "/next", "/next/<path>") and not (method == "GET" and template in ("/api/org/knowledge", "/api/memory")) and not (method == "POST" and template.startswith("/api/projects/import")):
         if who["role"] != "admin":
             raise ApiError(403, "请明确选择获准的项目或工单")
+    if (template == "/api/agent-settings" and method == "POST" or template == "/api/access-config" and method == "POST"
+            or template == "/api/agent-test" and method == "POST" or template == "/api/agent-scan" and method == "GET") and not who["platform_owner"]:
+        raise ApiError(403, "智能体配置只能由平台管理员管理")
     if method == "GET":
         if template in ("/p/<key>/report/<path>", "/p/<key>/code.bundle"):
             # Reports are active same-origin content; bundles invoke Git.
             require_execution(P, actor)
         return scope
     action = body.get("action")
-    path_config = template.startswith("/api/projects/import") or template in ("/api/projects", "/api/projects/bootstrap", "/api/projects/<key>/preview-conf", "/api/testbox") or (
+    path_config = template.startswith("/api/projects/import") or template in ("/api/projects", "/api/projects/bootstrap", "/api/projects/<key>/preview-conf", "/api/projects/<key>/tests", "/api/testbox") or (
         template.endswith("/library") and action in ("configure", "add_source", "derive", "maintain"))
     if path_config:
         if not who["platform_owner"]:
@@ -624,8 +670,12 @@ def authorize(P, method, path, query, body, actor):
                 require_member(P, body[field], p, "contributor")
     safe = template in SAFE_POSTS or personal_static_preview
     safe |= template == "/api/tickets" and (body.get("handwork") is True or body.get("auto") is False and not (body.get("agent") and body.get("mode"))) and not body.get("code_at")
+    if template == "/api/projects/<key>/ci" and method == 'POST':
+        _check(P,who,_project(P,params['key']),'manager')
+    safe |= template in ("/api/tickets/<key>/development", "/api/projects/<key>/ci")
     safe |= template == "/api/team" and action == "assign"
     safe |= template == "/api/team" and action == "comment"
+    safe |= template == "/api/team" and action in ("candidate_resolve", "candidate_report_get", "candidate_report_create")  # no model or process
     if (template == "/api/tickets/<key>/claim" and body.get("on", True) is True
             and len(targets) == 1 and not who.get("tool_connection")):
         from .project_git import available

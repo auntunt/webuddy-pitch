@@ -39,6 +39,7 @@ def _opt(flag, key):
 
 
 TOOLS = [
+    _tool("source", "读取本地索引节点的固定源码及真实来源版本；索引不是平台保存地图，不能互相冒充。", {"node":S("context返回的原始节点id"),"line":N("起始行"),"limit":N("最多100行")},["node"],lambda a:["source",a["node"]]+_opt("--line","line")(a)+_opt("--limit","limit")(a)),
     _tool("context", "任务开始时先调用：按需求原文/业务词/类名/表名，从项目知识库取相关知识页、业务流、表和代码位置（不必通读仓库）",
           {"query": S("需求原文或关键词"), "budget": N("字符上限，默认 8000")}, ["query"],
           lambda a: ["context", a["query"]] + _opt("--budget", "budget")(a)),
@@ -149,7 +150,8 @@ def handle(root: Path, msg: dict) -> dict | None:
         result = {"tools": list_tools(root)}
     elif method == "tools/call":
         text, err = call_tool(root, params.get("name", ""), params.get("arguments") or {})
-        usage.log(root, params.get("name", ""), params.get("arguments") or {}, CLIENT["name"], ok=not err)
+        if params.get("name") != "source":
+            usage.log(root, params.get("name", ""), params.get("arguments") or {}, CLIENT["name"], ok=not err)
         result = {"content": [{"type": "text", "text": text}], "isError": err}
     elif method in ("resources/list", "prompts/list"):
         result = {method.split("/")[0]: []}

@@ -64,7 +64,11 @@ def _stat(hs: list) -> dict:
 
 
 def _in(ts: str, month: str) -> bool:
-    return not month or (ts or "").startswith(month)
+    if not month:
+        return True
+    instant = _t(ts)
+    day = time.strftime("%Y-%m-%d", time.gmtime(instant + 8 * 3600)) if instant is not None else (ts or "")
+    return day.startswith(month)
 
 
 def dur(h) -> str:
@@ -98,7 +102,7 @@ def history(store, p: dict) -> list:
                                            "WHERE t.project_id=? AND e.kind='accept'", (pid,))}
     ran = {r["ticket_id"] for r in store.q("SELECT DISTINCT ticket_id FROM runs WHERE project_id=? AND ticket_id IS NOT NULL", (pid,))}
     out = []
-    for t in store.tickets(project_id=pid, limit=100000, svc="ops"):
+    for t in store.tickets(project_id=pid, limit=100000):
         r = _history_row(t, [{"kind": "accept"}] if t["id"] in acc else [], [1] if t["id"] in ran else [])
         if r:
             out.append(r)
@@ -152,7 +156,7 @@ def _reopened(evs: list, accepted_at: str) -> bool:
 def compute(store, p: dict, usage_rows: list, month: str = "", kb: dict | None = None, sealed: dict | None = None,
             books: dict | None = None, packages: dict | None = None) -> dict:
     pid = p["id"]
-    tickets = store.tickets(project_id=pid, limit=100000, svc="ops")  # 提效报告 is the 运维 service's; reform pieces are reported on their plans
+    tickets = store.tickets(project_id=pid, limit=100000)
     ids = [t["id"] for t in tickets]
     by_id = {t["id"]: t for t in tickets}
     ev = {}
@@ -325,15 +329,15 @@ def compute(store, p: dict, usage_rows: list, month: str = "", kb: dict | None =
 
     # ---- last six months of the pilot
     trend = []
-    cur = month or time.strftime("%Y-%m")
+    cur = month or time.strftime("%Y-%m", time.gmtime(time.time() + 8 * 3600))
     y, m = int(cur[:4]), int(cur[5:7])
     for i in range(5, -1, -1):
         yy, mm = y, m - i
         while mm <= 0:
             yy, mm = yy - 1, mm + 12
         k = "%04d-%02d" % (yy, mm)
-        c = [r["cycle"] for r in pilot if r["done"].startswith(k)]
-        h = [r for r in pilot if r["origin"].startswith(k) or r["done"].startswith(k)]
+        c = [r["cycle"] for r in pilot if _in(r["done"], k)]
+        h = [r for r in pilot if _in(r["origin"], k) or _in(r["done"], k)]
         trend.append({"month": k, "closed": len(c), "cycle_median_h": _stat(c)["median_h"],
                       "ai_rate": pct(sum(1 for r in h if r["src"]), len(h))})
 

@@ -55,13 +55,18 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                     payload = {"ok": True, "workspace": "协议测试夹具", "engines": [], "scope": "fixture"}
                     if self.path.startswith("/t/default/"):
                         allowed = ["status", "projects_list", "ticket_get", "request_get"]
-                        if owner.tenant_scope in ("content", "execute"):
+                        if owner.tenant_scope in ("content", "execute", "develop"):
                             allowed += ["ticket_create", "message_send", "candidate_assess", "run_start"]
-                        if owner.tenant_scope == "execute":
+                        if owner.tenant_scope in ("execute", "develop"):
                             allowed += ["ticket_hold", "run_cancel", "run_recheck", "candidate_decide"]
+                        if owner.tenant_scope == "develop":
+                            allowed += ["development_get","development_start","development_propose","development_answer","candidate_submit","candidate_verify"]
+                        if getattr(owner, "report_ops", False):
+                            from tmh.platform import tool_access
+                            allowed += [op for op in ("candidate_report_get", "candidate_report_create") if op in tool_access.allowed_operations(owner.tenant_scope)]
                         payload.update(tool_connection=dict(id="fixture", user="member", tenant="default",
                             scope=owner.tenant_scope, project_ids=[1], expires_at=1800000000, status="active",
-                            execution=owner.tenant_scope == "execute"),
+                            execution=owner.tenant_scope in ("execute", "develop")),
                             allowed_operations=allowed)
                 elif operation == "ticket_get":
                     payload = {"ticket": {"key": body["ticket"], "body": owner.long_text},
@@ -69,6 +74,10 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                 elif operation == "message_send":
                     payload = {"ok": True, "event_id": 91, "request_id": body["request_id"],
                                "body": body["body"], "kind": body["kind"]}
+                elif operation == "candidate_report_create":
+                    payload = {"export_id": "e" * 64, "candidate_id": body["candidate_id"], "request_id": body["request_id"]}
+                elif operation == "candidate_report_get":
+                    payload = {"export_id": body["export_id"], "candidate_id": body["candidate_id"], "files": []}
                 elif operation == "run_start":
                     payload = {"ok": True, "run_id": 17, "state": "queued", "request_id": body["request_id"]}
                 else:
@@ -106,6 +115,17 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(initialization.serverInfo.name, "webuddy_mcp")
                     self.assertTrue(initialization.capabilities.tools)
                     yield session
+
+    async def test_local_preflight_requires_absolute_directory_and_never_starts_work(self):
+        async with self.session("--read-only") as session:
+            bad=await session.call_tool("webuddy_workspace_preflight", {"ticket":"PROJ-1","directory":"."})
+            self.assertTrue(bad.isError)
+            self.assertEqual(bad.structuredContent['code'],'directory_required')
+            self.assertEqual(self.requests,[])
+            value=await session.call_tool("webuddy_workspace_preflight", {"ticket":"PROJ-1","directory":str(ROOT)})
+            self.assertFalse(value.isError)
+            self.assertFalse(value.structuredContent['ready'])
+            self.assertEqual([r['path'].rsplit('/',1)[-1] for r in self.requests],['development_get'])
 
     def assert_full_json(self, result):
         self.assertEqual(len(result.content), 1)
@@ -157,7 +177,14 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                         initialized = await session.initialize()
                         self.assertEqual(initialized.serverInfo.name, "webuddy_mcp")
                         tools = (await session.list_tools()).tools
-                        self.assertEqual(len(tools), 16)
+                        from tmh.agent_contract import SPECS
+                        expected = {'webuddy_'+name for name,spec in SPECS.items() if not spec['write'] and not spec.get('operator')}
+                        self.assertEqual({t.name for t in tools}, expected | {'webuddy_workspace_preflight'})
+                        self.assertIn('webuddy_candidate_report_get', {t.name for t in tools})
+                        denied = await session.call_tool('webuddy_candidate_report_create', {'candidate_id':1,'request_id':'read-must-not-create'})
+                        self.assertTrue(denied.isError)
+                        self.assertIn("webuddy_workspace_preflight", {t.name for t in tools})
+                        self.assertTrue({"webuddy_development_get","webuddy_candidate_ci","webuddy_delivery_get"} <= {tool.name for tool in tools})
                         self.assertTrue(all(tool.annotations.readOnlyHint for tool in tools))
                         reply = await session.call_tool("webuddy_status", {})
                         self.assertFalse(reply.isError)
@@ -167,6 +194,15 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.requests[0]["path"], "/api/agent/status")
         self.assertEqual(self.requests[0]["headers"]["x-webuddy-agent"], client_name)
         self.assertEqual(self.requests[0]["headers"]["x-tmh-token"], "stdio-fixture-token")
+
+    async def test_delivery_read_roundtrip_needs_no_execution_or_write_permission(self):
+        async with self.session('--read-only') as session:
+            reply = await session.call_tool('webuddy_delivery_get', {'ticket':'ERP-1'})
+            self.assertFalse(reply.isError)
+            self.assert_full_json(reply)
+            self.assertEqual(reply.structuredContent['operation'], 'delivery_get')
+        self.assertEqual(self.requests[-1]['path'], '/api/agent/delivery_get')
+        self.assertEqual(self.requests[-1]['body'], {'ticket':'ERP-1'})
 
     async def test_generated_claude_configuration_launches_from_unrelated_directory(self):
         await self.check_generated_configuration("claude")
@@ -205,6 +241,53 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
                 self.assertNotIn(header, request["headers"])
 
     @unittest.skipUnless(os.name == "posix", "personal credential files require POSIX checks")
+    async def test_develop_scope_exposes_conversation_but_never_human_confirmation(self):
+        from tmh.workbench_credentials import save
+        self.tenant_scope = "develop"
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory).resolve() / "develop.json"
+            save(path, dict(schema=1, endpoint=self.endpoint + "/t/default", token="wbt_fixture.secret"))
+            async with self.session("--endpoint", self.endpoint + "/t/default", "--credential-file", str(path), "--allow-execution") as session:
+                names = {tool.name for tool in (await session.list_tools()).tools}
+                self.assertTrue({"webuddy_development_get","webuddy_development_start","webuddy_development_propose","webuddy_development_answer","webuddy_candidate_submit","webuddy_candidate_verify"} <= names)
+                self.assertFalse({"webuddy_development_confirm","webuddy_candidate_decide","webuddy_candidate_assess","webuddy_candidate_merge"} & names)
+                result=await session.call_tool("webuddy_development_start",dict(ticket="AGENT-1",request_id="select-once"))
+                self.assertFalse(result.isError)
+
+    async def test_candidate_report_ops_follow_candidate_scopes_and_round_trip(self):
+        from tmh.platform import tool_access
+        for scope in ("read", "content", "execute"):
+            self.assertIn("candidate_report_get", tool_access.allowed_operations(scope))
+            self.assertNotIn("candidate_report_create", tool_access.allowed_operations(scope))
+        self.assertIn("candidate_report_create", tool_access.allowed_operations("develop"))
+        from tmh.workbench_credentials import save
+        self.report_ops = True
+        for scope, expect_create in (("execute", False), ("develop", True)):
+            self.tenant_scope = scope
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory).resolve() / (scope + ".json")
+                save(path, dict(schema=1, endpoint=self.endpoint + "/t/default", token="wbt_fixture.secret"))
+                async with self.session("--endpoint", self.endpoint + "/t/default", "--credential-file", str(path), "--allow-execution") as session:
+                    names = {tool.name for tool in (await session.list_tools()).tools}
+                    self.assertIn("webuddy_candidate_report_get", names)
+                    self.assertEqual("webuddy_candidate_report_create" in names, expect_create)
+                    if expect_create:
+                        made = await session.call_tool("webuddy_candidate_report_create", dict(candidate_id=1, request_id="report-once"))
+                        self.assertFalse(made.isError)
+                        read = await session.call_tool("webuddy_candidate_report_get", dict(candidate_id=1, export_id=made.structuredContent["export_id"]))
+                        self.assertFalse(read.isError)
+                        self.assertEqual(read.structuredContent["export_id"], "e" * 64)
+                    else:
+                        denied = await session.call_tool("webuddy_candidate_report_create", dict(candidate_id=1, request_id="no"))
+                        self.assertTrue(denied.isError)
+                        self.assertEqual(denied.structuredContent["code"], "tool_not_enabled")
+
+    async def test_candidate_report_create_hidden_in_read_only_local_mode(self):
+        async with self.session("--read-only") as session:
+            names = {tool.name for tool in (await session.list_tools()).tools}
+            self.assertIn("webuddy_candidate_report_get", names)
+            self.assertNotIn("webuddy_candidate_report_create", names)
+
     async def test_tenant_execute_scope_starts_runs_and_hands_over_but_never_decides(self):
         from tmh.workbench_credentials import save
         self.tenant_scope = "execute"
@@ -303,8 +386,12 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
         async with self.session() as session:
             discovered = (await session.list_tools()).tools
             expected = {"webuddy_" + op for op, spec in SPECS.items() if not spec["execution"] and not spec.get("operator")}
-            self.assertEqual({tool.name for tool in discovered}, expected)
+            self.assertEqual({tool.name for tool in discovered}, expected | {"webuddy_workspace_preflight"})
             for tool in discovered:
+                if tool.name == "webuddy_workspace_preflight":
+                    self.assertTrue(tool.annotations.readOnlyHint)
+                    self.assertEqual(set(tool.inputSchema["required"]), {"ticket", "directory"})
+                    continue
                 op = tool.name[len("webuddy_"):]
                 self.assertEqual(tool.inputSchema, schema(op))
                 self.assertEqual(tool.annotations.readOnlyHint, not SPECS[op]["write"])
@@ -338,7 +425,7 @@ class WorkbenchMCPTest(unittest.IsolatedAsyncioTestCase):
         from tmh.agent_contract import SPECS
         async with self.session("--read-only", "--allow-execution") as session:
             names = {tool.name for tool in (await session.list_tools()).tools}
-            self.assertEqual(names, {"webuddy_" + op for op, spec in SPECS.items() if not spec["write"]})
+            self.assertEqual(names, {"webuddy_" + op for op, spec in SPECS.items() if not spec["write"]} | {"webuddy_workspace_preflight"})
             for name, arguments in (
                 ("webuddy_message_send", {"ticket": "BOOTV2-1", "body": "blocked", "request_id": "blocked"}),
                 ("webuddy_run_start", {"ticket": "BOOTV2-1", "mode": "fix", "engine": "codex", "request_id": "blocked"}),

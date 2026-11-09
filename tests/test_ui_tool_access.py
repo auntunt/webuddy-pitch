@@ -73,7 +73,7 @@ class ToolAccessUiTest(unittest.TestCase):
     def test_connect_instructions_visible_before_any_connection(self):
         html = page()
         self.assertIn('怎么连接', html)
-        self.assertIn('pip install ~/Downloads/webuddy_client-', html)
+        self.assertIn('pip install --upgrade --force-reinstall ~/Downloads/webuddy_client-', html)
         self.assertNotIn('__CLIENT__', html)
         self.assertEqual(self.run_js("process.stdout.write($('#client').href);"), '/t/alpha/tools/client')
 

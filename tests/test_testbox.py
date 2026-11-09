@@ -76,8 +76,8 @@ class TestBoxTest(unittest.TestCase):
         (self.tmp / "bin" / "ssh").write_text('#!/bin/sh\necho "$@" > %s\n' % seen)
         testbox.TestBox({"host": "laptop", "port": 0, "dir": "", "timeout": 30}, self.tmp)._ssh("echo hi")
         self.assertNotIn("-p", seen.read_text().split())
-        testbox.TestBox({"host": "u@h", "port": 12022, "dir": "", "timeout": 30}, self.tmp)._ssh("echo hi")
-        self.assertIn("-p 12022", seen.read_text())
+        testbox.TestBox({"host": "u@h", "port": 2222, "dir": "", "timeout": 30}, self.tmp)._ssh("echo hi")
+        self.assertIn("-p 2222", seen.read_text())
 
     def test_commands_compile_the_maven_modules_the_change_touches(self):
         seq, why = testbox.build_commands(self.repo, ["app/core/A.java"])
@@ -122,7 +122,7 @@ class TestBoxTest(unittest.TestCase):
                 return [{"kind": "setup", "command": "准备测试机", "exit_code": -2, "seconds": 0, "tail": "Remove-Item: 文件被占用"}]
             return [{"kind": k, "command": c, "exit_code": 0, "seconds": 1, "tail": ""} for k, c in seq]
         runner, project, rid = self.runner_fixture("data")
-        fl = SimpleNamespace(wt=self.repo, r=runner, p=project, rid=rid, say=lambda s: None, execute=execute)
+        fl = SimpleNamespace(wt=self.repo, r=runner, p=project, rid=rid, set={}, say=lambda s: None, execute=execute)
         seq = [("build", "cd app && mvn -B -q compile -DskipTests -pl core -am")]
         why = FixLoop.baseline(fl, seq)
         self.assertIn("测试机没准备好", why)

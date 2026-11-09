@@ -64,6 +64,8 @@ def decide(t: dict, f: dict) -> dict:
     modes = f.get("modes") or {}
     step = MODE_STEP.get(r.get("mode"), "")
     manual = lk.get("handwork") or (lk.get("hold") if r.get("agent") == "人工" else "")
+    if isinstance(manual, bool):
+        manual = (t.get("assignee") or "待分配") if manual else ""
     recovery = f.get("recovery") or {}
     if s == "closed":
         if f.get("release_wait"):

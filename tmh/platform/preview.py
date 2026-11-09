@@ -274,6 +274,9 @@ def _alive(pid: int, wt: str = "") -> bool:
     restart of the machine the same number can belong to something else, which must never be killed."""
     if not pid:
         return False
+    if os.name == "nt":
+        from .windows_process import is_running
+        return is_running(pid)
     try:
         os.kill(pid, 0)
     except (OSError, TypeError):
@@ -496,10 +499,6 @@ def resume(P) -> None:
 
 def _join(prefix: str, path: str) -> str:
     return prefix.rstrip("/") + "/" + path.lstrip("/")
-
-
-def _answers(url: str) -> bool:
-    return _http_health(url)["ok"]
 
 
 def _health(rec: dict) -> dict:

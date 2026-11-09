@@ -29,7 +29,7 @@ import time
 from pathlib import Path
 
 from .errors import ApiError
-from .store import REFORM_LIKE, now
+from .store import now
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS clients (
@@ -485,7 +485,7 @@ def states(P, tickets: list) -> dict:
 
 
 def _tickets(P, project=None, client_id=None) -> list:
-    sql, args = "SELECT t.*, p.key AS pkey FROM tickets t JOIN projects p ON p.id=t.project_id WHERE t.links NOT LIKE ?", [REFORM_LIKE]
+    sql, args = "SELECT t.*, p.key AS pkey FROM tickets t JOIN projects p ON p.id=t.project_id WHERE 1=1", []
     if project:
         sql += " AND p.key=?"
         args.append(project)

@@ -336,6 +336,96 @@ def build_map(root: Path, cache=None) -> dict:
             if e["class"] in over and not e.get("override"):
                 e["table"] = over[e["class"]]
         m["entities"] = [e for e in m["entities"] if not e.get("override")]
+    struts_supplement(root, m, cache)
     m["tables"] = {k: sorted(v) for k, v in sorted(tables.items())}
     m["symbols"] = {k: v for k, v in sorted(symbols.items())}
     return m
+
+
+_STRUTS_PKG_CONSTS = ("struts.convention.package.locators.basePackage", "struts.convention.action.packages")
+
+
+def struts_supplement(root: Path, m: dict, cache=None) -> None:
+    """Struts Convention/Gboat entry candidates; no invented URLs.
+
+    XML-declared actions replace the legacy regex extraction. Action methods in
+    configured convention packages become labelled candidates pending verification,
+    not verified HTTP routes."""
+    import xml.etree.ElementTree as ET
+    from . import codeindex
+    files = list(iter_files(root))
+    configs, explicit, diagnostics, parsed_xml = [], [], [], set()
+    for path in files:
+        if not (path.name.startswith("struts") and path.suffix.lower() == ".xml"):
+            continue
+        rp = rel(root, path)
+        text = read_text(path) or ""
+        try:
+            tree = ET.fromstring(text)
+        except ET.ParseError:
+            diagnostics.append({"file": rp, "reason": "Struts XML could not be parsed; legacy extraction retained"})
+            continue
+        parsed_xml.add(rp)
+        module = rp.split("/src/")[0] + "/" if "/src/" in rp else ""
+        packages = []
+        for node in tree.iter("constant"):
+            if node.get("name") in _STRUTS_PKG_CONSTS:
+                packages.extend(p.strip() for p in (node.get("value") or "").split(",") if re.fullmatch(r"[\w.]+", p.strip()))
+        if packages:
+            configs.append((module, packages, rp))
+        for package in tree.iter("package"):
+            namespace = package.get("namespace", "")
+            for action in package.findall("action"):
+                name, cls = action.get("name", ""), action.get("class", "")
+                method = action.get("method") or "execute"
+                if not (re.fullmatch(r"[\w.]+", cls) and re.fullmatch(r"[A-Za-z_$][\w$]*", method) and name and "*" not in name):
+                    diagnostics.append({"file": rp, "reason": "Dynamic/wildcard/bean Struts action requires explicit resolution", "action": name})
+                    continue
+                explicit.append({"method": "ANY", "path": "/" + "/".join(x.strip("/") for x in (namespace, name) if x.strip("/")),
+                                 "handler": cls + "." + method, "file": rp, "line": 0, "stack": "struts",
+                                 "registration": "Struts XML action: " + rp,
+                                 "limitations": ["HTTP verb and action extension depend on runtime Struts configuration"]})
+    if not configs and not parsed_xml:
+        return
+    m["endpoints"] = [e for e in m["endpoints"] if not (e.get("stack") == "struts" and e["file"] in parsed_xml)] + explicit
+    seen = {(e["handler"], e["file"]) for e in m["endpoints"]}
+    count = 0
+    for path in files:
+        if not path.name.endswith("Action.java"):
+            continue
+        rp = rel(root, path)
+        eligible = [c for c in configs if not c[0] or rp.startswith(c[0])]
+        if not eligible:
+            continue
+        text = read_text(path) or ""
+        parsed = (cache.get("index", rp, path, lambda value: codeindex.parse_source(rp, value or "", "java"))
+                  if cache is not None else codeindex.parse_source(rp, text, "java"))
+        lines = codeindex.mask(text, strings=False).splitlines()
+        for cls in parsed or []:
+            package = cls["fqn"].rsplit(".", 1)[0]
+            evidence = [c[2] for c in eligible if any(package == p or package.startswith(p + ".") for p in c[1])]
+            if not evidence or cls["kind"] != "class" or not cls["name"].endswith("Action"):
+                continue
+            for name, methods in cls["methods"].items():
+                if name.startswith(("get", "set", "is")) and name != "execute":
+                    continue
+                if name in ("validate", "prepare", "input", "toString", "hashCode", "clone", "finalize"):
+                    continue
+                for method in methods:
+                    if method.get("abstract") or method.get("params"):
+                        continue
+                    signature = "\n".join(lines[method["line"] - 1:method.get("body_line", method["line"])]).split("{", 1)[0]
+                    if not re.search(r"\bpublic\s+(?:(?:final|synchronized)\s+)*(?:String|java\.lang\.String|void)\s+" + re.escape(name) + r"\s*\(", signature):
+                        continue
+                    handler = cls["fqn"] + "." + name
+                    if (handler, rp) in seen:
+                        continue
+                    seen.add((handler, rp))
+                    m["endpoints"].append({"method": "CANDIDATE", "path": "struts:" + handler, "handler": handler,
+                                           "file": rp, "line": method["line"], "stack": "struts-convention",
+                                           "scope": "source-backed-action-candidate", "registration": evidence[0],
+                                           "limitations": ["Candidate action method in a configured Struts package; URL, allowed methods and runtime exposure are not verified"],
+                                           "candidate_class": cls["name"]})
+                    count += 1
+    m["struts_analysis"] = {"convention_candidates": count, "explicit_actions": len(explicit),
+                            "configuration_files": [c[2] for c in configs], "limitations": diagnostics}

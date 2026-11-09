@@ -8,6 +8,7 @@ import unittest
 
 from tmh.platform.ui_delivery import DELIVERY_JS
 from tmh.platform.ui import JS
+from tmh.platform.ui_time import TIME_JS
 
 
 @unittest.skipUnless(shutil.which("node"), "Node.js is needed for delivery UI behavior checks")
@@ -45,7 +46,7 @@ const stage={key:'research',name:'研究调研',state:'not_started',artifact:nul
         # Node reads stdin as UTF-8; the shipped JS + fixtures contain Chinese, and Windows default
         # text mode would encode them with the ANSI code page (GBK) and corrupt the source.
         route_helpers = 'function projectAgents(' + JS.split('function projectAgents(', 1)[1].split('function newTicket(', 1)[0]
-        result = subprocess.run([shutil.which("node"), "-"], input=helpers+route_helpers+DELIVERY_JS+"\n"+checks,
+        result = subprocess.run([shutil.which("node"), "-"], input=TIME_JS+helpers+route_helpers+DELIVERY_JS+"\n"+checks,
                                 encoding="utf-8", errors="replace", capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 

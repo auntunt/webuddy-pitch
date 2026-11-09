@@ -1,7 +1,7 @@
 """AI acceptance (按项目开关): on a project listed in autoflow.json "ai_accept" ("*" or true for all), the platform
 signs and closes a ticket itself right after the automatic line committed its change, but only when the evidence
 holds — the build and tests passed on that change, an independent diagnosis named no blocker and passed every
-criterion one by one, and the evidence package is intact and bound to this change. Anything short of that, or a
+criterion one by one, the evidence package is intact and bound to this change, and current per-criterion page evidence passes. Anything short of that, or a
 person who took the ticket over, leaves it for people with the reason said on the ticket. Nothing is guessed.
 
 A project listed in "ai_accept_observe" instead (and not in "ai_accept") runs the same checks in the shadow: AI says on
@@ -152,9 +152,6 @@ def why_not(data_dir: Path, rid: int, acs: list, real: bool = False) -> str:
     return ""
 
 
-KEPT = "必须保持项：构建测试在测试机上通过，由自动测试证明"
-
-
 def committed(snap: dict, rid: int) -> str:
     """The commit the automatic line made of run `rid`: the delivery binding's, else the adoption of that run's branch."""
     adopted = snap.get("adopted") or {}
@@ -197,25 +194,23 @@ def after_commit(P, p: dict, tid: int, rid: int) -> dict:
             why = "只改了页面文件，构建只能证明能打包；这个项目没配页面实测"
     seen = {}
     tested = any(g.get("id") == "test" and g.get("state") == "pass" for g in (s.get("snapshot") or {}).get("gates") or [])
-    kept = []
     if not why and browser_verify.conf(P.data_dir, p["key"]):
-        from .testbox import page_only
         commit = committed(s.get("snapshot") or {}, rid)
-        r = st.run(rid)
-        files = re.findall(r"(?m)^diff --git a/(\S+) b/", (r.get("diff") if isinstance(r, dict) else "") or "")
-        # what must keep working is proven by automated tests that passed; with none, or a page-only change, on the page too
-        page = [a for a in acs if not a.get("keep")] if tested and not page_only(files) else list(acs)
-        kept = [a for a in acs if a not in page] if page else []
-        res = browser_verify.verify(P, p, t, rid, page, commit=commit) if page else \
-            {"result": "unverified", "why": "没有要在页面上实测的验收标准", "ac": []}
+        res = browser_verify.verify(P, p, t, rid, acs, commit=commit)
         seen = {i["id"]: i for i in res.get("ac") or []}
-        seen.update({a["id"]: {"id": a["id"], "result": "pass", "how": KEPT} for a in kept})
         why = ("" if res["result"] == "pass" and all((seen.get(a["id"]) or {}).get("result") == "pass" for a in acs) else
                "页面实测复现了问题（%s）" % "、".join(k for k, i in seen.items() if i["result"] == "fail") if res["result"] == "fail" else
                "页面实测没能证明%s" % ("：" + res["why"] if res.get("why") else "（%s 未验证）" % "、".join(
                    a["id"] for a in acs if (seen.get(a["id"]) or {}).get("result") != "pass")))
         s = signoff.state(P.data_dir, t["key"])
         why = why or ("证据包被改动过：%s" % s.get("problem") if not s.get("intact") else "")
+    if not why:
+        evidence = s.get("criterion_evidence") or {}
+        missing = [a["id"] for a in acs if (evidence.get(a["id"]) or {}).get("result") != "pass"]
+        if missing:
+            why = "验收标准 %s 缺少当前版本的逐项实测依据" % "、".join(missing)
+        else:
+            seen = evidence
     if why and shadow:
         st.event(tid, BY, "flow", "AI 影子验收：本不会验收（%s）。观察模式，留给人验收。%s" % (why, auth),
                  {"run": rid, "shadow": {"would_accept": False, "why": why}, "mandate": now})
@@ -226,16 +221,16 @@ def after_commit(P, p: dict, tid: int, rid: int) -> dict:
         return {"accepted": False, "why": why}
     from .fixloop import verified
     said = {str(a.get("id")): a for a in (verified(P.data_dir, rid).get("diagnosis") or {}).get("ac") or [] if isinstance(a, dict)}
-    basis = {"run": rid, "check": "pass", "diagnosis": "pass",
+    basis = {"run": rid, "pack_hash": s.get("pack_hash"), "check": "pass", "diagnosis": "pass",
              "ac": {a["id"]: str((seen.get(a["id"]) or said.get(a["id"]) or {}).get("how") or "")[:300] for a in acs}}
     if seen:
         basis["real"] = "pass"
     basis["mandate"] = now
-    real = [a["id"] for a in acs if a not in kept]
+    real = [a["id"] for a in acs]
     note = "AI 验收通过：%s，独立诊断没有阻断项，%s %d 条验收标准（%s）都做到了%s。%s%s" % (
         "构建测试通过" if tested else "构建通过（这个项目没跑自动测试）",
         "在页面上逐条实测" if seen else "逐条核对", len(real), "、".join(real),
-        "；必须保持项 %s 由自动测试证明" % "、".join(a["id"] for a in kept) if kept else "",
+        "",
         "证据包里还缺：%s。" % "、".join(s["missing"]) if s.get("missing") else "", auth)
     if shadow:
         st.event(tid, BY, "flow", "AI 影子验收：本会验收通过（%s）。观察模式不签收，留给人验收" % note,

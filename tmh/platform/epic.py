@@ -8,7 +8,7 @@ and the evidence that will prove it; only what is missing is asked, the same way
 
 Confirming the spec makes one parent ticket (the spec and the overall criteria; it never goes on the coding line)
 and one ordinary child ticket per item, each with its own criteria, linked links.parent / links.children. The
-children are released in batches like the waves of a reform plan (reform.py): a batch goes on the line, and when
+children are released in batches: a batch goes on the line, and when
 every child in it has passed acceptance the next batch goes by itself. A child can depend on earlier ones: it waits
 for them and starts from their code (the main line once they merged, else the commit the dependency ended on).
 A rejection that nothing will redo automatically pauses the feature until a person resumes it.

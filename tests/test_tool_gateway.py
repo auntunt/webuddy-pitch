@@ -33,6 +33,29 @@ class ToolGatewayTest(unittest.TestCase):
             body=body or {}, headers={'X-TMH': '1', 'Authorization': 'Bearer ' + grant['token'],
                                      'X-Webuddy-Agent': label, **(headers or {})})
 
+    def test_develop_grant_allows_durable_questions_but_not_human_decisions(self):
+        grant=self.grant(scope='develop')
+        status,_,state=self.call(grant,'development_start',{'ticket':'SAME-1','request_id':'select-task'})
+        self.assertEqual(status,200,state)
+        status,_,state=self.call(grant,'development_propose',{'ticket':'SAME-1','request_id':'proposal',
+            'revision':state['revision'],'summary':'Record retention','design':'Save before reload',
+            'test_plan':'Save and reload','criteria':[{'id':'A1','text':'Still present','check':'Reload'}],
+            'questions':[{'id':'Q1','question':'How long to retain?','options':['One year','Other'],'required':True}]})
+        self.assertEqual(status,200,state)
+        status,_,state=self.call(grant,'development_answer',{'ticket':'SAME-1','revision':state['revision'],
+            'request_id':'answer','answers':[{'question_id':'Q1','answer':'One year','resolved':True}]})
+        self.assertEqual(status,200,state)
+        self.assertEqual(state['state'],'awaiting_confirmation')
+        self.assertEqual(state['payload']['answers']['Q1']['actor'],'agent:member:alice')
+        self.assertEqual(self.call(grant,'development_get',{'ticket':'PRIVATE-1'})[0],404)
+        self.assertIn(self.call(grant,'development_get',{'ticket':'SAME-1'},tenant=self.b)[0],(401,403))
+        status,_,result=self.call(grant,'candidate_decide',{'candidate_id':1,'evidence_hash':'a'*64,
+            'decision':'accept','note':'forged','request_id':'fake'})
+        self.assertEqual(status,403,result)
+        old=self.grant(scope='execute',rid='old-scope')
+        self.assertEqual(self.call(old,'development_answer',{'ticket':'SAME-1','revision':state['revision'],
+            'request_id':'old-write','answers':[{'question_id':'Q1','answer':'Other','resolved':True}]})[0],403)
+
     def test_member_connects_to_only_granted_projects_and_identity_is_not_tool_label(self):
         grant = self.grant()
         for label in ('claude', 'cursor', 'owner'):

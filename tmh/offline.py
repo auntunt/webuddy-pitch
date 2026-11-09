@@ -1,9 +1,9 @@
 """Offline install pack for intranet machines (内网私有化包).
 
 `tmh offline-pack --out tmh-offline.zip` bundles everything `tmh install` and
-`tmh serve` need: the tool itself, templates, skills, sub-agents, the 信创
+the project commands need: the tool itself, templates, skills, sub-agents, the 信创
 knowledge base and the docs. The harness has no third-party dependencies, so a
-machine with Python 3.8+ needs nothing else. MANIFEST.sha256 lists every file's
+machine with Python 3.8+ can use static project commands. Server and MCP need their optional dependencies. MANIFEST.sha256 lists every file's
 hash; `tmh offline-pack --verify <zip>` (or `sha256sum -c MANIFEST.sha256` after
 unpacking) checks a copy that came through a USB stick or a file gateway.
 """
@@ -24,7 +24,7 @@ SKIP = ("__pycache__", ".pyc", ".DS_Store")
 
 README = """# tmh 内网离线安装包 {version}
 
-打包时间 {built}。不需要联网，也不需要 pip 装任何依赖，只要 Python 3.8 以上。
+打包时间 {built}。项目静态工具仅需 Python 3.8 以上。本资料包不自带 Python 或第三方依赖；完整 Windows 服务端请使用 Windows 离线运行包。MCP 需要相应 SDK，服务端需要 server 依赖。
 
 ## 1. 校验
 
@@ -76,11 +76,7 @@ Claude Code 用 `ANTHROPIC_BASE_URL` 指向内网的 Anthropic 兼容网关。�
 
 
 def _files() -> list[tuple[Path, str]]:
-    out = []
-    for p in sorted(PKG.rglob("*")):
-        relative = p.relative_to(PKG)
-        if p.is_file() and "_resources" not in relative.parts and not any(s in str(relative) for s in SKIP):
-            out.append((p, "tmh/" + relative.as_posix()))
+    out = [(p, "tmh/" + relative) for p, relative in resources.code_files(PKG)]
     out.extend(resources.files(HOME))
     return out
 

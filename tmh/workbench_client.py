@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import gzip
 import http.client
 import os
 import re
@@ -12,7 +13,9 @@ import time
 from .agent_contract import SPECS, validate
 from . import workbench_credentials as credentials
 
-TENANT_WRITES = ("ticket_create", "message_send", "run_start", "run_cancel", "run_retry", "ticket_hold")
+TENANT_WRITES = ("map_create", "run_recover", "ticket_create", "message_send", "run_start", "run_cancel", "run_retry", "ticket_hold",
+                 "intake_start", "intake_understand", "intake_answer")
+DEVELOP_WRITES = ("development_start", "development_propose", "development_answer", "candidate_submit", "candidate_verify", "candidate_cancel", "candidate_report_create", "run_recheck")
 
 
 class ClientError(Exception):
@@ -58,6 +61,7 @@ class Client:
         if not isinstance(timeout, (int, float)) or not 0 < timeout <= 60:
             raise ClientError("HTTP 超时必须大于 0 且不超过 60 秒", "invalid_timeout")
         self.agent, self.timeout, self.allow_execution = agent, timeout, allow_execution
+        self.live_scope = None
         self.operator = operator
         self.operator_token = operator_token
         self.token = token if token is not None else os.environ.get("WEBUDDY_TOKEN", "")
@@ -81,9 +85,9 @@ class Client:
         value = self.call("status")
         info, allowed = value.get("tool_connection"), value.get("allowed_operations")
         if (not isinstance(info, dict) or info.get("tenant") != self.tenant
-                or info.get("scope") not in ("read", "content", "execute")
+                or info.get("scope") not in ("read", "content", "execute", "develop")
                 or not info.get("user") or not info.get("id")
-                or info.get("execution") is not (info.get("scope") == "execute")
+                or info.get("execution") is not (info.get("scope") in ("execute", "develop"))
                 or info.get("status") != "active"
                 or not isinstance(info.get("project_ids"), list)
                 or not info.get("expires_at")
@@ -92,12 +96,13 @@ class Client:
             raise ClientError("服务未返回有效的个人工具身份与权限；未保存凭据，请核对租户工具接入版本。", "invalid_tool_status")
         if info["scope"] == "read" and any(SPECS.get(op, {}).get("write") for op in allowed):
             raise ClientError("服务返回的权限与只读凭据不一致", "invalid_tool_status")
+        self.live_scope = info['scope']
         return value
 
     def permits(self, operation):
         spec = SPECS[operation]
         return (not self.tenant or (not spec.get("operator")
-                and (not spec["write"] or operation in TENANT_WRITES)))
+                and (not spec["write"] or operation in TENANT_WRITES or self.live_scope == 'develop' and operation in DEVELOP_WRITES)))
 
     def call(self, operation, args=None):
         try:
@@ -105,6 +110,8 @@ class Client:
         except ValueError as e:
             raise ClientError(str(e), "invalid_arguments") from e
         spec = SPECS[operation]
+        if self.tenant and operation in DEVELOP_WRITES and self.live_scope is None:
+            self.connection_status()
         if not self.permits(operation):
             raise ClientError("个人租户工具连接仅支持授权项目读取、创建任务、留言、启动/停止运行和接管/交回自动；不允许评审、采用或人工决定。", "tool_operation_forbidden")
         if spec.get("operator") and not self.operator:
@@ -113,7 +120,7 @@ class Client:
             raise ClientError("缺少独立操作者凭据，工作区Agent令牌不能代替", "operator_credential_required")
         if spec["execution"] and not self.allow_execution:
             raise ClientError("此连接未启用执行。MCP 启动时添加 --allow-execution；CLI 使用明确的 start/retry/recheck/preview --start 命令。", "execution_disabled")
-        headers = {"Content-Type": "application/json", "X-TMH": "1", "X-Webuddy-Agent": self.agent}
+        headers = {"Accept-Encoding": "gzip", "Content-Type": "application/json", "X-TMH": "1", "X-Webuddy-Agent": self.agent}
         if spec.get("operator"):
             headers.pop("X-Webuddy-Agent")
             headers["X-Webuddy-Operator"] = "1"
@@ -153,6 +160,8 @@ class Client:
             conn.request("POST", self.address.path + "/api/agent/" + operation, body=json.dumps(args, ensure_ascii=False).encode("utf-8"), headers=headers)
             response = conn.getresponse()
             raw = response.read()
+            if response.getheader("Content-Encoding", "").lower() == "gzip":
+                raw = gzip.decompress(raw)
             if expired.is_set() or time.monotonic() > deadline:
                 raise TimeoutError("deadline")
             try:

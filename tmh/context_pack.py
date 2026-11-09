@@ -86,7 +86,14 @@ def _source(spec, index: int) -> dict:
         out["error"] = "还没有知识库（先运行 tmh kb build）"
         return out
     out["available"] = True
-    out["revision"] = _git_head(root)
+    graph = Graph(root)
+    try:
+        provenance = graph.provenance()
+    finally:
+        graph.db.close()
+    out.update(provenance)
+    out["current_checkout"] = _git_head(root)
+    out["revision"] = provenance["source_version"]
     out["knowledge_revision"] = _knowledge_revision(root)
     return out
 
@@ -407,9 +414,19 @@ def assemble(sources, query: str, budget: int = 8000, json_mode: bool = False,
             spec["available"] = False
             spec["error"] = "检索失败：%s" % exc
             continue
+        current_graph = Graph(Path(spec['root']))
+        try:
+            identity = current_graph.meta().get('provenance',{}).get('index_revision')
+        finally:
+            current_graph.db.close()
+        if identity != spec.get('index_revision'):
+            spec.update(available=False,error='检索期间索引已更新；请重新读取，未混用版本')
+            continue
         for item in found:
             item = dict(item, source=spec["label"], source_version=spec["revision"],
-                        knowledge_revision=spec["knowledge_revision"], current=spec["current"])
+                        knowledge_revision=spec["knowledge_revision"], current=spec["current"],
+                        index_revision=spec.get("index_revision"), index_status=spec.get("index_status"),
+                        current_checkout=spec.get("current_checkout"), snapshot_sha256=spec.get("snapshot_sha256"))
             item["id"] = "%s:%s" % (spec["id"], item["id"])  # never merge two projects' ids
             merged.append(item)
     merged.sort(key=lambda i: (not i["current"], -i["score"], i["id"]))

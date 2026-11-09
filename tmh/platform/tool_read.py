@@ -152,9 +152,22 @@ def run_history(P, run):
     operations = rows(P.store, 'verification_operations',
                       'WHERE source_run=? AND project_id=? AND ticket_id IS ? ORDER BY id',
                       (run['id'], run['project_id'], run['ticket_id']))
-    return {'historical': True, 'run': dict(run),
+    timing_records=[]
+    attempts=folder/'attempts'
+    if attempts.exists():
+        if attempts.is_symlink() or not attempts.resolve().is_relative_to(folder.resolve()):
+            raise ApiError(409,'运行用量目录归属不可核验')
+        for attempt in sorted(attempts.iterdir()):
+            if not attempt.name.isdigit():
+                continue
+            path=attempt/'timing.json'
+            if attempt.is_symlink() or path.is_symlink():
+                raise ApiError(409,'运行用量记录不接受链接')
+            timing_records.append({'attempt':int(attempt.name),'record':saved(path)})
+    return {'historical': True, 'run': dict(run),'timing_records':timing_records,
             'verification': run_verification(P, run, folder / 'verify.json'),
             'lifecycle': saved(folder / 'lifecycle.json'),
+            'context_receipt': saved(folder / 'context.json'),
             'rechecks': [recheck_history(P, op) for op in operations]}
 
 
@@ -341,7 +354,46 @@ def library_get(P, p):
                                history={'historical': True, 'record': dict(r)},
                                recorded_status=r['status'], runtime_status='not_checked', historical=True)
                           for r in rows(st, 'knowledge_revisions', 'WHERE project_id=? ORDER BY seq DESC', (p['id'],))],
-            'references': library.reference_state(st, p),
+            'references': library.reference_overview(st, p),
             'derivation': derivations[0] if derivations else None,
             'grants': rows(st, 'knowledge_grants', 'WHERE source_project=? ORDER BY target_project', (p['id'],)),
             'runtime_status': 'not_checked', 'execution': False, 'notice': NOTICE}
+
+
+def delivery_get(P, key, visible_ids, *, render=True):
+    """One stored evidence packet for web and MCP; never an acceptance verdict."""
+    from . import development, project_ci
+    packet = ticket_get(P, key, visible_ids)
+    t = packet['ticket']
+    candidates = [candidate(P, row['id'], visible_ids) for row in packet['external_candidates']]
+    consumption=[]
+    for history in packet['history']['runs']:
+        run=history['run']
+        records=history.get('timing_records') or [{'attempt':None,'record':{'recorded':None}}]
+        for rec in records:
+            timing=rec['record'].get('recorded') or {}
+            if not isinstance(timing,dict): timing={}
+            usage=timing.get('usage')
+            consumption.append({'run_id':run['id'],'attempt':rec['attempt'],'executor':run.get('agent'),
+                'reported_model':timing.get('reported_model'),'usage':usage,
+                'usage_source':'CLI recorded usage' if usage is not None else 'unknown',
+                'cli_reported_cost_usd':timing.get('reported_cost_usd'),'actual_cost':None,
+                'cost_source':timing.get('cost_source','unknown'),
+                'notice':'单次进程回执；不汇总重叠缓存口径，不把CLI费用当供应商账单。'})
+    result = {'schema_version': 1, 'ticket': t, 'project': packet['project'],
+            'consumption':consumption,
+            'conclusions':{'checks_finished':'not_checked','engineering_gate':'not_checked','business_acceptance':'see_recorded_events'},
+            'development': development.read(P.store, t),
+            'repository': packet['repository'], 'team_assignment': packet['team_assignment'],
+            'requirement_hash': packet['requirement_hash'], 'knowledge': packet['knowledge'],
+            'runs': packet['history']['runs'], 'evidence': packet['history']['evidence'],
+            'evidence_original': packet['history']['evidence_original'],
+            'candidates': candidates,
+            'ci_configuration': project_ci.configuration(P.data_dir, packet['project']['key']),
+            'current_validity': 'not_checked', 'ready_to_merge': None,
+            'notice': NOTICE, 'execution': False,
+            'next_step': '在候选详情核对当前有效证据；由有权限的人员复核，再按项目策略确认合并。',
+            'links': {'task': '#/t/' + t['key'], 'review': '#/team/ticket/' + t['key']}}
+    from .store import now
+    result['generated_at']=now()
+    return result

@@ -16,7 +16,7 @@ spec.loader.exec_module(merge_data)
 class MergeDataTest(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
-        self.ops, self.reform = self.tmp / "ops", self.tmp / "reform"
+        self.ops, self.other = self.tmp / "ops", self.tmp / "other"
 
     def fill(self, d: Path, key: str, runs: int, max_lines: int):
         d.mkdir()
@@ -39,10 +39,8 @@ class MergeDataTest(unittest.TestCase):
 
     def test_both_projects_end_up_in_one_platform_with_their_records_intact(self):
         self.fill(self.ops, "JB", 3, 400)
-        self.fill(self.reform, "RW", 2, 20000)
-        (self.reform / "reforms").mkdir()
-        (self.reform / "reforms" / "RW.json").write_text("[]", encoding="utf-8")
-        merge_data.merge(self.ops, self.reform)
+        self.fill(self.other, "RW", 2, 20000)
+        merge_data.merge(self.ops, self.other)
 
         st = Store(self.ops / "platform.db")
         rw = st.project("RW")
@@ -57,7 +55,6 @@ class MergeDataTest(unittest.TestCase):
         self.assertEqual(sorted(p["run_id"] for p in pts), [4, 5])
         for r in (1, 2, 3, 4, 5):
             self.assertTrue((self.ops / "runs" / str(r) / "verify.json").exists())
-        self.assertTrue((self.ops / "reforms" / "RW.json").exists())
         self.assertTrue((self.ops / "evals" / "RW.json").exists() and (self.ops / "evals" / "JB.json").exists())
         lessons = [json.loads(x) for x in (self.ops / "lessons.jsonl").read_text(encoding="utf-8").splitlines()]
         self.assertEqual([x["run"] for x in lessons], [3, 5])
@@ -66,9 +63,9 @@ class MergeDataTest(unittest.TestCase):
 
     def test_a_project_already_there_is_not_merged_twice(self):
         self.fill(self.ops, "JB", 1, 400)
-        self.fill(self.reform, "JB", 1, 400)
+        self.fill(self.other, "JB", 1, 400)
         with self.assertRaises(SystemExit):
-            merge_data.merge(self.ops, self.reform)
+            merge_data.merge(self.ops, self.other)
         c = sqlite3.connect(str(self.ops / "platform.db"))
         self.assertEqual(c.execute("SELECT COUNT(*) FROM projects").fetchone()[0], 1)
 

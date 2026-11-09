@@ -7,7 +7,7 @@ trusted legacy operator. Newly managed tenants never run host code.
 from __future__ import annotations
 
 from contextlib import contextmanager
-from contextvars import ContextVar, copy_context
+from contextvars import copy_context
 import base64
 import hashlib
 import hmac
@@ -29,10 +29,9 @@ import time
 from .errors import ApiError
 from . import filelock
 
-ACTOR = ContextVar('tenant_actor', default='')
+from .tenant_identity import ACTOR, TOOL
 BOT_HEADERS = ('x-lark-signature', 'x-lark-request-timestamp', 'x-lark-request-nonce', 'timestamp', 'sign', 'authorization')
 BOT_PATH = re.compile(r'/bot/(dingtalk|feishu|wecom|api)/[A-Za-z0-9_-]+(\?[^#]*)?')
-TOOL = ContextVar('tenant_tool_connection', default=None)
 
 
 def error(code, message, reason='permission_denied'):
@@ -62,14 +61,14 @@ class TenantContext:
             # A personal admin may issue a tool token, but never delegate their
             # admin or human-signoff authority. The execute scope carries only
             # the execution the member already holds in the web.
-            writes = tool['scope'] in ('content', 'execute')
+            writes = tool['scope'] in ('content', 'execute', 'develop')
             role = 'contributor' if writes else 'viewer'
             caps = value['capabilities']
             result.update(role='member' if writes else 'viewer', platform_owner=False,
                           can_manage=False, project_grants={keys[str(pid)]: role for pid in tool['project_ids'] if str(pid) in keys},
                           tool_connection=tool,
                           capabilities={k: k == 'read' or k == 'write' and writes
-                                        or k == 'execution' and tool['scope'] == 'execute' and bool(caps.get('execution'))
+                                        or k == 'execution' and tool['scope'] in ('execute', 'develop') and bool(caps.get('execution'))
                                         for k in caps})
         return result
 
@@ -341,7 +340,7 @@ def worker(data, tenant, address, keyfile, parent_pid):
     context.platform = P
     from . import learning_experiment_runs as experiments
     recovery_ids = experiments.recovery_candidates(P)
-    base = make_handler(P)
+    base = make_handler(P, web_prefix="/t/" + tenant)
 
     class Handler(base):
         def setup(self):

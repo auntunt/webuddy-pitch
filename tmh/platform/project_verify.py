@@ -7,8 +7,11 @@ the ordinary verification operation can report a pass.
 """
 from __future__ import annotations
 
+import base64
 import hashlib
+import json
 from pathlib import Path
+import subprocess
 import threading
 import time
 
@@ -166,14 +169,15 @@ def _run(P, authority, row, project, seq, opid):
         return (project_snapshot.current(authority.image, root, 'HEAD', row['base_commit'], cancel=stopped, engine=engine)
                 and project_snapshot.current(authority.image, root, row['ref'], row['commit_sha'], cancel=stopped, engine=engine))
 
-    def check_volume(reference, label):
+    def check_volume(reference, label, overlay_seq=None, source_check=True):
         nonlocal artifact
+        steps = overlay_seq if overlay_seq is not None else seq
         receipts = []
         limit = runner.remaining(opid)
         if limit <= 0 or stopped():
             raise ValueError('隔离验证已停止或超过总时限')
         with ProjectVolume(engine, build_image, reference, limit, stopped) as volume:
-            for index, (kind, command) in enumerate(seq, 1):
+            for index, (kind, command) in enumerate(steps, 1):
                 if stopped() or not volume.alive():
                     raise ValueError('验证期间项目授权已撤销或临时工作区已停止')
                 remaining = runner.remaining(opid)
@@ -210,6 +214,10 @@ def _run(P, authority, row, project, seq, opid):
                 remaining = runner.remaining(opid)
                 if remaining <= 0 or stopped() or not volume.alive():
                     raise ValueError('验证期间授权或临时工作区已失效')
+                if not source_check:
+                    if receipt['returncode'] != 0:
+                        break
+                    continue
                 spec=volume.spec(['python3','-I','-c',CHECK_SOURCE],remaining)
                 spec['HostConfig']['Mounts'].append({'Type':'bind','Source':_path(reference),
                                                    'Target':'/reference','ReadOnly':True})
@@ -228,7 +236,7 @@ def _run(P, authority, row, project, seq, opid):
                                      diagnostics.decode('utf-8','replace')[:500])
                 if receipt['returncode'] != 0:
                     break
-            if static and label == 'candidate' and len(receipts) == len(seq) and all(r['exit_code'] == 0 for r in receipts):
+            if static and label == 'candidate' and len(receipts) == len(steps) and all(r['exit_code'] == 0 for r in receipts):
                 artifact = static_preview.export(engine, volume, static['output'], folder/'static-site',
                                                  row['commit_sha'], runner.remaining(opid), stopped)
         # ProjectVolume.__exit__ must confirm anchor, volume and janitor cleanup.
@@ -250,6 +258,43 @@ def _run(P, authority, row, project, seq, opid):
         baseline_receipts = check_volume(baseline, 'baseline')
         baseline_ok = len(baseline_receipts)==len(seq) and all(item['exit_code']==0 for item in baseline_receipts)
         receipts = check_volume(workspace, 'candidate') if baseline_ok else []
+        # 原有测试（基线版本）在候选上：the candidate's modified/deleted test files
+        # are restored to baseline content and the configured test commands rerun;
+        # unrecoverable input records a blocking 受阻, never a pass.
+        gate = json.loads(row['gate'] or '{}') if 'gate' in row.keys() else {}
+        touched = list(gate.get('tests_changed') or []) + list(gate.get('tests_deleted') or [])
+        if touched and len(receipts) == len(seq) and all(r['exit_code'] == 0 for r in receipts):
+            restore, blocked_why = [], ''
+            for path in touched:
+                probe = subprocess.run(['git', '-C', str(root), 'show',
+                                        '%s:%s' % (row['base_commit'], path)],
+                                       capture_output=True, timeout=30)
+                content = probe.stdout if probe.returncode == 0 else b''
+                if not content:
+                    blocked_why = '无法读取基线版本测试文件 ' + path
+                    break
+                if sum(len(b) for _, b in restore) + len(content) > 1500000:
+                    blocked_why = '基线测试内容超过隔离验证恢复上限'
+                    break
+                restore.append((path, content))
+            if not blocked_why and not any(kind == 'test' for kind, _ in seq):
+                blocked_why = '项目验证配置中没有 test 命令，无法执行基线测试复核'
+            if blocked_why:
+                receipts.append({'kind': 'baseline_tests', 'command': '原有测试（基线版本）在候选上',
+                                 'exit_code': -1, 'seconds': 0, 'output': blocked_why,
+                                 'tail': blocked_why, 'cleanup': True, 'raw_output': '',
+                                 'raw_sha256': ''})
+            else:
+                script = ''
+                for path, content in restore:
+                    quoted = "'" + path.replace("'", "'\\''") + "'"
+                    script += "mkdir -p %s && printf %%s %s | base64 -d > %s\n" % (
+                        "'" + str(Path(path).parent).replace("'", "'\\''") + "'",
+                        "'" + base64.b64encode(content).decode() + "'", quoted)
+                steps = ([('baseline_tests_restore', 'cd /workspace && ' + script)]
+                         + [('baseline_tests', cmd) for kind, cmd in seq if kind == 'test'])
+                receipts.extend(check_volume(workspace, 'baseline-tests',
+                                             overlay_seq=steps, source_check=False))
         if not current():
             raise ValueError('验证结束前项目授权、需求或固定版本已变化')
         check = 'pass' if baseline_ok and len(receipts)==len(seq) and all(item['exit_code']==0 for item in receipts) else 'fail'

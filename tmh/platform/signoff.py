@@ -342,6 +342,7 @@ def _binding_state(data_dir: Path, key: str, out: dict) -> dict:
     if out.get("decision"):
         out["previous_decision"] = out["decision"]
         out["decision"] = None
+    out["criterion_evidence"] = {}
     if snap:
         proof_snapshot = dict(snap, check=dict(snap["check"], result="fail" if only_current_failure else "unknown"))
         out["proofs"] = proofs(proof_snapshot, None, out.get("attachments", []), None)
@@ -421,39 +422,100 @@ def state(data_dir: Path, key: str) -> dict:
                 "decision": dict(signs[-1]["data"], kind=signs[-1]["kind"], ts=signs[-1]["ts"], hash=signs[-1]["hash"]) if signs else None})
     out["complete"] = not out["missing"]
     out["status"] = signs[-1]["kind"] + "ed" if signs else ("ready" if out["complete"] else "incomplete")
-    out["proofs"] = proofs(snap, gates, shots, out["decision"])
+    out["criterion_evidence"] = current_page_evidence(data_dir, key, out, after) if ok and not stale else {}
+    checks = candidate_checks(out, after)
+    if checks and ((not out["criterion_evidence"] and (not signs or signs[-1]["data"].get("via") == "AI 验收")) or signs and checks[-1]["seq"] > signs[-1]["seq"]):
+        if out["decision"]:
+            out["previous_decision"], out["decision"] = out["decision"], None
+        out["status"] = "incomplete"
+        out["complete"] = False
+        out["missing"].append("逐项实测依据已变化，请核对当前结果")
+    out["proofs"] = proofs(snap, gates, shots, out["decision"] if not stale and ok else None, out["criterion_evidence"])
     return _binding_state(data_dir, key, _upstream(recs, out))
 
 
-PROOF_STATE = {"proven": "自动测试已证明", "todo": "等您确认", "pass": "已确认通过", "fail": "没通过", "open": "还没说清楚，不该开工"}
+def criteria_digest(acs: list) -> str:
+    return hashlib.sha256(ev.canon([{k: a.get(k) for k in ("id", "text", "check", "open", "keep")} for a in acs]).encode()).hexdigest()
 
 
-def proofs(snap: dict, gates: list | None, shots: list, decision: dict | None) -> list:
+def candidate_checks(state: dict, after: list) -> list:
+    from .ai_accept import committed
+    snap = state["snapshot"]
+    rid = (snap.get("change") or {}).get("run")
+    commit = committed(snap, rid) if rid else ""
+    selected = []
+    for r in after:
+        d = r["data"]
+        if (r["kind"] != "criterion_check" or d.get("pack_hash") != state["pack_hash"]
+                or d.get("run") != rid or d.get("project") != snap["project"]["key"]
+                or d.get("ticket") != snap["ticket"]["key"]
+                or d.get("criteria_sha256") != criteria_digest(snap["ac"])):
+            continue
+        if d.get("base") and (not commit or not str(d["base"]).startswith(commit)):
+            continue
+        selected.append(r)
+    starts = [r for r in selected if r["data"].get("result") == "running"]
+    if starts:
+        check_id = starts[-1]["data"]["check_id"]
+        selected = [r for r in selected if r["data"].get("check_id") == check_id]
+    return selected
+
+
+def current_page_evidence(data_dir: Path, key: str, state: dict, after: list) -> dict:
+    from . import browser_verify
+    from .ai_accept import committed
+    snap = state["snapshot"]
+    checks = candidate_checks(state, after)
+    if not checks:
+        return {}
+    d = checks[-1]["data"]  # older concurrent responses cannot replace the latest attempt
+    project = snap["project"]["key"]
+    rid = (snap.get("change") or {}).get("run")
+    commit = committed(snap, rid) if rid else ""
+    environment = browser_verify.conf(data_dir, project)
+    if (d.get("pack_hash") != state["pack_hash"] or d.get("ticket") != key or d.get("project") != project
+            or d.get("run") != rid or d.get("criteria_sha256") != criteria_digest(snap["ac"])
+            or not environment or d.get("environment_sha256") != hashlib.sha256(ev.canon(environment).encode()).hexdigest()
+            or not commit or not re.fullmatch(r"[0-9a-f]{7,40}", commit)
+            or not str(d.get("base") or "").startswith(commit)
+            or d.get("diff_sha256") != hashlib.sha256(b"").hexdigest()
+            or d.get("result") not in ("pass", "fail", "unverified")):
+        return {}
+    return {a["id"]: dict(a, evidence_hash=checks[-1]["hash"], evidence_seq=checks[-1]["seq"]) for a in d.get("ac") or []}
+
+
+PROOF_STATE = {"proven": "逐项实测已证明", "todo": "等您确认", "pass": "已确认通过", "fail": "没通过", "open": "还没说清楚，不该开工"}
+
+
+def proofs(snap: dict, gates: list | None, shots: list, decision: dict | None, measured: dict | None = None) -> list:
     """Each acceptance criterion with what proves it (the tests, the agent's reading of the change against it, a
     try in the preview, screenshots) and where it stands."""
     chk = snap["check"]["result"]
     match = next((g for g in gates or [] if g["id"] == "match"), None)
     said = (decision or {}).get("ac") or {}
+    measured = measured or {}
     out = []
     for a in snap["ac"]:
-        keep = bool(a.get("keep"))  # what must keep working: proven by the tests, nothing to try by hand
+        keep = bool(a.get("keep"))
         ps = []
         if snap.get("change"):
-            ps.append({"kind": "test", "label": "自动构建和测试", "state": {"pass": "pass", "fail": "fail"}.get(chk, "unknown")})
+            ps.append({"kind": "suite", "label": "整体构建和测试（不代表本条已覆盖）", "state": {"pass": "pass", "fail": "fail"}.get(chk, "unknown")})
             if match and not keep:
                 ps.append({"kind": "match", "label": "智能体对照这一条读了改动【推断】", "state": match["state"]})
-        if not keep:
-            ps.append({"kind": "preview", "label": "在改好的版本里按例子试一遍", "state": said.get(a["id"]) or "todo"})
+        item = measured.get(a["id"])
+        if item:
+            ps.append({"kind": "page", "label": item.get("how") or "逐项页面实测", "state": item["result"]})
+        ps.append({"kind": "preview", "label": "在改好的版本里按例子试一遍", "state": said.get(a["id"]) or "todo"})
         for x in shots:
             if x.get("ac") == a["id"]:
-                ps.append({"kind": "shot", "label": "截图" + ("：" + x["note"][:60] if x.get("note") else ""), "state": "pass", "file": x.get("file", "")})
+                ps.append({"kind": "shot", "label": "截图" + ("：" + x["note"][:60] if x.get("note") else ""), "state": "unknown", "file": x.get("file", "")})
         if said.get(a["id"]) in ("pass", "fail"):
             st = said[a["id"]]
         elif a.get("open"):
             st = "open"
-        elif any(p["state"] == "fail" for p in ps if p["kind"] == "test"):
+        elif chk == "fail" or (item and item["result"] == "fail"):
             st = "fail"
-        elif keep and chk == "pass":
+        elif item and item["result"] == "pass":
             st = "proven"
         else:
             st = "todo"
@@ -642,8 +704,7 @@ def _decide(P, token: str, action: str, name: str, verdicts: dict, note: str, cl
         raise ApiError(409, "还有验收标准待确认，现在不能签收或退回；请联系乙方")
     snap = s["snapshot"] or {}
     acs = [a["id"] for a in snap.get("ac") or []]
-    # what must keep working, with the tests passing, is shown as 自动测试已证明: nothing for the client to try by hand
-    proven = {a["id"] for a in snap.get("ac") or [] if a.get("keep")} if ((snap.get("check") or {}).get("result") == "pass" and snap.get("change")) else set()
+    proven = {a["id"] for a in s.get("proofs") or [] if a["state"] == "proven"}
     res = {a: verdicts.get(a, "") if verdicts.get(a, "") in ("pass", "fail") else ("proven" if a in proven else "") for a in acs}
     if action == "sign":
         left = [a for a, v in res.items() if v not in ("pass", "proven")]
@@ -1014,6 +1075,11 @@ def _record_accept(P, t: dict, by: str, passed: bool, note: str, via: str = "平
     if not s["packed"] or not s["intact"]:
         return ""
     acs = [a["id"] for a in (s["snapshot"] or {}).get("ac") or []]
+    if passed and via == "AI 验收":
+        if (s.get("stale") or not basis or basis.get("pack_hash") != s["pack_hash"]
+                or basis.get("run") != ((s["snapshot"] or {}).get("change") or {}).get("run")
+                or any((s.get("criterion_evidence", {}).get(a) or {}).get("result") != "pass" for a in acs)):
+            raise ApiError(409, "逐项实测依据缺失或已变化，不能自动签收")
     rec = _add(epath(P.data_dir, t["key"]), "sign" if passed else "reject", by,
                     {"signer": by, "role": "", "ac": {a: "pass" if passed else "" for a in acs}, "note": note, "pack_hash": s["pack_hash"],
                      "package_hash": s["hash"], "via": via, "client": "", **({"basis": basis} if basis else {})})

@@ -16,8 +16,8 @@ One "修改代码" run goes like this, in its own git worktree:
    change of the same ticket is diagnosed against the last one's blockers first, and a ticket whose changes keep
    failing is marked as going in circles. On a fail it names the files to revise and what each must do, and
    only those run again, up to `rounds` more times (3; more rounds hardly help). When no build or tests run there
-   is one round only, and the diagnosis is made only for a change split across files or when the project's route
-   gives diagnosis to another executor; otherwise a small change goes straight to a person.
+   is one round only. Every change receives a read-only review, including small changes.
+   A route may select a different executor; the review records the actual executor and model.
 
 The outcome is kept in runs/<id>/verify.json; a change whose build or tests still fail, or that the diagnosis
 says does not solve the ticket, is not committed by the automatic flow.
@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import shlex
 import shutil
@@ -39,12 +40,12 @@ import subprocess
 import time
 from pathlib import Path
 
-from . import reports, testbox
+from . import reports, testbox, testbox_mcp
 from .agents import (GREENFIELD_EDIT, GREENFIELD_FIX, MODE_TEXT, additional_context_prompt, earlier_session,
                      follow_up, git, learning_context_current, record_session_context,
                      reviewed_delivery_plan, worktree_diff)
 
-FENCE = r"```%s[ \t]*\n(.*?)```"
+FENCE = r"```%s[ \t]*\r?\n(.*?)```"
 
 
 def _requote(s: str) -> str:
@@ -130,6 +131,15 @@ def plan_ac(text: str) -> list:
     return out
 
 
+def plan_scope(text):
+    plan = fenced('tmh-plan', text)
+    scope = plan.get('scope') if isinstance(plan, dict) else None
+    if not isinstance(scope, dict):
+        return {}
+    return {k: scope[k] for k in ('new', 'regression', 'invariants', 'gaps')
+            if isinstance(scope.get(k), list) and all(isinstance(item, str) for item in scope[k])}
+
+
 PRIOR_KEYS = ("blocking", "evidence", "cause", "guide")  # what the next diagnosis checks first
 STALL_AFTER = 3  # failed diagnoses in a row on one ticket before asking for a real check instead of another round
 
@@ -157,7 +167,7 @@ PAGE_CHECKS_LATER = """## 之后还有页面实测
 
 
 def settings(data_dir: Path) -> dict:
-    conf = {"check": "", "rounds": 3, "check_timeout": 1200, "recheck_timeout": 0, "max_files": 16, "split_from": 5}
+    conf = {"check": "", "rounds": 3, "check_timeout": 1200, "recheck_timeout": 0, "max_files": 16, "split_from": 5, "maven_mirror": ""}
     f = Path(data_dir) / "autoflow.json"
     if f.exists():
         try:
@@ -165,6 +175,57 @@ def settings(data_dir: Path) -> dict:
         except ValueError:
             pass
     return conf
+
+
+def verification_contract(data_dir, project, rid):
+    """Bind test inputs without persisting machine credentials in a report."""
+    from .. import config
+    from . import project_tests
+    conf = settings(data_dir)
+    check = conf['check']
+    if isinstance(check, dict):
+        check = check.get(project['key'], check.get('*', ''))
+    return project_tests.digest({
+        'commands': config.load(Path(project['root'])).get('commands', {}),
+        'check': check, 'timeout': conf['check_timeout'],
+        'profile': project_tests.view(data_dir, project['key'])['profile'],
+        'testbox': testbox.settings(data_dir),
+        'criteria': project_tests.criteria_contract(data_dir, rid),
+    })
+
+
+def verification_outcome(value):
+    if value.get('verification_current') is False or value.get('code_changed_during_check') or value.get('interruption') or value.get('interrupted'):
+        return 'blocked'
+    if any(c.get('verification_state') == 'blocked' for c in value.get('commands', [])):
+        return 'blocked'
+    if value.get('repair_stop'):
+        return 'technical_required'
+    if value.get('check') == 'fail' or value.get('verdict') == 'fail':
+        return 'repair_required'
+    if value.get('check') != 'pass' or value.get('verdict') != 'pass':
+        return 'manual_required'
+    return 'review_required'
+
+
+def repair_attempts(history, contract):
+    """A new run does not reset the budget for the same confirmed requirement."""
+    used = 0
+    for _, value in history:
+        if not value.get("verification_contract"):
+            continue
+        if value.get("verification_contract") != contract:
+            break
+        if value.get("check") == "pass" and value.get("verdict") == "pass":
+            break
+        used += len(value.get("round_evidence", []))
+    return used
+
+
+def failure_signature(commands, diagnosis):
+    failed = [(c.get("kind"), c.get("command"), c.get("exit_code"), c.get("tail", c.get("output", "")))
+              for c in commands if c.get("exit_code") != 0]
+    return hashlib.sha256(json.dumps([failed, diagnosis.get("blocking", [])], sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
 def handover_failure(res: list) -> str:
@@ -196,6 +257,10 @@ class FixLoop:
         self.brought = set()  # files the per-file agents asked to bring in
         tb = testbox.settings(runner.data_dir)
         self.box = testbox.TestBox(tb, runner.data_dir) if tb else None  # builds run on the test machine
+        from .agents import engine_name
+        from . import project_tests
+        profile = project_tests.view(runner.data_dir, project['key'])['profile']
+        self.remote_testing = not profile and bool(self.box) and engine_name(agent, conf[agent]) == 'codex' and 'cmd' not in conf[agent]
         self.base = git(self.wt, "rev-parse", "HEAD").strip()
         self.nobuild = ""  # said to every agent when the platform runs no build or tests this time
         self.log = []  # one line per round
@@ -226,7 +291,10 @@ class FixLoop:
             full = self.prompt if (self.t or {}).get("links", {}).get("delivery") else additional_context_prompt(self.st, self.r.data_dir, self.p, self.t, self.rid, "fix")
             instruction = GREENFIELD_FIX if GREENFIELD_FIX in full else MODE_TEXT["fix"]
             self._ctx = full[:full.rfind(instruction)].rstrip() if instruction in full else full
-        return self._ctx
+        from . import project_tests
+        profile = project_tests.view(getattr(self.r, "evidence_root", self.r.data_dir), self.p["key"])["profile"]
+        contract = "\n\n## 项目测试契约（平台独立执行）\n按以下命令和报告格式维护实际测试；关联的用例 ID 须精确匹配。不得用空报告、跳过或假结果代替断言。\n" + json.dumps(profile, ensure_ascii=False) if profile else ""
+        return self._ctx + contract
 
     def dirty(self) -> dict:
         """Changed files in the worktree -> their bytes (None for a deleted file)."""
@@ -274,6 +342,11 @@ class FixLoop:
         """[(kind, command)] to build and test the change, or ([], why not)."""
         from .. import config as cfgmod
         from ..verify import detect_commands
+        from . import project_tests, toolchain
+        profile = project_tests.view(getattr(self.r, "evidence_root", self.r.data_dir), self.p["key"])["profile"]
+        if profile:
+            project_tests.validate(profile)
+            return [("test", "project-tests:" + project_tests.digest(profile))], ""
         v = self.set.get("check")
         if isinstance(v, dict):
             v = v.get(self.p["key"], v.get("*", ""))
@@ -308,8 +381,9 @@ class FixLoop:
             if given.get(k):
                 seq.append((k, given[k]))
             elif found.get(k):
-                exe = shlex.split(found[k])[0]
-                if exe.startswith("./") and (self.wt / where / exe).exists() or shutil.which(exe):
+                exe = shlex.split(found[k], posix=os.name != "nt")[0].strip('"')
+                provided = exe in ("mvn", "gradle") and bool(toolchain.needs(self.wt / where))
+                if (exe.startswith(("./", ".\\")) and (self.wt / where / exe).exists()) or shutil.which(exe) or provided:
                     seq.append((k, ("cd %s && %s" % (shlex.quote(where), found[k])) if where else found[k]))
                 else:
                     missing.append(exe)
@@ -321,6 +395,18 @@ class FixLoop:
     def execute(self, seq: list, untouched: bool = False) -> list:
         """Run the build commands on the change, or with `untouched` on the commit without it (the working tree may
         already hold the change, as when a finished change is built again)."""
+        if seq and seq[0][1].startswith("project-tests:"):
+            from . import project_tests
+            try:
+                profile = project_tests.view(getattr(self.r, "evidence_root", self.r.data_dir), self.p["key"])["profile"]
+                if not profile or seq[0][1] != "project-tests:" + project_tests.digest(profile):
+                    raise ValueError("测试配置已变化，请重新验证")
+                result = project_tests.execute(self, profile)
+                if project_tests.view(getattr(self.r, "evidence_root", self.r.data_dir), self.p["key"])["revision"] != project_tests.digest(profile):
+                    raise ValueError("测试期间配置已变化，请重新验证")
+                return result + (self.execute(seq[1:]) if len(seq) > 1 else [])
+            except (ValueError, OSError) as exc:
+                return [{"kind": "test", "command": "项目测试", "exit_code": 1, "seconds": 0, "output": str(exc), "verification_state": "blocked"}]
         if self.box:
             git(self.wt, "add", "-A", "-N", ".")
             patch = b"" if untouched else subprocess.run(["git", "-C", str(self.wt), "diff", "--binary", "HEAD"], capture_output=True).stdout
@@ -337,18 +423,39 @@ class FixLoop:
         return self._local(seq, self.wt)
 
     def _local(self, seq: list, where: Path) -> list:
+        from . import agents, toolchain
         out = []
+        agents._exclude_build_output(where)
+        base, diff = git(where, "rev-parse", "HEAD").strip(), worktree_diff(where)
+        prepared = toolchain.prepare(where, Path(self.r.data_dir) / "toolchains",
+                                     str(self.set.get("maven_mirror") or ""), Path(self.r.data_dir) / "toolchains" / "tasks" / str(self.rid))
+        self.say("环境准备：" + ("；".join(prepared["notes"]) or "无需额外工具"))
+        child_env = dict(os.environ, **prepared["env"])
         for kind, cmd in seq:
             if self.r.stop_reason(self.rid):
                 break
             self.say("构建测试：%s" % cmd)
             t0 = time.time()
-            r, folder = self.r.run_command(self.rid, ["/bin/sh", "-c", cmd], where,
-                timeout=float(self.set.get("check_timeout") or 1200), kind="check:" + kind)
+            if prepared["env"].get("TMH_MAVEN_SETTINGS") and re.match(r"^(cd \S+ && )?(\./|\.\\)?mvnw?(\.cmd)?\b", cmd):
+                cmd = cmd.replace("mvn", "mvn -s \"$TMH_MAVEN_SETTINGS\"", 1) if os.name != "nt" else cmd.replace("mvn", "mvn -s \"%TMH_MAVEN_SETTINGS%\"", 1)
+            shell = (subprocess.list2cmdline([os.environ.get("COMSPEC", "cmd.exe")]) + ' /d /s /c "' + cmd + '"'
+                     if os.name == "nt" else ["/bin/sh", "-c", cmd])
+            r, folder = self.r.run_command(self.rid, shell, where,
+                timeout=float(self.set.get("check_timeout") or 1200), kind="check:" + kind, env=child_env)
             code, text = r.returncode, r.output
             res = {"kind": kind, "command": cmd, "exit_code": code, "seconds": round(time.time() - t0, 1),
                    "tail": "\n".join(text.strip().splitlines()[-60:]), "output": text,
                    "reason": r.reason, "evidence": str(folder.relative_to(getattr(self.r, "evidence_root", self.r.data_dir))), "cleanup": r.cleanup}
+            if code in (124, 127) or (os.name == "nt" and code == 9009) or r.reason in ("timeout", "cancelled"):
+                res['verification_state'] = 'blocked'
+            head_now, diff_now = git(where, "rev-parse", "HEAD").strip(), worktree_diff(where)
+            if head_now != base or diff_now != diff:
+                changed = sorted(set(re.findall(r"^diff --git a/(\S+)", diff_now, re.M)) ^ set(re.findall(r"^diff --git a/(\S+)", diff, re.M)))
+                changed = changed or sorted({m for m in re.findall(r"^diff --git a/(\S+)", diff_now, re.M)})
+                why = "提交从 %s 变为 %s" % (base[:8], head_now[:8]) if head_now != base else "文件：" + "、".join(changed[:20])
+                res.update(exit_code=1, verification_state="blocked", code_changed=True, changed_files=changed,
+                           output=text + "\n检查期间代码变化，本轮结果无效（%s）" % why)
+                code = 1
             out.append(res)
             self.say("%s，%s 秒" % ("通过" if code == 0 else "失败（退出码 %s）" % code, res["seconds"]))
             if code != 0:
@@ -357,13 +464,30 @@ class FixLoop:
 
     def baseline(self, seq: list) -> str:
         """Run the commands on the untouched code once per commit: "" when they pass, otherwise why they can't be used."""
+        if seq and seq[0][1].startswith("project-tests:"):
+            import copy
+            import tempfile
+            clean = Path(tempfile.mkdtemp(prefix="baseline-", dir=self.r.data_dir)) / "source"
+            git(self.wt, "worktree", "add", "--detach", str(clean), self.base)
+            baseline_loop = copy.copy(self)
+            baseline_loop.wt = clean
+            try:
+                res = baseline_loop.execute(seq)
+                self.baseline_result = {"base": self.base, "commands": res,
+                    "state": "pass" if res and all(x["exit_code"] == 0 for x in res) else "fail"}
+            finally:
+                git(self.wt, "worktree", "remove", "--force", str(clean), check=False)
+                clean.parent.rmdir()
+            # A new requirement may legitimately fail on the original code.
+            # Keep that observation, and still run the candidate's checks.
+            return ""
         seq = [x for x in seq if testbox.runs_on(self.wt, x[1], "HEAD")]  # a module the change creates has nothing to build yet
         if not seq:
             return ""
         head = git(self.wt, "rev-parse", "HEAD").strip()
         # "untouched": records from before the baseline was always built without the change (a rebuilt change's
         # own failure was once kept as the commit's) are not reused
-        key = hashlib.sha1(json.dumps([head, seq, "untouched"]).encode()).hexdigest()[:16]
+        key = hashlib.sha1(json.dumps([head, seq, "untouched", testbox.settings(self.r.data_dir), self.set.get("check_timeout")]).encode()).hexdigest()[:16]
         f = self.r.data_dir / "checks" / ("%s-%s.json" % (self.p["key"], key))
         res = json.loads(f.read_text(encoding="utf-8")) if f.exists() else None
         if res and not any(x.get("kind") == "setup" for x in res):  # an old record of a failed hand-over says nothing about the code
@@ -374,6 +498,7 @@ class FixLoop:
             if not self.r.stop_reason(self.rid) and not any(x.get("kind") == "setup" for x in res):  # interruption says nothing about baseline code
                 f.parent.mkdir(parents=True, exist_ok=True)
                 f.write_text(json.dumps(res, ensure_ascii=False), encoding="utf-8")
+        self.baseline_result = {"base": head, "commands": res, "state": "pass" if res and all(x["exit_code"] == 0 for x in res) else "fail"}
         bad = [x for x in res if x["exit_code"] != 0]
         if bad and bad[0].get("kind") == "setup":
             return handover_failure(bad)
@@ -454,7 +579,11 @@ class FixLoop:
                     inbox[to].append("%s：%s" % (path, str(m["need"]).strip()[:600]))
 
     def diagnose(self, diff: str, res: list, skip: str, prev: dict | None) -> dict:
-        L = [self.context(), "", "## 本轮改动", "```diff", diff[:14000] + ("\n…（后面省略）" if len(diff) > 14000 else ""), "```", "", "## 构建测试"]
+        from .code_review import review
+        return review(self, diff, res, skip, prev)
+
+    def diagnose_part(self, diff: str, res: list, skip: str, prev: dict | None) -> dict:
+        L = [self.context(), "", "## 本轮改动", "```diff", diff, "```", "", "## 构建测试"]
         if res:
             for x in res:
                 L += ["`%s`：%s（%s 秒）" % (x["command"], "通过" if x["exit_code"] == 0 else "失败，退出码 %s" % x["exit_code"], x["seconds"])]
@@ -493,14 +622,18 @@ class FixLoop:
     def criteria(self) -> list:
         """What the change is accepted against: the criteria the client confirmed, else the plan's."""
         from .signoff import client_ac
-        return (client_ac(self.r.data_dir, self.t["key"]) if self.t else []) or plan_ac(getattr(self, "plan", "") or "")
+        from . import project_tests
+        data = getattr(self.r, "evidence_root", self.r.data_dir)
+        if project_tests.view(data, self.p['key'])['profile']:
+            return project_tests.criteria_contract(data, getattr(self, 'source_run', self.rid))['criteria']
+        return (client_ac(data, self.t["key"]) if self.t else []) or plan_ac(getattr(self, "plan", "") or "")
 
     def earlier_fixes(self) -> list:
         """Earlier finished change runs of this ticket with their verification, newest first."""
         if not self.t:
             return []
         return [(r["id"], _verification(self.r.data_dir, r["id"])) for r in self.st.runs(ticket_id=self.t["id"])
-                if r["mode"] == "fix" and r["status"] == "done" and r["id"] < self.rid]
+                if r["mode"] == "fix" and r["status"] not in ("running", "queued") and r["id"] < self.rid]
 
     # ------------------------------------------------------------ the loop
     def run(self) -> tuple[int, str]:
@@ -515,8 +648,10 @@ class FixLoop:
                 done = [r for r in self.st.runs(ticket_id=self.t["id"]) if r["mode"] == "plan" and r["status"] == "done"]
                 plan = self.st.run(done[0]["id"])["result"] if done else ""
         self.plan = plan
+        round_evidence = []
         goals = plan_files(plan, int(self.set.get("max_files") or 16))
         seq, skip = self.commands(goals)
+        contract = verification_contract(self.r.data_dir, self.p, self.rid)
         if seq:
             why = self.baseline(seq)
             if why:
@@ -525,25 +660,29 @@ class FixLoop:
             self.nobuild = ("## 构建和测试由平台在测试机上跑\n这台机器上没有构建环境。不要尝试编译、跑测试、启动服务或调接口，也不要为此去改构建配置；"
                             "改完后平台会在测试机上编译（%s），没通过的话会把报错发给你再改。\n\n" % "；".join(c for _, c in seq))
         if not seq:
-            self.say("不跑构建测试：%s" % skip)
+            self.say("未配置固定构建命令：%s" % skip)
             # otherwise every agent finds out for itself that there is no maven/node/docker here, a third of its commands
             self.nobuild = ("## 这次不跑构建和测试\n%s。不要尝试编译、跑测试、启动服务或调接口（mvn、gradle、npm、java、docker、curl 等），"
                             "也不要为此去改构建配置；只靠读代码确认改动正确，没能验证的写进最后的说明。\n\n" % skip)
+        if self.remote_testing:
+            self.nobuild = testbox_mcp.INSTRUCTION + '\n固定构建命令仍由平台复核；测试机执行失败须修复后重测。\n'
         rounds = max(0, int(self.set.get("rounds") if self.set.get("rounds") is not None else 3))
+        budget = rounds + 1  # existing setting counts repairs after the first attempt
+        used = repair_attempts(self.earlier_fixes(), contract)
+        remaining = max(0, budget - used)
+        repair_stop = "task_budget" if not remaining else ""
+        signatures = []
         diag, res, verdict, files, vague = None, [], "unknown", [], False
         split = len(goals) >= int(self.set.get("split_from") or 0)
-        # Without a build or tests nothing new is learnt after the first round: a diagnosis that can only read the
-        # code guesses, and the next round acts on the guess (it widened changes and cost a quarter of an hour).
-        # So one round; a large change still gets one reading-only review, a small one goes straight to a person
-        # unless the route gives diagnosis to another executor: then that independent reading is the point.
-        if not seq:
+        # No repeated speculative fix rounds without execution evidence, but every
+        # completed change receives one read-only code review.
+        if not seq and not self.remote_testing:
             rounds = 0
-        review = bool(seq) or split or getattr(self, "agents", {}).get("diagnose", self.agent) != self.agent
         if goals and split:
             self.say("按方案分工修改 %d 个文件：%s" % (len(goals), "、".join(goals)))
         elif goals:
             self.say("方案只涉及 %d 个文件（%s），由一个智能体改完，不分工" % (len(goals), "、".join(goals)))
-        for rnd in range(rounds + 1):
+        for rnd in range(min(rounds + 1, remaining)):
             if self.cancelled():
                 break
             self.say("第 %d 轮" % (rnd + 1))
@@ -558,6 +697,8 @@ class FixLoop:
                     targets = {p: "" for p in goals}
             if targets and split:
                 self.collaborate(targets, diag)
+                if self.remote_testing and not self.cancelled():
+                    self.call('fix', self.context() + testbox_mcp.INSTRUCTION + '\n各文件修改已完成。现在编写/更新测试脚本并执行测试机验证；不要更改业务代码，失败原因交给下一轮修复。')
             else:
                 self.whole(diag)
             if self.cancelled():
@@ -576,6 +717,7 @@ class FixLoop:
                     self.say("方案没列文件，按改动的文件在测试机上构建测试：%s" % "；".join(c for _, c in seq))
                 elif why:
                     skip = why
+            candidate_base = git(self.wt, "rev-parse", "HEAD").strip()
             res = self.execute(seq) if seq else []
             if self.cancelled():
                 break
@@ -583,14 +725,27 @@ class FixLoop:
             if lost:
                 self.say(lost + "；不是代码的问题，这一轮按没跑构建处理")
                 skip, res = lost, []
+            if self.remote_testing:
+                res.append(testbox_mcp.latest_result(self.r.data_dir, self.rid, self.wt))
             broke = any(x["exit_code"] != 0 for x in res)
-            if not review:
-                self.log.append("第 %d 轮：改了 %d 个文件；没跑构建测试，改动不大，不另做诊断，交给人验收" % (rnd + 1, len(files)))
-                self.say(self.log[-1])
-                break
             diag = self.diagnose(diff, res, skip, diag)
+            candidate_changed = worktree_diff(self.wt) != diff or git(self.wt, "rev-parse", "HEAD").strip() != candidate_base
+            contract_changed = verification_contract(self.r.data_dir, self.p, self.rid) != contract
+            if candidate_changed or contract_changed:
+                diag["verdict"] = "unknown"
+                diag["review"].update(complete=False, uncovered=["审查期间代码变化，请重新验证"])
+            round_evidence.append({"round": rnd + 1, "base": candidate_base, "diff_sha256": hashlib.sha256(diff.encode()).hexdigest(),
+                "verification_contract": contract, "commands": res, "diagnosis": diag,
+                "invalidated": candidate_changed or contract_changed,
+                "impact": {"changed_files": files, "planned_files": list(goals), "repair_targets": list(targets)},
+                "scope": {"criteria": plan_ac(plan), "declared": plan_scope(plan),
+                          "reviewed": diag.get("scope", {}), "coverage_basis": "configured_checks"}})
+            if candidate_changed or contract_changed:
+                skip = "验证期间代码或检查契约变化，请重新验证"
+                break
             said = str(diag.get("verdict", "")).lower()
             said, vague = settle_fail(diag, said)
+            vague = vague or diag.get("vague_fail", False)
             if vague:  # a fail that names nothing it blocks on cannot send the work back
                 self.say("诊断判了不通过，但没有列出阻断项，按没有给出结论处理，留给人看")
             diag["verdict"] = said
@@ -601,17 +756,29 @@ class FixLoop:
                 rnd + 1, len(files), ("构建测试" + ("失败" if broke else "通过")) if res else "没跑构建测试",
                 "认为已解决" if verdict == "pass" else "未给出结论" if verdict == "unknown" else "认为还没解决" + ("：" + str(diag.get("cause"))[:120] if diag.get("cause") else "")))
             self.say(self.log[-1])
-            if verdict != "fail":
+            if verdict != "fail" or any(x.get("verification_state") == "blocked" for x in res):
                 break
+            signatures.append(failure_signature(res, diag))
+            if len(signatures) >= STALL_AFTER and len(set(signatures[-STALL_AFTER:])) == 1:
+                repair_stop = "repeated_failure"
+                break
+            if rnd + 1 >= remaining:
+                repair_stop = "task_budget"
         check = ("fail" if any(x["exit_code"] != 0 for x in res) else "pass") if res else "skip"
         # changed although the plan did not list them (a file another file's agent asked to bring in is not)
         beyond = [f for f in files if goals and f not in goals and f not in self.brought]
         if beyond:
             self.say("超出方案：改了方案没列的 %s" % "、".join(beyond[:6]))
         out = {"check": check, "skip": skip if check == "skip" else "", "verdict": verdict, "rounds": len(self.log), "beyond_plan": beyond,
-               "split": bool(goals) and split, "files": files, "commands": res,
+               "split": bool(goals) and split, "files": files, "commands": res, "remote_test_required": self.remote_testing,
                "diagnosis": {k: (diag or {}).get(k) for k in ("verdict", "match", "match_why", "evidence", "cause", "guide",
-                                                                "blocking", "advisory", "prior", "ac")}}
+                                                                "blocking", "advisory", "prior", "ac", "review", "scope")}}
+        out.update(repair_stop=repair_stop, repair_budget={"limit": budget, "previous_attempts": used, "attempts": len(round_evidence)}, verification_contract=contract, baseline=getattr(self, "baseline_result", {"base": self.base, "state": "not_run", "commands": []}),
+                   round_evidence=round_evidence)
+        if round_evidence:
+            out.update(checked_base=round_evidence[-1]["base"], checked_diff=diff, scope=round_evidence[-1]["scope"])
+            if round_evidence[-1]["invalidated"]:
+                out.update(check="fail", verdict="unknown", verification_current=False, skip=skip)
         if (diag or {}).get("format_repaired"):
             out["diagnosis"]["format_repaired"] = True
         if vague and verdict == "unknown":
@@ -627,6 +794,9 @@ class FixLoop:
         stopped = self.r.stop_reason(self.rid) if hasattr(self.r, "stop_reason") else ""
         if stopped:
             out.update(stopped_reason=stopped, verdict="unknown", interrupted=True)
+        out['outcome'] = verification_outcome(out)
+        if out['outcome'] in ('repair_required', 'blocked', 'manual_required', 'technical_required'):
+            out['manual_reason'] = '验证受阻，补齐条件后重新验证' if out['outcome'] == 'blocked' else '达到本轮停止条件，保留代码和证据等待处理'
         (self.r.data_dir / "runs" / str(self.rid) / "verify.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
         return (124 if stopped == "timeout" else 125 if stopped else 0 if self.ok and not getattr(self, "failed_call", False) else 1), self.summary(out, diag)
 
@@ -673,6 +843,26 @@ def _verification(data_dir: Path, rid: int) -> dict:
         return {}
 
 
+def _project_tests_current(data_dir, rid, value):
+    from . import project_tests
+    issue = project_tests.current_issue(data_dir, rid, value)
+    if not issue and value.get("verification_contract"):
+        import sqlite3
+        from contextlib import closing
+        with closing(sqlite3.connect((Path(data_dir) / "platform.db").resolve().as_uri() + "?mode=ro", uri=True)) as db:
+            db.row_factory = sqlite3.Row
+            project = db.execute("SELECT p.* FROM projects p JOIN runs r ON r.project_id=p.id WHERE r.id=?", (rid,)).fetchone()
+        try:
+            if not project or verification_contract(data_dir, dict(project), rid) != value["verification_contract"]:
+                issue = "测试命令、执行环境配置或验收契约已变化，请重新验证"
+        except (OSError, ValueError) as exc:
+            issue = "无法读取当前检查契约，请修复配置后重新验证：%s" % exc
+    if issue:
+        return {"check": "unknown", "verdict": "unknown", "commands": [], "diagnosis": {},
+                "verification_current": False, "outcome": "blocked", "skip": issue, "previous_current_verification": value}
+    return value
+
+
 def verified(data_dir: Path, rid: int) -> dict:
     """A previous pass is historical as soon as a newer verification begins."""
     v = _verification(data_dir, rid)
@@ -682,7 +872,7 @@ def verified(data_dir: Path, rid: int) -> dict:
     except (OSError, ValueError) as exc:
         operation = {"status": "blocked", "result": str(exc), "can_retry": False}
     if not operation:
-        return v
+        return _project_tests_current(data_dir, rid, v)
     bound = v.get("recheck_operation") or {}
     current = (isinstance(bound, dict) and bound.get("id") == operation.get("id")
                and bound.get("source_run") == rid and operation.get("source_run") == rid
@@ -702,7 +892,7 @@ def verified(data_dir: Path, rid: int) -> dict:
         except (OSError, ValueError, TypeError, AttributeError):
             current = False
     if current:
-        return dict(v, verification_current=True)
+        return _project_tests_current(data_dir, rid, dict(v, verification_current=True))
     return {"check": "unknown", "verdict": "unknown", "commands": [], "diagnosis": {},
             "verification_current": False, "skip": "新的重新验证尚未完成或停止证据不完整，旧结论仅作历史记录",
             "recheck_operation": {"id": operation.get("id"), "status": operation.get("status"), "result": operation.get("result", "")},
@@ -728,10 +918,15 @@ def start_recheck(runner, rid, by=""):
     p = runner.store.project(r['project_id'])
     with project_guard(runner.store, p, execution=True):
         require_run_current(runner.store, p, rid)
-        return recheck_operations(runner).start(rid, by, float(config.get("recheck_timeout") or config.get("check_timeout") or 1200))
+        previous = verified(runner.data_dir, rid)
+        op = recheck_operations(runner).start(rid, by, float(config.get("recheck_timeout") or config.get("check_timeout") or 1200))
+        op["previous_verification"] = previous
+        return op
 
 
-def recheck(runner, rid: int, *, allow_running: bool = False, operation=None, by="") -> dict:
+def recheck(runner, rid: int, *, allow_running: bool = False, operation=None, by="", kind="tests") -> dict:
+    if kind not in ("tests", "review", "all"):
+        raise ValueError("验证类型只能是 tests、review 或 all")
     # Handwork invokes this inside its already-active run and shared budget.
     if allow_running:
         return _recheck(runner, rid, allow_running=True)
@@ -744,8 +939,11 @@ def recheck(runner, rid: int, *, allow_running: bool = False, operation=None, by
     try:
         if before.exists():
             _original_bytes(folder / "verification.before.json", before.read_bytes())
-        v = _recheck(runner, rid, operation=operation)
-        operations.finish(oid, 1 if v["check"] == "fail" else 0, "重新验证：" + {"pass": "通过", "fail": "失败", "skip": "未执行"}[v["check"]])
+        v = _recheck(runner, rid, operation=operation, kind=kind)
+        result = "测试：" + {"pass": "通过", "fail": "失败", "skip": "未执行"}[v["check"]]
+        if kind in ("review", "all"):
+            result += "；AI Review：" + {"pass": "通过", "fail": "发现阻断问题"}.get((v.get("diagnosis") or {}).get("verdict"), "未形成结论")
+        operations.finish(oid, 1 if v["check"] == "fail" else 0, result)
         return verified(runner.data_dir, rid)
     except BaseException as exc:
         try:
@@ -760,7 +958,7 @@ def recheck(runner, rid: int, *, allow_running: bool = False, operation=None, by
         raise
 
 
-def _recheck(runner, rid: int, *, allow_running: bool = False, operation=None) -> dict:
+def _recheck(runner, rid: int, *, allow_running: bool = False, operation=None, kind="tests") -> dict:
     """Build an earlier change again without changing it: the same baseline and build the fix loop runs, on the
     change as it stands (its worktree, or for an adopted change its commit). Overwrites the run's verify.json and
     returns it. The diagnosis stays as it was for unchanged code. If someone corrects the worktree after the
@@ -814,33 +1012,64 @@ def _recheck(runner, rid: int, *, allow_running: bool = False, operation=None) -
     fl = FixLoop.__new__(FixLoop)
     executor = recheck_operations(runner).runner if operation else runner
     fl.r, fl.st, fl.rid, fl.p, fl.t, fl.wt = executor, executor.store, operation["id"] if operation else rid, p, t, wt
+    fl.source_run = rid
     fl.set = settings(runner.data_dir)
+    plans = [x for x in st.runs(ticket_id=t["id"]) if x["mode"] == "plan" and x["status"] == "done"] if t else []
+    fl.plan = st.run(plans[0]["id"])["result"] if plans else ""
     tb = testbox.settings(runner.data_dir)
     fl.box = testbox.TestBox(tb, runner.data_dir) if tb else None
     fl.base = git(wt, "rev-parse", "HEAD").strip()
     checked_diff = worktree_diff(wt)
+    contract = verification_contract(runner.data_dir, p, rid)
     changed = checked_diff != r["diff"]
     if operation:
         recheck_operations(runner).bind(operation["id"], {"run": rid, "decision": r["decision"], "commit": sha,
-            "base": fl.base, "workdir": str(wt), "diff": checked_diff,
+            "base": fl.base, "workdir": str(wt), "diff": checked_diff, "kind": kind,
             "diff_sha256": hashlib.sha256(checked_diff.encode("utf-8")).hexdigest()})
     try:
-        fl.say("重新验证（不改代码）：在%s上构建这次的改动" % ("测试机" if fl.box else "本机"))
-        files = sorted(set(re.findall(r"(?m)^diff --git a/(\S+) b/", worktree_diff(wt))))
-        seq, skip = fl.commands({f: "" for f in files})
-        res = []
-        if seq:
-            why = fl.baseline(seq)
-            if why:
-                seq, skip = [], why
-        if seq:
-            res = fl.execute(seq)
-            lost = handover_failure(res)
-            if lost:
-                skip, res = lost, []
-        check = ("fail" if any(x["exit_code"] != 0 for x in res) else "pass") if res else "skip"
+        diagnosis = None
+        if kind == "review":
+            old = operation.get("previous_verification") or {}
+            old_base = old.get("checked_base") or ((old.get("diagnosis") or {}).get("review") or {}).get("base")
+            current = not changed and old_base == fl.base and old.get("verification_contract") == contract and old.get("verification_current") is not False and old.get("check") in ("pass", "fail", "skip")
+            files = sorted(set(re.findall(r"(?m)^diff --git a/(\S+) b/", checked_diff)))
+            res = old.get("commands", []) if current else []
+            check = old["check"] if current else "skip"
+            skip = old.get("skip", "") if current else "代码已变化或旧测试无效，请重新运行测试"
+        else:
+            fl.say("重新验证（不改代码）：在%s上构建这次的改动" % ("测试机" if fl.box else "本机"))
+            files = sorted(set(re.findall(r"(?m)^diff --git a/(\S+) b/", worktree_diff(wt))))
+            seq, skip = fl.commands({f: "" for f in files})
+            res = []
+            if seq:
+                why = fl.baseline(seq)
+                if why:
+                    seq, skip = [], why
+            remote_receipt = None
+            if _verification(runner.data_dir, rid).get('remote_test_required'):
+                receipts = sorted((runner.data_dir / 'runs' / str(rid) / 'testbox').glob('*.json'))
+                if not fl.box or not receipts:
+                    raise ValueError('本次改动需要测试机验证；测试机配置或测试脚本回执缺失')
+                remote_receipt = json.loads(receipts[-1].read_text(encoding='utf-8'))
+                script = remote_receipt['script']
+                script_path = (wt / script).resolve()
+                if not script_path.is_relative_to(wt.resolve()) or not script_path.is_file():
+                    raise ValueError('本次版本缺少测试脚本，不能只以编译通过代替测试机验证')
+                seq.append(('test', testbox_mcp.script_command(script, fl.box._detect() == 'windows', max(1, min(1170, int(fl.set.get('check_timeout') or 1200) - 30)))))
+            if seq:
+                res = fl.execute(seq)
+                if remote_receipt and res and res[-1]['kind'] == 'test':
+                    res[-1]['command'] = remote_receipt['command']
+                lost = handover_failure(res)
+                if lost:
+                    skip, res = lost, []
+            check = ("fail" if any(x["exit_code"] != 0 for x in res) else "pass") if res else "skip"
+        if kind in ("review", "all"):
+            from .code_review import manual
+            diagnosis = manual(fl, runner, r, operation, res, skip, checked_diff)
         final_diff = worktree_diff(wt)
-        stale = final_diff != checked_diff
+        stale = final_diff != checked_diff or git(wt, "rev-parse", "HEAD").strip() != fl.base
+        contract_changed = verification_contract(runner.data_dir, p, rid) != contract
         if stale:
             check = "fail"
     finally:
@@ -853,15 +1082,18 @@ def _recheck(runner, rid: int, *, allow_running: bool = False, operation=None) -
     history = list(previous.pop("previous_verifications", []))
     if previous:
         history.append({"diff": r["diff"], "verification": previous})
-    if changed or stale:
+    if changed or stale or contract_changed or v.get("verification_contract") != contract:
         v.update(verdict="unknown", diagnosis={},
-                 diagnosis_invalidated="代码在模型运行后发生变化，旧诊断不再适用于当前改动")
+                 diagnosis_invalidated="代码或检查契约已变化，旧诊断不再适用于当前改动")
         v.pop("stalled", None)  # counted from the old diagnosis
         v.pop("vague_fail", None)
         # An adopted run represents the immutable commit. Tests may edit its temporary
         # checkout, but those edits are neither adopted nor part of that run's visible diff.
         st.update_run(rid, diff=checked_diff if temp else final_diff)
-    v.update({"check": check, "skip": skip if check == "skip" else "", "commands": res,
+    v.update({"verification_contract": contract,
+              "baseline": getattr(fl, "baseline_result", v.get("baseline") if v.get("verification_contract") == contract and v.get("baseline") else {"base": fl.base, "state": "not_run", "commands": []}),
+              "test_reuse": {"reused": kind == "review" and current, "reason": "代码、基准和检查契约一致" if kind == "review" and current else "本轮未复用测试"},
+              "check": check, "skip": skip if check == "skip" else "", "commands": res,
               "files": files, "code_changed_during_check": stale, "checked_commit": sha, "checked_base": fl.base,
               "checked_diff": checked_diff, "previous_verifications": history,
               "rechecked": time.strftime("%Y-%m-%d %H:%M:%S")})
@@ -870,6 +1102,22 @@ def _recheck(runner, rid: int, *, allow_running: bool = False, operation=None) -
         v["diagnosis_invalidated"] = "代码在重新验证期间变化，当前结果不能证明新改动；请重新验证"
     else:
         v.pop("after_check_diff", None)  # the previous value remains in previous_verifications
+    if diagnosis is not None and not stale and not contract_changed:
+        v["diagnosis"] = diagnosis
+        v["verdict"] = "fail" if check == "fail" or diagnosis["verdict"] == "fail" else diagnosis["verdict"]
+        v.pop("diagnosis_invalidated", None)
+        v.pop("vague_fail", None)
+        v.pop("stalled", None)
+    if contract_changed:
+        v.update(check="fail", verdict="unknown", diagnosis={}, verification_current=False,
+                 skip="验证期间检查契约变化，请重新验证")
+    if v.get('check') == 'pass' and v.get('verdict') == 'pass':
+        v.pop('repair_stop', None)
+    v['scope'] = {"declared": plan_scope(fl.plan),
+                  "reviewed": (v.get("diagnosis") or {}).get("scope", {}), "changed_files": files,
+                  "coverage_basis": "configured_checks"}
+    v['verification_current'] = not contract_changed
+    v["verification_kind"] = kind
     v.pop("diagnosis_dropped", None)
     (runner.data_dir / "runs" / str(rid)).mkdir(parents=True, exist_ok=True)  # a change taken from a branch has no run folder yet
     if operation:
@@ -877,10 +1125,12 @@ def _recheck(runner, rid: int, *, allow_running: bool = False, operation=None) -
         stopped = executor.stop_reason(operation["id"])
         if stopped:
             v.update(check="fail", verdict="unknown", diagnosis={}, interruption=stopped)
-        v.update(recheck_operation={"id": operation["id"], "source_run": rid}, verification_current=True)
+        v.update(recheck_operation={"id": operation["id"], "source_run": rid}, verification_current=not contract_changed)
+        v['outcome'] = verification_outcome(v)
         _atomic_json(executor.data_dir / "runs" / str(operation["id"]) / "verification.json", v)
         _atomic_json(runner.data_dir / "runs" / str(rid) / "verify.json", v)
     else:
+        v['outcome'] = verification_outcome(v)
         (runner.data_dir / "runs" / str(rid) / "verify.json").write_text(json.dumps(v, ensure_ascii=False, indent=1), encoding="utf-8")
     fl.say("重新验证：%s" % {"pass": "构建通过", "fail": "构建没通过", "skip": "没有跑构建（%s）" % skip}[v["check"]])
     return v

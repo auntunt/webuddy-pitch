@@ -35,6 +35,12 @@ class ToolClientWheelTest(unittest.TestCase):
                                     capture_output=True, text=True, timeout=60, check=False)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn('codex', result.stdout)
+            terminal = subprocess.run([sys.executable, '-m', 'tmh.workbench', 'develop', 'ERP-1', '--action', 'status'],
+                cwd=tmp, env=env, input='', capture_output=True, text=True, timeout=60)
+            self.assertEqual(terminal.returncode, 1, terminal.stderr)
+            self.assertEqual(__import__('json').loads(terminal.stderr)['code'], 'human_terminal_required')
+            self.assertNotIn('ModuleNotFoundError', terminal.stderr)
+
 
     def test_downloaded_client_knows_its_server_and_imports_to_the_default_file(self):
         import json

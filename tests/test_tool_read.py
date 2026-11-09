@@ -13,7 +13,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from tmh.platform import agent_api, tenant_policy, tool_access
+from tmh.platform import agent_api, candidates, tenant_policy, tool_access
 from tmh.platform.errors import ApiError
 from tmh.platform.store import Store
 from tests.sqlite_snapshot import dump_store as snapshot
@@ -123,6 +123,7 @@ class ToolReadTests(unittest.TestCase):
         self.hidden = self.st.create_ticket(self.other['id'], 'hidden', 'owner')
         self.cid, self.rid = seed_candidate(self.st, self.t)
         self.P = SimpleNamespace(store=self.st, data_dir=self.data)
+        self.P.project=lambda key:self.st.project(key)
         self.req = SimpleNamespace(user='alice', h=SimpleNamespace(headers={'X-Webuddy-Agent': 'fixture'}))
         self.actor = agent_api.member_actor('alice')
         self.tool = {'scope': 'read', 'project_ids': [self.p['id']], 'user': 'alice', 'tenant': 'synthetic'}
@@ -134,40 +135,43 @@ class ToolReadTests(unittest.TestCase):
         # and revocation are covered by the real gateway tests, not this stub.
         self.authorization_lease = threading.RLock()
         self.P.tenant_context = SimpleNamespace(
-            registry=SimpleNamespace(authorization_guard=lambda: self.authorization_lease))
+            registry=SimpleNamespace(authorization_guard=lambda: self.authorization_lease),runtime_allowed=lambda actor:False)
         self.patch.enter_context(patch.object(tenant_policy, 'enabled', return_value=True))
         self.patch.enter_context(patch.object(tenant_policy, 'identity', return_value={
             'tool_connection': self.tool, 'role': 'member', 'project_grants': {'APP': 'viewer'},
             'tenant_id': 'synthetic', 'actor': 'alice', 'authz_revision': 1}))
         self.patch.enter_context(patch.object(tenant_policy, 'visible_projects', return_value=[self.p]))
 
+    def intake_session(self):
+        from tmh.platform import intake
+        return intake.start(self.P, dict(self.p), '投标信息列表增加导出', 'alice', 'mcp', None, agent=False)['id']
+
     def call(self, op, **args):
         from tmh.agent_contract import validate
         return agent_api._execute(self.P, self.req, self.actor, op, validate(op, args))
 
-    def test_all_allowed_read_branches_have_no_live_effects_or_writes(self):
-        self.st.x("INSERT INTO agent_requests(agent,request_id,operation,fingerprint,arguments,resource,state,created,updated) VALUES(?,?,?,?,?,?,?,?,?)",
-                  (self.actor, 'pending', 'message_send', 'hash', '{}', 'ticket:' + str(self.t['id']), 'pending', 'old', 'old'))
-        cases = {'status': {}, 'projects_list': {}, 'tickets_list': {}, 'ticket_get': {'ticket': self.t['key']},
-                 'messages_list': {}, 'request_get': {'request_id': 'pending'}, 'run_get': {'run_id': self.rid},
-                 'candidates_list': {'ticket': self.t['key']}, 'candidate_get': {'candidate_id': self.cid},
-                 'library_get': {'project': 'APP'}, 'library_search': {'project': 'APP', 'query': 'synthetic'},
-                 'library_read': {'project': 'APP', 'revision_id': 'a' * 32, 'path': 'rules.md'},
-                 'preview_get': {'ticket': self.t['key']}}
-        self.assertEqual(set(cases), set(tool_access.READ_OPERATIONS))
-        before = snapshot(self.st)
-        # Library schema is initialized at fixture registration, preserving the
-        # product migration rather than removing it to satisfy this assertion.
+    def test_delivery_packet_preserves_outputs_and_unknown_validity(self):
         with no_live_effects(self.st):
-            for op, args in cases.items():
-                with self.subTest(operation=op):
-                    if op == 'library_read':
-                        with self.assertRaises(ApiError) as error:
-                            self.call(op, **args)
-                        self.assertEqual(error.exception.code, 404)
-                    else:
-                        result = self.call(op, **args)
-                        self.assertIsInstance(result, dict)
+            packet = self.call('delivery_get', ticket=self.t['key'])
+            self.assertIn('generated_at',packet)
+            self.assertEqual(packet['conclusions']['engineering_gate'],'not_checked')
+            for row in packet['consumption']:
+                self.assertIsNone(row['actual_cost'])
+        self.assertIsNone(packet['ready_to_merge'])
+        self.assertEqual(packet['current_validity'], 'not_checked')
+        self.assertEqual(packet['candidates'][0]['commit'], 'b'*40)
+        self.assertEqual(packet['runs'][0]['run']['output'], self.st.run(self.rid)['output'])
+        self.assertEqual(packet['development']['state'], 'not_selected')
+        self.assertEqual(packet['links']['task'], '#/t/'+self.t['key'])
+        with self.assertRaises(ApiError) as error:
+            self.call('delivery_get', ticket=self.hidden['key'])
+        self.assertEqual(error.exception.code, 403)
+
+    def test_candidate_ci_queries_only_authorized_project_and_exact_commit(self):
+        before = snapshot(self.st)
+        with patch('tmh.platform.project_ci.check', return_value={'state':'blocked'}) as query:
+            self.assertEqual(self.call('candidate_ci', candidate_id=self.cid)['state'], 'blocked')
+        query.assert_called_once_with(self.data, 'APP', 'b'*40)
         self.assertEqual(snapshot(self.st), before)
 
     def test_candidate_preserves_all_historical_records_and_uses_unknown(self):

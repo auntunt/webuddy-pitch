@@ -1744,7 +1744,7 @@ def _run_case(P, p, c, agent, model, conf, by, batch) -> dict:
     try:
         fake = {"key": c.get("ticket") or "EVAL-" + c["id"], "title": c["title"], "body": c.get("body", ""), "type": "bug", "priority": "normal",
                 "reporter": "", "links": {"flows": c.get("flows") or []}}
-        prompt = build_prompt(st, p, fake, "plan", reference_inputs=reference_inputs)
+        prompt = build_prompt(st, p, fake, "plan", reference_inputs=reference_inputs, historical_case=True)
         if wt:
             prompt = prompt.replace("（目录 %s）" % root, "（代码在 %s，是这张工单修改之前的版本，只看这里的代码；知识库和 tmh 工具仍在 %s）" % (wt, root), 1)
         run = st.create_run(p["id"], None, agent, "plan", by, prompt, "评测 %s：%s" % (c["id"], c["title"][:60]),
