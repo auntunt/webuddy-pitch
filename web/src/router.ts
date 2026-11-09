@@ -3,6 +3,7 @@ import App from './App.vue'
 import HomePage from './pages/HomePage.vue'
 import VerifyPage from './pages/VerifyPage.vue'
 import CandidatePage from './pages/CandidatePage.vue'
+import TasksPage from './pages/TasksPage.vue'
 
 function routerBase(): string {
   const path = window.location.pathname
@@ -15,6 +16,7 @@ export const router = createRouter({
   routes: [
     { path: '/', component: App, children: [
       { path: '', component: HomePage },
+      { path: 'p/:key/tasks', component: TasksPage, props: r => ({ pkey: r.params.key }) },
       { path: 'p/:key/verify', component: VerifyPage, props: r => ({ pkey: r.params.key }) },
       { path: 'p/:key/candidates/:id', component: CandidatePage, props: r => ({ pkey: r.params.key, id: r.params.id }) },
     ] },
