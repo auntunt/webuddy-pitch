@@ -217,6 +217,8 @@ class Orchestra:
             # no acceptance criteria (the plan's, or the ones the client confirmed), no implementation
             if conf.get("fix") and not plan_ac(run.get("result") or "") and not client_ac(self.data_dir, st.ticket(tid)["key"]):
                 return st.event(tid, by, "flow", "方案里没有验收标准（AC），不进入自动改代码；补上验收标准后由人决定是否改", {"run": run["id"]})
+            if st.ticket(tid)["links"].get("goal") == "出方案":
+                return st.event(tid, by, "flow", "方案已出（出方案：不改代码）", {"run": run["id"], "stage": "方案已出"})
             if conf.get("fix"):
                 st.event(tid, by, "flow", "修改方案已出，接着在独立分支上改代码")
                 self._flow_fix(p, tid, conf, agent)

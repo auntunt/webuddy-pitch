@@ -27,13 +27,12 @@ def api_new_task(P, req, key):
     if goal not in STAGES:
         raise ApiError(400, "要做到哪一步只能是 出方案 或 修改并测试")
     try:
-        t = P.store.create_ticket(p["id"], title, req.user, body=body, type="feature")
+        t = P.store.create_ticket(p["id"], title, req.user, body=body, type="feature", links={"goal": goal})
     except ValueError as e:
         raise ApiError(400, str(e))
     from .. import task_secrets
     names = task_secrets.save(P.data_dir, t["key"], b.get("secrets") or [])
     P.store.event(t["id"], req.user, "flow", "任务创建：要做到 %s" % goal + ("；测试环境项：" + "、".join(names) if names else ""))
-    if goal == "修改并测试":
-        P.flow.submit(p, t)
+    P.flow.submit(p, t)  # both goals enter the existing line; 出方案 stops after the plan step
     return {"key": t["key"], "goal": goal, "secret_names": names}
 
