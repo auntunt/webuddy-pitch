@@ -13,6 +13,10 @@ const notice = ref('')
 const title = ref('')
 const body = ref('')
 const goal = ref<'出方案' | '修改并测试'>('修改并测试')
+const envRows = ref<{ name: string; value: string }[]>([])
+
+function addRow() { envRows.value.push({ name: '', value: '' }) }
+function removeRow(i: number) { envRows.value.splice(i, 1) }
 
 async function load() {
   error.value = ''
@@ -33,10 +37,12 @@ async function create() {
   try {
     const r = await post<{ key: string }>(`/api/projects/${encodeURIComponent(props.pkey)}/tasks`, {
       title: title.value.trim(), body: body.value.trim(), goal: goal.value, request_id: requestId(),
+      secrets: envRows.value.filter((r) => r.name.trim()).map((r) => ({ name: r.name.trim(), value: r.value })),
     })
     notice.value = `已创建 ${r.key}`
     title.value = ''
     body.value = ''
+    envRows.value = []
     await load()
   } catch (e) {
     error.value = e instanceof ApiError ? e.message : '创建失败，本次没有重试。'
@@ -76,6 +82,15 @@ onMounted(load)
           <option value="出方案">出方案</option>
         </select>
       </label>
+      <fieldset class="env">
+        <legend>测试环境</legend>
+        <div v-for="(row, i) in envRows" :key="i" class="env-row">
+          <input v-model="row.name" placeholder="名称，例如 db_host" aria-label="名称" />
+          <input v-model="row.value" type="password" autocomplete="off" placeholder="值" aria-label="值" />
+          <button type="button" class="btn" @click="removeRow(i)">删除</button>
+        </div>
+        <button type="button" class="btn" @click="addRow">添加一项</button>
+      </fieldset>
       <button class="btn btn-primary" :disabled="busy">{{ busy ? '创建中…' : '创建任务' }}</button>
     </form>
   </div>
@@ -83,5 +98,7 @@ onMounted(load)
 
 <style scoped>
 .tasks { width: 100%; border-collapse: collapse; background: var(--panel); }
+.env { margin: 12px 0; border: 1px solid var(--line); border-radius: 6px; padding: 10px; }
+.env-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-bottom: 8px; }
 .tasks th, .tasks td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
 </style>
