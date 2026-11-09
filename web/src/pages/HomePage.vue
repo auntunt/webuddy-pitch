@@ -13,14 +13,14 @@ onMounted(() => {
 
 <template>
   <div>
-    <h1>验证现有改动</h1>
+    <h1>开发工作台</h1>
     <p v-if="!projects.length" class="empty">还没有可访问的项目。</p>
     <ul v-else class="project-list">
       <li v-for="p in projects" :key="p.key">
-        <button class="link" @click="router.push(`/p/${encodeURIComponent(p.key)}/verify`)">{{ p.name || p.key }}</button>
+        <button class="link" @click="router.push(`/p/${encodeURIComponent(p.key)}/work`)">{{ p.name || p.key }}</button>
       </li>
     </ul>
-    <p class="muted">其他功能仍在 <a :href="legacyUrl('/workspace')">旧版工作台</a>。</p>
+    <p class="muted">项目接入与配置： <a :href="legacyUrl('/workspace')">项目管理</a>。</p>
   </div>
 </template>
 

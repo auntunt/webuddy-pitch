@@ -13,7 +13,7 @@ export interface AppState {
 export const app = reactive<AppState>({ meta: null, projects: [], project: '', ready: false, error: '' })
 
 export function legacyUrl(hash: string): string {
-  return appUrl('/#' + hash)
+  return appUrl('/#' + hash.replace(/^\/#/, ''))
 }
 
 export async function loadApp() {
@@ -28,7 +28,8 @@ export async function loadApp() {
     } catch {
       app.projects = []
     }
-    app.project = localStorage.getItem('tmh.proj') || app.projects[0]?.key || ''
+    const saved = localStorage.getItem('tmh.proj')
+    app.project = app.projects.find(p => p.key === saved)?.key || app.projects[0]?.key || ''
     app.ready = true
   } catch (e) {
     app.error = e instanceof ApiError ? e.message : '连不上服务器，稍后再试。'

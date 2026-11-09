@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import App from './App.vue'
 import HomePage from './pages/HomePage.vue'
+import WorkbenchPage from './pages/WorkbenchPage.vue'
 import VerifyPage from './pages/VerifyPage.vue'
 import CandidatePage from './pages/CandidatePage.vue'
 
@@ -15,6 +16,7 @@ export const router = createRouter({
   routes: [
     { path: '/', component: App, children: [
       { path: '', component: HomePage },
+      { path: 'p/:key/work', component: WorkbenchPage, props: r => ({ pkey: r.params.key }) },
       { path: 'p/:key/verify', component: VerifyPage, props: r => ({ pkey: r.params.key }) },
       { path: 'p/:key/candidates/:id', component: CandidatePage, props: r => ({ pkey: r.params.key, id: r.params.id }) },
     ] },

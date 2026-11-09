@@ -9,9 +9,8 @@ const nav = computed(() => {
   const key = String(route.params.key || app.project || '')
   const verify = key ? `/p/${encodeURIComponent(key)}/verify` : '/'
   return [
+    { to: key ? `/p/${encodeURIComponent(key)}/work` : '/', label: '开发工作台', internal: true },
     { to: verify, label: '验证现有改动', internal: true },
-    { href: legacyUrl('/#/tickets'), label: '工单' },
-    { href: legacyUrl('/#/runs'), label: '运行' },
     { href: legacyUrl('/#/kb'), label: '知识库' },
     { href: legacyUrl('/#/settings'), label: '设置' },
   ]
@@ -33,7 +32,7 @@ onMounted(() => {
       </a>
       <label class="project-picker">
         <span class="sr">项目</span>
-        <select :value="route.params.key || app.project" @change="selectProject(($event.target as HTMLSelectElement).value); $router.push({ path: `/p/${encodeURIComponent(($event.target as HTMLSelectElement).value)}/verify` })">
+        <select :value="route.params.key || app.project" @change="selectProject(($event.target as HTMLSelectElement).value); $router.push({ path: `/p/${encodeURIComponent(($event.target as HTMLSelectElement).value)}/work` })">
           <option v-for="p in app.projects" :key="p.key" :value="p.key">{{ p.name || p.key }}</option>
         </select>
       </label>
@@ -150,7 +149,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 .navlink:hover { background: var(--accent-soft); color: var(--fg); }
 .navlink.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-.content { flex: 1; min-width: 0; padding: 28px 32px 64px; max-width: 1080px; }
+.content { flex: 1; min-width: 0; padding: 28px 32px 64px; max-width: 1560px; }
 .bottomnav { display: none; }
 @media (max-width: 760px) {
   .sidenav { display: none; }

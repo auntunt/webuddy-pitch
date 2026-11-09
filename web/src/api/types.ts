@@ -1,4 +1,5 @@
 export interface Meta {
+  agents?: { name: string; title: string; available: boolean }[]
   version: string
   user: string
   login: boolean
