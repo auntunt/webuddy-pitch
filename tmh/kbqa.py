@@ -42,10 +42,6 @@ def status_of(reg: dict, pid: str) -> str:
     return r.get("status", kb.STATUS_NEW)
 
 
-def _rel(root: Path, pid: str) -> str:
-    return kb.page_path(root, pid).relative_to(root).as_posix()
-
-
 # ---- reading --------------------------------------------------------------------------
 def read(root: Path, pids: list[str], budget: int = 30000) -> str:
     """Pages exactly as they are on disk. Whole pages; what does not fit is listed, not cut."""

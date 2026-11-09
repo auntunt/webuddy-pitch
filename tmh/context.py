@@ -199,9 +199,8 @@ def index(root: Path, g: Graph | None = None, reg: dict | None = None) -> dict:
     return ix
 
 
-# Lexical scoring constants, kept in one dict so the G3 tuning experiment
-# (`tmh.context_quality.tune_lexical`) can measure a small grid without editing
-# code. The defaults are the historical literals: `search()` with no override is
+# Lexical scoring constants, kept in one dict so a tuning run can measure a small
+# grid without editing code. The defaults are the historical literals: `search()` with no override is
 # byte-identical to before, and every tuned value must be adopted deliberately.
 SEARCH_PARAMS = {
     "type_weight": {"page": 1.6, "flow": 1.4, "tbl": 1.3, "dom": 1.2, "ep": 1.0, "cls": 0.9, "fn": 0.8, "sm": 0.8},
@@ -359,15 +358,6 @@ def personalized_pagerank(root: Path, seeds, graph: Graph | None = None, damping
         if delta < tol:
             break
     return r
-
-
-def domains_for(root: Path, query: str, n: int = 3) -> list[str]:
-    """The business domains a request most likely belongs to, best first."""
-    out = []
-    for _, d in search(root, query, limit=40):
-        if d["domain"] and d["domain"] not in out:
-            out.append(d["domain"])
-    return out[:n]
 
 
 def build_context(root: Path, query: str, budget: int = 8000) -> str:

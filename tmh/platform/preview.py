@@ -501,10 +501,6 @@ def _join(prefix: str, path: str) -> str:
     return prefix.rstrip("/") + "/" + path.lstrip("/")
 
 
-def _answers(url: str) -> bool:
-    return _http_health(url)["ok"]
-
-
 def _health(rec: dict) -> dict:
     try:
         port = rec["port"]

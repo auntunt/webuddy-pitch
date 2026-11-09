@@ -13,10 +13,6 @@ APPS = [
 ]
 
 
-def app_of(t: dict) -> str:
-    return "ops"
-
-
 def wire(P) -> None:
     """Connect the apps that react to verdicts. 运维 needs nothing: its tickets simply end at acceptance; a 大需求
     (epic.py) is 运维 too, its children ordinary tickets, but it listens to move its batches on."""

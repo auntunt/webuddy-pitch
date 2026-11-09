@@ -122,24 +122,6 @@ def _similar(a, b, fa=None, fb=None):
     return {"score": round(similarity, 3), "reasons": reasons, "same_cause_confirmed": False}
 
 
-def similar_tickets(P, ticket, limit=5):
-    """Read-only recommendations for a ticket page, preserving original links."""
-    t = P.store.ticket(ticket) if not isinstance(ticket, dict) else ticket
-    if not t:
-        raise ApiError(404, "工单不存在")
-    p = _project(P, t["project_id"])
-    excluded = {tuple(sorted((x, y))) for c in _load(P, p)["clusters"] for x, y in c.get("excluded_pairs", [])}
-    out = []
-    for other in _tickets(P, p):
-        if other["id"] == t["id"] or tuple(sorted((t["key"], other["key"]))) in excluded:
-            continue
-        match = _similar(t, other)
-        if match:
-            out.append({"key": other["key"], "title": other["title"], "status": other["status"],
-                        "project": p["key"], **match})
-    return sorted(out, key=lambda x: (-x["score"], x["key"]))[:limit]
-
-
 def _member(t):
     return {"key": t["key"], "ticket_id": t["id"], "project_id": t["project_id"], "title": t["title"],
             "status": t["status"], "body": t.get("body") or "", "links": t.get("links") or {},
