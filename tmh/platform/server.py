@@ -2980,6 +2980,20 @@ def api_agent_settings(P, req):
     return data
 
 
+@route("GET", "/api/access-config")
+def api_access_config(P, req):
+    _platform_admin(P, req, "配置访问方式")
+    from . import access_config
+    return access_config.view()
+
+
+@route("POST", "/api/access-config")
+def api_access_config_save(P, req):
+    _platform_admin(P, req, "配置访问方式")
+    from . import access_config
+    return access_config.save(req.body)
+
+
 @route("GET", "/api/agent-scan")
 def api_agent_scan(P, req):
     """Local executor discovery: paths, versions, non-secret config, credential booleans."""

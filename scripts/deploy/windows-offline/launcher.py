@@ -15,17 +15,40 @@ import tempfile
 ROOT = Path(__file__).resolve().parent
 
 
-def verify(root):
-    manifest = json.loads((root / 'MANIFEST.json').read_text(encoding='utf-8'))
+def inventory(root):
+    """Report-only manifest comparison: mismatches are listed, never fatal."""
+    report = {'bundle_files_total': 0, 'bundle_files_changed': [], 'bundle_files_missing': []}
+    manifest_path = root / 'MANIFEST.json'
+    if not manifest_path.is_file():
+        report['error'] = 'MANIFEST.json missing'
+        return report
+    manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+    report['bundle_files_total'] = len(manifest)
     for name, digest in manifest.items():
         path = (root / name).resolve()
         if not path.is_relative_to(root.resolve()) or not path.is_file():
-            raise ValueError('Missing or unsafe bundle file: ' + name)
+            report['bundle_files_missing'].append(name)
+            continue
         with path.open('rb') as stream:
-            actual = hashlib.file_digest(stream, 'sha256').hexdigest()
-        if actual != digest:
-            raise ValueError('Bundle checksum mismatch: ' + name)
-    return len(manifest)
+            if hashlib.file_digest(stream, 'sha256').hexdigest() != digest:
+                report['bundle_files_changed'].append(name)
+    report['bundle_files_changed_count'] = len(report['bundle_files_changed'])
+    report['bundle_files_missing_count'] = len(report['bundle_files_missing'])
+    report['bundle_files_changed'] = report['bundle_files_changed'][:50]
+    report['bundle_files_missing'] = report['bundle_files_missing'][:50]
+    return report
+
+
+def config_path(root, env):
+    """--config / WEBUDDY_CONFIG > %LOCALAPPDATA%\\Webuddy\\config.json > defaults.
+
+    The returned path is also what the server edits via the 访问方式 card, so it
+    points at LOCALAPPDATA even when no file exists yet (survives re-unpacking)."""
+    env_value = env.get('WEBUDDY_CONFIG', '')
+    if env_value:
+        return Path(env_value)
+    local = Path(env.get('LOCALAPPDATA', str(Path.home()))) / 'Webuddy' / 'config.json'
+    return local
 
 
 def configuration(root, filename):
@@ -183,17 +206,20 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if os.name != 'nt':
         raise ValueError('This bundle supports Windows x86_64 only')
-    count = verify(ROOT)
-    config, env, data, host, port = configuration(ROOT, args.config)
+    filename = args.config or (str(config_path(ROOT, os.environ)) if config_path(ROOT, os.environ).is_file() else '')
+    config, env, data, host, port = configuration(ROOT, filename)
+    env['WEBUDDY_BUNDLE_CONFIG'] = str(args.config or config_path(ROOT, env))
     selected, env = resolve_tools(ROOT, config.get('tools', {}), env, disabled_executors(data))
     if args.action == 'tool':
         if not args.arguments or args.arguments[0] not in selected or not selected[args.arguments[0]].get('path'):
             raise ValueError('tool requires an installed codex, claude, git, node or cursor, followed by its arguments')
         return subprocess.call([selected[args.arguments[0]]['path'], *args.arguments[1:]], env=env)
     from tmh.deployment import check_config, load_secrets
-    report = dict(bundle_files_verified=count, tools=selected, data_dir=str(data),
+    report = dict(tools=selected, data_dir=str(data),
                   url='http://%s:%s/' % (host, port), configuration=check_config(data),
                   model_access='not_checked', authentication='not_checked')
+    if args.action == 'check':
+        report.update(inventory(ROOT))
     try:
         from tmh.platform.executor_setup import scan as executor_scan
         report['executor_scan'] = executor_scan()

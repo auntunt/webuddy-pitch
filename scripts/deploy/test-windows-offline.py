@@ -26,7 +26,7 @@ def main():
     spec = importlib.util.spec_from_file_location('launcher', launcher)
     launch = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(launch)
-    assert launch.verify(root) > 1000
+    assert launch.inventory(root)['bundle_files_total'] > 1000
     manifest = json.loads((root / 'MANIFEST.json').read_text())
     work = root.parent / 'synthetic smoke 数据'
     work.mkdir(exist_ok=False)
@@ -186,15 +186,16 @@ def main():
     bad_config = work / 'broken.json'
     bad_config.write_text(json.dumps({'tools': {'codex': str(broken)}}))
     assert 'failed' in call('--config', bad_config, 'check', env=env, ok=False).stderr
-    # Corruption is caught before any new state directory is created.
+    # Corruption is reported by check but never blocks start.
     asset = root / 'config.example.json'
     saved = asset.read_bytes()
     try:
         asset.write_bytes(saved + b' ')
-        assert 'checksum mismatch' in call('check', env=env, ok=False).stderr
+        report = json.loads(call('check', env=env).stdout)
+        assert 'config.example.json' in report['bundle_files_changed']
     finally:
         asset.write_bytes(saved)
-    records['manifest_after_test'] = launch.verify(root)
+    records['manifest_after_test'] = launch.inventory(root)['bundle_files_total']
     (work / 'receipt.json').write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding='utf-8')
     print(json.dumps(dict(ok=True, receipt=str(work / 'receipt.json')), ensure_ascii=False), flush=True)
 

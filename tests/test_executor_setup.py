@@ -180,3 +180,70 @@ class EndpointTest(unittest.TestCase):
         self.req.h.headers['X-Webuddy-Agent'] = '1'
         with self.assertRaises(server.ApiError):
             server.api_agent_test(self.P, self.req)
+
+
+class AccessConfigTest(unittest.TestCase):
+    """访问方式 card: loopback/LAN write of the bundle config file, token + preserved fields."""
+    def setUp(self):
+        import os
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.dir = Path(self.temp.name)
+        self.path = self.dir / 'Webuddy' / 'config.json'
+        self._env = patch.dict(os.environ, {'WEBUDDY_BUNDLE_CONFIG': str(self.path)})
+        self._env.start()
+        self.addCleanup(self._env.stop)
+        from tmh.platform import access_config
+        self.ac = access_config
+
+    def _P(self):
+        from types import SimpleNamespace as NS
+        return NS(data_dir=self.dir, tenant_context=None)
+
+    def _req(self, body):
+        from types import SimpleNamespace as NS
+        return NS(user='demo', body=body, h=NS(_who='', headers={}, client_address=('127.0.0.1', 1),
+                                               server=NS(server_address=('127.0.0.1', 1))))
+
+    def test_unavailable_without_env(self):
+        with patch.dict(__import__('os').environ, {}, clear=True):
+            self.assertEqual(self.ac.view(), {'available': False})
+
+    def test_lan_write_preserves_fields_and_returns_url_once(self):
+        self.path.parent.mkdir(parents=True)
+        self.path.write_text(json.dumps({'data_dir': 'D:/keep', 'tools': {'codex': 'x.exe'},
+                                         'environment': {'CODEX_HOME': 'D:/ch', 'TMH_TOKEN': 'old'}}))
+        from tmh.platform import server
+        out = server.api_access_config_save(self._P(), self._req({'mode': 'lan', 'port': 9000, 'public_url': ''}))
+        self.assertTrue(out['restart_required'])
+        self.assertNotIn('access_url', out)  # existing token preserved, not regenerated
+        written = json.loads(self.path.read_text())
+        self.assertEqual(written['data_dir'], 'D:/keep')
+        self.assertEqual(written['tools'], {'codex': 'x.exe'})
+        self.assertEqual(written['environment']['CODEX_HOME'], 'D:/ch')
+        self.assertEqual(written['host'], '0.0.0.0')
+        self.assertEqual(written['port'], 9000)
+        self.assertEqual(written['environment']['TMH_TOKEN'], 'old')
+        self.assertTrue(written['environment']['TMH_PUBLIC_URL'].startswith('http://'))
+        view = server.api_access_config(self._P(), self._req({}))
+        self.assertEqual(view['mode'], 'lan')
+        self.assertTrue(view['token_set'])
+        self.assertNotIn('access_url', view)
+        # regenerate issues a new token and returns the full link exactly once
+        out = server.api_access_config_save(self._P(), self._req({'mode': 'lan', 'port': 9000, 'public_url': '', 'regenerate': True}))
+        self.assertIn('access_url', out)
+        self.assertIn('token=', out['access_url'])
+        self.assertNotEqual(json.loads(self.path.read_text())['environment']['TMH_TOKEN'], 'old')
+
+    def test_local_clears_token_and_validation(self):
+        self.path.parent.mkdir(parents=True)
+        self.path.write_text(json.dumps({'environment': {'TMH_TOKEN': 't', 'TMH_PUBLIC_URL': 'http://x'}}))
+        from tmh.platform import server
+        server.api_access_config_save(self._P(), self._req({'mode': 'local', 'port': 8790}))
+        written = json.loads(self.path.read_text())
+        self.assertEqual(written['host'], '127.0.0.1')
+        self.assertNotIn('TMH_TOKEN', written['environment'])
+        for bad in ({'mode': 'dmz'}, {'mode': 'lan', 'port': 'x'}, {'mode': 'lan', 'port': 70000},
+                    {'mode': 'lan', 'port': 80, 'public_url': 'javascript:alert(1)'}):
+            with self.assertRaises(server.ApiError):
+                server.api_access_config_save(self._P(), self._req(bad))

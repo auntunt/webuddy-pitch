@@ -3,72 +3,37 @@ Webuddy Windows x64 客户离线运行包
 适用：Windows 10/11 x64。本包不支持 Windows ARM、Windows 7、WSL 或 Linux。
 
 1. 将整个 ZIP 解压到本地可写目录（例如 D:\Webuddy）。不要在 ZIP 内直接启动。
-2. 双击 check.cmd，核对文件完整性、实际使用的工具和数据目录。
-3. 双击 start.cmd，在浏览器打开 http://127.0.0.1:8790/ 。
-4. 停止：在启动窗口按 Ctrl+C，等待“已停止”。不批量结束系统 Python/Node 进程。
+2. 双击 start.cmd 启动，浏览器打开 http://127.0.0.1:8790/ 。
+3. 打开网页 设置 → 智能体：点击“扫描本机”自动发现 Codex / Claude Code / Cursor
+   （命令路径、配置目录、模型与 API 地址），按结果点“采用”；需要密钥时在
+   “连接配置”里填写并点“测试连接”。
+4. 需要局域网访问时，在 设置 → 访问方式 选择“局域网”，确认对外地址并保存；
+   管理员运行 configure-firewall.ps1 放行端口后重启 Webuddy。
+5. 停止：在启动窗口按 Ctrl+C，等待“已停止”。不批量结束系统 Python/Node 进程。
 
 安装和启动不会下载文件、安装全局软件、改注册表或全局 PATH。
 Python 使用包内独立版本。Codex、Claude Code、Git、Node 优先复用 PATH 中已有安装，
 缺少时使用包内官方版本。检测到已有工具损坏会明确报错，不悄悄替换。
-check 只检查可执行文件和配置；不证明模型已登录或项目沙箱已经可用。
-本包保留 Codex 的 sandbox/setup 等配套文件，不关闭已有平台权限或沙箱。
+check.cmd 打印文件清单核对结果、实际使用的工具和数据目录；不一致只提示，不阻止启动。
 
-数据默认在 %LOCALAPPDATA%\Webuddy\data，关闭窗口或换包后保留。
+数据默认在 %LOCALAPPDATA%\Webuddy\data，访问方式等设置保存在
+%LOCALAPPDATA%\Webuddy\config.json，解压新版本到其它目录后仍生效。
 启动已有数据目录会沿用平台的持久调度、恢复与授权规则。首次试用请用新数据目录。
-升级前停止服务，完整备份数据与外部配置；回退程序不能用旧库覆盖新的业务写入。
 本包不会自动迁移服务器数据，也不会覆盖原 ~/.tmh、agents.json、Codex 或 Claude 配置。
-
-外部配置：复制 config.example.json 到包外，按需设置后运行：
-  webuddy.cmd --config "D:\Webuddy 配置\local.json" check
-  webuddy.cmd --config "D:\Webuddy 配置\local.json" start
-也可以设置 WEBUDDY_CONFIG 环境变量再双击 start.cmd。
-config 字段：data_dir、host、port、environment、tools。
-相对 data_dir 相对于当前工作目录；建议使用绝对路径。
-tools 中可以填写 codex、claude、git、node、cursor 的完整可执行文件路径。
-environment 中填写所需环境变量（值为字符串），或从启动终端继承。
-例如 TMH_TOKEN_FILE、CODEX_HOME、ANTHROPIC_BASE_URL、ANTHROPIC_API_KEY。
-TMH_TOKEN 与 TMH_TOKEN_FILE 只能设置一个，文件中的值不会打印。
-对局域网开放使用 host=0.0.0.0，并按现有平台要求配置访问令牌/租户权限。
-不要将真实配置、账号或令牌发给他人、打入包或提交 Git。
-
-本地官方客户端入口（仅改变当前进程的工具路径）：
-  webuddy.cmd tool codex --version
-  webuddy.cmd tool codex login
-  webuddy.cmd tool claude --version
-  webuddy.cmd tool claude
-  webuddy.cmd tool git --version
-在原有 Codex / Claude 账户与配置中完成登录或内网模型配置。
-模型调用需要可达的服务和有效授权；“离线安装”不代表本地自带模型或免登录。
-网页中的项目执行、人工验收及自动验收开关沿用原有规则，不因离线包扩大权限。
-项目自己的 JDK、数据库、npm 依赖等仍按该项目准备，不包含所有业务项目依赖。
-
-本地单实例网页默认沿用原平台行为。需要账号/多租户时先使用现有初始化入口：
-  runtime\python\python.exe -m tmh access-init --help
-MCP 依赖已在包内，连接到已部署服务仍用现有 webuddy 配置与权限：
-  runtime\python\python.exe -m tmh.workbench --help
-
-版本与来源见 release.json、payloads.lock.json。
-MANIFEST.json 记录每个运行文件的 SHA256，check/start 每次检查后才继续。
-它检测损坏，不代替可信分发：下载后请同时核对包外 bundle.json 的整个 ZIP 哈希。
-licenses 与各工具目录保留上游许可；第三方工具受各自使用条款约束。
-本包只交付 Windows 程序，不更新测试站或生产服务器。
-
-客户手册位于 runtime\python\Lib\site-packages\tmh\_resources\docs\customer\README.md，
-包含安装配置、知识构建、验收边界和升级说明。
-本包包含产品 Python 源码，不提供源码混淆、编译保护或许可证系统。
-不预置客户业务数据、项目知识、账号、登录态或个人配置。
-本地网页与项目命令支持 Windows；多租户 worker 依赖 Unix socket，需部署到受支持的服务端，
-Windows 客户端可通过 MCP 连接该服务端。项目生成的 shell hooks 仍需兼容 shell/python3，
-直接命令与 MCP 可使用本包 Python 的绝对路径；未声明原生 Windows hooks 宿主已验证。
-升级：先停止旧包并备份外部数据/配置，再解压新包到新目录，check 后指定原配置启动。
-保留旧包；回退仅切程序目录，数据库变更须按对应版本的兼容说明核对。
 
 Cursor Agent：本包支持调用本机 agent 命令（兼容 cursor-agent），不内置 Cursor CLI 安装包或账号。
 check.cmd 会显示 Cursor 检测结果；未安装不影响其他执行器启动。
-自定义路径可在包外配置 tools.cursor 为 agent 的绝对可执行文件路径；其他已有字段保留。
   webuddy.cmd tool cursor --version
   webuddy.cmd tool cursor login
 仅安装 Cursor 编辑器不等于已安装 CLI；请在运行 Webuddy 的同一系统账号完成登录。
-设置页中的 Cursor 支持分析与获准的修改任务。只读任务使用 Ask 模式；修改任务传 --force，
-始终启用 Cursor 沙箱，仍须满足项目执行权限、需求确认、候选验证和人工验收门禁。
+设置页中的 Cursor 支持分析与获准的修改任务。只读任务使用 Ask 模式；
+Windows 下 Cursor 沙箱按客户批准关闭；仍须满足项目执行权限、需求确认、候选验证和人工验收门禁。
 不自动批准工作区信任或 MCP 服务。真实 Cursor 模型与客户设备调用须按现场实际结果核对。
+
+高级用法（可选）：包外 JSON 配置仍可用 ——
+  webuddy.cmd --config "D:\Webuddy 配置\local.json" start
+或设置 WEBUDDY_CONFIG 环境变量。字段：data_dir、host、port、environment、tools。
+本地网页与项目命令支持 Windows；多租户 worker 依赖 Unix socket，需部署到受支持的服务端，
+Windows 客户端可通过 MCP 连接该服务端。
+升级：先停止旧包并备份外部数据/配置，再解压新包到新目录后双击 start.cmd；
+保留旧包；回退仅切程序目录，数据库变更须按对应版本的兼容说明核对。

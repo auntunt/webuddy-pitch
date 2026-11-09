@@ -72,16 +72,20 @@ class WindowsOfflineBundleTest(unittest.TestCase):
             manifest = root / 'MANIFEST.json'
             (root / 'file').write_bytes(b'complete')
             manifest.write_text(json.dumps({'file': hashlib.sha256(b'complete').hexdigest()}))
-            self.assertEqual(launcher.verify(root), 1)
+            report = launcher.inventory(root)
+            self.assertEqual(report['bundle_files_total'], 1)
+            self.assertEqual(report['bundle_files_changed'], [])
             (root / 'file').write_bytes(b'changed')
-            with self.assertRaisesRegex(ValueError, 'checksum mismatch'):
-                launcher.verify(root)
+            report = launcher.inventory(root)
+            self.assertEqual(report['bundle_files_changed'], ['file'])
             (root / 'file').unlink()
-            with self.assertRaisesRegex(ValueError, 'Missing or unsafe'):
-                launcher.verify(root)
+            report = launcher.inventory(root)
+            self.assertEqual(report['bundle_files_missing'], ['file'])
             manifest.write_text(json.dumps({'../outside': 'bad'}))
-            with self.assertRaisesRegex(ValueError, 'Missing or unsafe'):
-                launcher.verify(root)
+            report = launcher.inventory(root)
+            self.assertEqual(report['bundle_files_missing'], ['../outside'])  # traversal never resolves outside the bundle
+            manifest.unlink()
+            self.assertIn('error', launcher.inventory(root))
 
     def test_external_config_is_read_without_copying_or_creating_state(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -187,3 +191,25 @@ class WindowsOfflineBundleTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+    def test_config_resolution_order_and_bundle_env(self):
+        import os as _os
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            appdata = root / 'AppData' / 'Local'
+            local = appdata / 'Webuddy' / 'config.json'
+            env = dict(_os.environ)
+            env.pop('WEBUDDY_CONFIG', None)
+            env['LOCALAPPDATA'] = str(appdata)
+            # No file: falls back to defaults, WEBUDDY_BUNDLE_CONFIG points at the local path
+            with patch.dict(_os.environ, env, clear=True):
+                self.assertEqual(launcher.config_path(root, _os.environ), local)
+            # File exists: auto-read without --config
+            local.parent.mkdir(parents=True)
+            data = root / 'data'
+            local.write_text(json.dumps({'data_dir': str(data), 'environment': {'TMH_TOKEN': 'tok-1'}}), encoding='utf-8')
+            with patch.dict(_os.environ, env, clear=True):
+                filename = str(launcher.config_path(root, _os.environ))
+                config, env2, selected, host, port = launcher.configuration(root, filename)
+                self.assertEqual(selected, data.resolve())
+                self.assertEqual(env2['TMH_TOKEN'], 'tok-1')

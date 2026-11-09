@@ -2011,6 +2011,7 @@ async function projectTestsOpen(key){
 async function vSettings(){
   $('#main').innerHTML=`<h1>设置</h1><div class="card" id="rdy" style="margin-top:14px"><h2>上线体检</h2><div class="sub">检查中…</div></div><div class="grid2" style="margin-top:14px"><div class="card form"><h2>我</h2>${S.meta.login?`<p>已登录账号：<b>${h(S.meta.user)}</b></p><p class="sub">操作身份来自登录会话，不能通过修改显示名字代替其他成员。</p>`:`<label>名字（写在评论、指派和审阅记录里）<input class="full" id="un" value="${h(S.user)}"></label><div><button class="primary" id="us">保存</button></div>`}${S.meta.access?.can_manage?`<p>当前租户：${h(S.meta.access.tenant.name)}</p><a class="btn" href="#/access">成员与权限</a>`:''}</div>
   <div class="card" id="agentSettings"><h2>智能体</h2><p>加载中…</p></div>
+  <div id="accessCard"></div>
   <div class="card"><h2>项目</h2>${S.projects.map(p=>`<div class="flowrow"><span><b>${h(p.key)}</b> ${h(p.name)}<div class="sub">${h(p.root)}${p.exists?'':'（目录不存在）'}</div></span><span class="sub">${p.open} 张未关闭</span><span class="pmode" data-pmode="${h(p.key)}"></span><span class="pinteg" data-pinteg="${h(p.key)}"></span><button data-project-library="${h(p.key)}">知识与引用</button><button data-project-tests="${h(p.key)}">项目测试</button></div>`).join('')}<div style="margin-top:10px"><button onclick="newProject()">＋ 登记已有项目</button></div></div>
   <div class="card form" id="tbx"><h2>测试机</h2><div class="sub">加载中…</div></div>
   <div class="card"><h2>数据</h2><div class="sub">工单、讨论和运行记录都在 <code>${h(S.meta.data_dir)}/platform.db</code>（SQLite），修改代码用的工作树在 <code>worktrees/</code>。备份这个目录即可。</div></div></div>`;
@@ -2019,7 +2020,24 @@ async function vSettings(){
   document.querySelectorAll('[data-project-tests]').forEach(button=>button.onclick=()=>projectTestsOpen(button.dataset.projectTests));
   document.querySelectorAll('[data-pmode]').forEach(pmode);
   document.querySelectorAll('[data-pinteg]').forEach(pinteg);
-  testbox();readiness();agentSettingsLoad()}
+  testbox();readiness();agentSettingsLoad();accessCardLoad()}
+async function accessCardLoad(){
+  const el=$('#accessCard');if(!el)return;
+  try{const d=await get('/api/access-config');if(!d.available)return;
+    el.innerHTML=`<div class="card form"><h2>访问方式</h2><div class="sub">写入 ${h(d.path)}，重启 Webuddy 后生效。</div>
+      <div class="row" style="gap:14px"><label><input type="radio" name="accMode" value="local" ${d.mode==='local'?'checked':''}> 仅本机（127.0.0.1）</label><label><input type="radio" name="accMode" value="lan" ${d.mode==='lan'?'checked':''}> 局域网（0.0.0.0）</label></div>
+      <div class="grid2"><label>端口<input id="accPort" type="number" min="1" max="65535" value="${h(d.port)}"></label>
+      <label>对外地址<input class="full" id="accUrl" list="accUrls" value="${h(d.public_url)}" placeholder="http://IP:端口"><datalist id="accUrls">${(d.addresses||[]).map(a=>`<option value="http://${h(a)}:${h(d.port)}">`)}</datalist></label></div>
+      <div id="accState" class="sub"></div>
+      <div class="row"><button class="primary" id="accSave">保存</button><button id="accRegen">重新生成访问令牌</button></div>
+      <div class="sub" style="margin-top:8px">局域网访问需管理员先在安装目录运行 configure-firewall.ps1 放行端口。</div></div>`;
+    const save=async(regen)=>{const st=$('#accState');const mode=el.querySelector('input[name=accMode]:checked').value;
+      try{const r=await post('/api/access-config',{mode,port:Number($('#accPort').value),public_url:$('#accUrl').value.trim(),regenerate:!!regen});
+        st.innerHTML='已保存，重启 Webuddy 后生效。'+(r.access_url?` 完整访问链接（只显示一次）：<code>${h(r.access_url)}</code>`:(r.token_set&&mode==='lan'?' 访问令牌已设置。':''))}catch(e){st.textContent=e.message}};
+    $('#accSave').onclick=()=>save(false);
+    $('#accRegen').onclick=()=>save(true);
+  }catch(e){}
+}
 // ---------- per project: fully automatic (AI fixes, accepts, closes, merges with a version) or a person at every step
 async function pmode(el){const k=el.dataset.pmode;let d;try{d=await get('/api/projects/'+encodeURIComponent(k)+'/mode')}catch(e){return}
   const M={auto:['全自动','AI 改代码、页面实测、AI 验收关单，验收通过的改动合并到 '+h(d.main||'主线')+' 并打版本，可以随时回滚','切到全自动：AI 改代码、AI 验收并关单，验收通过的改动自动合并并打版本（不推送、不部署），可以在版本列表里回滚。确定？'],
