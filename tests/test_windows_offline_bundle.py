@@ -170,11 +170,11 @@ class WindowsOfflineBundleTest(unittest.TestCase):
                 argv = run.call_args.args[0]
                 self.assertEqual(argv[:2], ['cursor-bin', '--trust'])
                 self.assertIn('--mode', argv)
-                self.assertEqual(run.call_args.kwargs['timeout'], 45)
+                self.assertEqual(run.call_args.kwargs['timeout'], 120)
             bad = subprocess.CompletedProcess([], 0, stdout=json.dumps({'type': 'result', 'result': 'other'}), stderr='')
             with patch.object(launcher.subprocess, 'run', return_value=bad):
                 self.assertFalse(launcher.cursor_preflight('cursor-bin', {}, workdir)['ok'])
-            with patch.object(launcher.subprocess, 'run', side_effect=subprocess.TimeoutExpired([], 45)):
+            with patch.object(launcher.subprocess, 'run', side_effect=subprocess.TimeoutExpired([], 120)):
                 report = launcher.cursor_preflight('cursor-bin', {}, workdir)
                 self.assertFalse(report['ok'])
                 self.assertIn('error', report)
