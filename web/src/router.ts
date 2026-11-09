@@ -5,6 +5,7 @@ import VerifyPage from './pages/VerifyPage.vue'
 import CandidatePage from './pages/CandidatePage.vue'
 import TasksPage from './pages/TasksPage.vue'
 import TaskDetailPage from './pages/TaskDetailPage.vue'
+import AgentsPage from './pages/AgentsPage.vue'
 
 function routerBase(): string {
   const path = window.location.pathname
@@ -17,6 +18,7 @@ export const router = createRouter({
   routes: [
     { path: '/', component: App, children: [
       { path: '', component: HomePage },
+      { path: 'settings/agents', component: AgentsPage },
       { path: 'p/:key/tasks', component: TasksPage, props: r => ({ pkey: r.params.key }) },
       { path: 'p/:key/tasks/:tkey', component: TaskDetailPage, props: r => ({ pkey: r.params.key, tkey: r.params.tkey }) },
       { path: 'p/:key/verify', component: VerifyPage, props: r => ({ pkey: r.params.key }) },
