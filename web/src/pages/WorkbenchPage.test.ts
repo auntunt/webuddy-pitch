@@ -45,4 +45,5 @@ it('keeps the newer run selected when an older request finishes late', async () 
 it('normalizes legacy navigation without duplicate hash prefixes', () => {
   expect(legacyUrl('/#/kb')).toBe('/#/kb')
   expect(legacyUrl('/workspace')).toBe('/#/workspace')
+  expect(legacyUrl('#/team/ticket/P-1')).toBe('/#/team/ticket/P-1')
 })

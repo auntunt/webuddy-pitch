@@ -9,7 +9,7 @@ import type { Ticket } from '../api/types'
 
 type Run = { id: number; mode: string; status: string; result?: string; diff?: string; output?: string; verification?: Record<string, unknown> | null; decision?: string; can_retry?: boolean; recheck?: { running?: boolean }; commit?: string }
 type Detail = { ticket: Ticket & { body?: string }; runs: Run[]; auto_next?: string; plain_state?: unknown; events?: { author: string; body: string; created: string }[]; epic?: { children: {key:string; title:string; status:string; after:string[]}[]; paused:string }; parent?: {key:string;title:string} }
-const props = defineProps<{ pkey: string }>()
+const props = defineProps<{ pkey: string; ticketKey?: string; compose?: boolean }>()
 const router = useRouter()
 const tickets = ref<Ticket[]>([])
 const selected = ref('')
@@ -99,8 +99,10 @@ async function loadProject() {
     const list = await get<Ticket[]>(`/api/tickets?project=${encodeURIComponent(props.pkey)}&limit=500`)
     if (stamp !== generation) return
     tickets.value = list
-    if (list[0]) await choose(list[0].key)
+    if (props.ticketKey?.startsWith(props.pkey + '-')) await choose(props.ticketKey)
+    else if (list[0]) await choose(list[0].key)
     else composing.value = true
+    if (props.compose) composing.value = true
   } catch (e) { if (stamp === generation) error.value = message(e) }
   finally { loading.value = false }
 }
@@ -153,7 +155,7 @@ async function previewRun() {
 }
 async function batchCreated(key:string) { await loadProject(); if(key)await choose(key) }
 function verify() { router.push({ path: `/p/${encodeURIComponent(props.pkey)}/verify`, query: { ticket: selected.value } }) }
-watch(() => props.pkey, loadProject, { immediate: true })
+watch(() => [props.pkey, props.ticketKey, props.compose], loadProject, { immediate: true })
 onUnmounted(() => { generation++; clearPoll() })
 </script>
 

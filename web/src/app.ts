@@ -13,7 +13,8 @@ export interface AppState {
 export const app = reactive<AppState>({ meta: null, projects: [], project: '', ready: false, error: '' })
 
 export function legacyUrl(hash: string): string {
-  return appUrl('/#' + hash.replace(/^\/#/, ''))
+  const route = hash.replace(/^\/?#/, '')
+  return appUrl('/#' + (route.startsWith('/') ? route : '/' + route))
 }
 
 export async function loadApp() {
@@ -45,4 +46,9 @@ export function selectProject(key: string) {
 
 export function logoutUrl(): string {
   return appUrl('/logout')
+}
+
+export function prepareLegacy(project: string = app.project) {
+  if (project && project !== '*') selectProject(project)
+  localStorage.setItem('tmh.scope', project || '*')
 }

@@ -1,21 +1,30 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { app, loadApp, legacyUrl, logoutUrl, selectProject } from './app'
+import { app, loadApp, legacyUrl, logoutUrl, selectProject, prepareLegacy } from './app'
 
 const route = useRoute()
+watch(() => [route.params.key, app.ready], () => {
+  const key = String(route.params.key || '')
+  if (app.ready && app.projects.some(project => project.key === key)) selectProject(key)
+}, { immediate: true })
 
 const nav = computed(() => {
   const key = String(route.params.key || app.project || '')
   const verify = key ? `/p/${encodeURIComponent(key)}/verify` : '/'
   return [
+    { to: '/', label: '任务总览', internal: true },
+    { to: key ? `/p/${encodeURIComponent(key)}/assistant` : '/projects', label: 'AI 助手', internal: true },
     { to: key ? `/p/${encodeURIComponent(key)}/work` : '/', label: '开发工作台', internal: true },
     { to: verify, label: '验证现有改动', internal: true },
     { to: key ? `/p/${encodeURIComponent(key)}/knowledge` : '/', label: '知识库', internal: true },
+    { to: '/features', label: '全部功能', internal: true },
     { to: key ? `/p/${encodeURIComponent(key)}/settings` : '/settings', label: '设置', internal: true },
   ]
 })
 
+const mobileNav = computed(() => nav.value.filter(item => !['验证现有改动','设置'].includes(item.label)))
+const fullNav = [['/team','团队与分工'],['/meetings','会议与行动'],['/reform','改造计划'],['/deliveries','验证与交付'],['/projects','项目与环境'],['/runs','运行记录'],['/lead','流程与统计']]
 const isActive = (to: string) => route.path === to
 
 onMounted(() => {
@@ -36,7 +45,7 @@ onMounted(() => {
           <option v-for="p in app.projects" :key="p.key" :value="p.key">{{ p.name || p.key }}</option>
         </select>
       </label>
-      <div class="user">
+      <div class="user"><a class="full-workspace" :href="legacyUrl('/workspace')" @click="prepareLegacy('*')">完整工作台</a>
         <span v-if="app.meta?.user">{{ app.meta.user }}</span>
         <a :href="logoutUrl()">退出</a>
       </div>
@@ -46,6 +55,8 @@ onMounted(() => {
         <template v-for="item in nav" :key="item.label">
           <router-link :to="item.to" :class="{ active: isActive(item.to) }" class="navlink">{{ item.label }}</router-link>
         </template>
+        <div class="nav-divider"></div>
+        <a v-for="[path,label] in fullNav" :key="path" class="navlink" :href="legacyUrl(path!)" @click="prepareLegacy('*')">{{label}}</a>
       </nav>
       <main class="content">
         <p v-if="app.error" class="error" role="alert">{{ app.error }}</p>
@@ -54,7 +65,7 @@ onMounted(() => {
       </main>
     </div>
     <nav class="bottomnav" aria-label="主导航">
-      <template v-for="item in nav" :key="item.label">
+      <template v-for="item in mobileNav" :key="item.label">
         <router-link :to="item.to" :class="{ active: isActive(item.to) }">{{ item.label }}</router-link>
       </template>
     </nav>
@@ -141,7 +152,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .user { margin-left: auto; display: flex; gap: 12px; align-items: center; font-size: 13px; color: var(--sub); }
 .user a { color: var(--sub); }
 .body { flex: 1; display: flex; min-height: 0; }
-.sidenav { width: 168px; flex-shrink: 0; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+.nav-divider { border-top:1px solid var(--line); margin:14px 8px; }
+.sidenav { width: 190px; flex-shrink: 0; padding: 16px 12px; display: flex; flex-direction: column; gap: 2px; }
 .navlink {
   display: block; padding: 8px 12px; border-radius: 6px; color: var(--sub); text-decoration: none; font-size: 14px;
 }
@@ -153,6 +165,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .sidenav { display: none; }
   .content { padding: 20px 16px 88px; }
   .topbar { padding: 0 14px; gap: 10px; }
+  .full-workspace { display:none; }
   .project-picker select { max-width: 130px; }
   .bottomnav {
     display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
