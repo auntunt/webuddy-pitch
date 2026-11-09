@@ -51,6 +51,21 @@ def api_new_task(P, req, key):
 
 
 
+def _models(config, item):
+    """Configured models; for Cursor, the CLI's own list when the configuration has none."""
+    configured = [m[0] for m in config.get("models") or []]
+    if configured or item["name"] != "cursor":
+        return configured
+    import subprocess
+    from ..agents import executable
+    try:
+        out = subprocess.run([executable("cursor", config), "--list-models"], capture_output=True, text=True,
+                             encoding="utf-8", errors="replace", timeout=30).stdout
+    except (OSError, subprocess.SubprocessError):
+        return []
+    return [line.split(" - ", 1)[0].strip() for line in out.splitlines() if " - " in line]
+
+
 @route("GET", "/api/task-executors")
 def api_task_executors(P, req):
     from ..agents import available, load_config
@@ -58,7 +73,7 @@ def api_task_executors(P, req):
     conf = load_config(P.data_dir)
     items = [a for a in available(P.data_dir) if a["available"]]
     rows = [{"name": a["name"], "title": a.get("title", a["name"]), "available": True,
-             "last_ok": last_result(P.data_dir, a["name"]), "models": [m[0] for m in conf[a["name"]].get("models") or []]}
+             "last_ok": last_result(P.data_dir, a["name"]), "models": _models(conf[a["name"]], a)}
             for a in items]
     names = [r["name"] for r in rows]
     agent = default_executor(P.data_dir, names) or (names[0] if names else "")

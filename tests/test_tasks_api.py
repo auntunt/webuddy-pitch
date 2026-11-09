@@ -103,3 +103,22 @@ class StoredModelRunTest(unittest.TestCase):
         args = captured["args"]
         self.assertEqual(args[3:5], ("codex", "plan"))
         self.assertEqual(args[7], "gpt-6-astra")
+
+
+class CursorModelListTest(unittest.TestCase):
+    def test_cursor_models_come_from_the_cli_list_when_not_configured(self):
+        from unittest.mock import patch
+        from tmh.platform.api import tasks
+        listing = "Available models\n\nauto - Auto (default)\ncomposer-2.5 - Composer 2.5\n"
+        with patch("subprocess.run") as run, patch("tmh.platform.agents.executable", return_value="agent.cmd"):
+            run.return_value.stdout = listing
+            models = tasks._models({"title": "Cursor"}, {"name": "cursor"})
+        self.assertEqual(models, ["auto", "composer-2.5"])
+
+    def test_configured_models_win_and_other_executors_are_not_listed(self):
+        from unittest.mock import patch
+        from tmh.platform.api import tasks
+        with patch("subprocess.run") as run:
+            self.assertEqual(tasks._models({"models": [["m1", "M1"]]}, {"name": "cursor"}), ["m1"])
+            self.assertEqual(tasks._models({}, {"name": "codex"}), [])
+            run.assert_not_called()
