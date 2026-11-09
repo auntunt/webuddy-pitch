@@ -48,14 +48,16 @@ class ExecutorScanTest(unittest.TestCase):
         (self.home / "config.toml").write_text('model = "m"\n', encoding="utf-8")
         self.assertFalse(executor_setup._codex_home(self.home)["auth_present"])
 
-    def test_bundled_codex_directory_on_path_is_found(self):
-        bundled = Path(tempfile.mkdtemp(prefix="tmh-bundled-")) / "codex-path"
-        bundled.mkdir(parents=True)
-        exe = bundled / ("codex.exe" if os.name == "nt" else "codex")
-        exe.write_text("#!/bin/sh\n", encoding="utf-8")
-        exe.chmod(0o755)
-        with patch.dict(os.environ, {"PATH": str(bundled)}):
-            self.assertIn(str(exe), executor_setup._codex_candidates())
+    def test_scan_reports_the_executable_the_platform_launches(self):
+        bundled = Path(tempfile.mkdtemp(prefix="tmh-bundled-")) / "codex.exe"
+        bundled.write_text("bin", encoding="utf-8")
+        with patch.dict(os.environ, {"WEBUDDY_CODEX_BIN": str(bundled), "PATH": ""}):
+            self.assertEqual(executor_setup.scan()["codex"]["executables"], [str(bundled)])
+
+    def test_missing_launcher_path_falls_back_to_discovery(self):
+        with patch.dict(os.environ, {"WEBUDDY_CODEX_BIN": "/no/such/codex.exe"}):
+            executables = executor_setup.scan()["codex"]["executables"]
+        self.assertNotIn("/no/such/codex.exe", executables)
 
 
 if __name__ == "__main__":

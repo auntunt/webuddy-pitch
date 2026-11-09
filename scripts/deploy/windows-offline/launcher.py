@@ -212,6 +212,7 @@ def resolve_tools(root, overrides, environment, disabled=()):
         if not path.is_file():
             raise ValueError('Tool not found: ' + name)
         selected[name] = dict(path=str(path), source='configured' if explicit else 'local' if local else 'bundled')
+    env['WEBUDDY_CODEX_BIN'] = selected['codex']['path']
     explicit = overrides.get('cursor')
     if explicit and not Path(explicit).is_absolute():
         raise ValueError('Tool override must be an absolute path: cursor')

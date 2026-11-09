@@ -243,7 +243,9 @@ def _claude_home(home):
 
 def scan():
     """Local-only executor discovery; non-secret fields and booleans only."""
-    codex = {"executables": _codex_candidates()}
+    from . import agents
+    launched = agents.executable("codex", {})
+    codex = {"executables": [launched] if Path(launched).is_file() else _codex_candidates()}
     if codex["executables"]:
         codex["version"] = _version(codex["executables"][0])
     codex.update(_codex_home(os.environ.get("CODEX_HOME") or Path.home() / ".codex"))

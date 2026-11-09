@@ -316,6 +316,8 @@ def load_config(data_dir: Path) -> dict:
 
 def executable(engine: str, config: dict) -> str:
     exe = config.get("bin", "agent" if engine == "cursor" else engine)
+    if engine == "codex" and exe == "codex" and os.environ.get("WEBUDDY_CODEX_BIN"):
+        return os.environ["WEBUDDY_CODEX_BIN"]
     if engine == "cursor" and exe in ("agent", "cursor-agent"):
         configured = os.environ.get("WEBUDDY_CURSOR_BIN")
         if configured:
