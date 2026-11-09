@@ -338,9 +338,10 @@ def main(argv=None):
         report['executor_scan'] = executor_scan()
     except Exception as exc:  # noqa: BLE001 - a scanner hiccup must not mask the bundle report
         report['executor_scan'] = {'error': str(exc)}
-    if selected['cursor'].get('path'):
+    if args.action == 'check' and selected['cursor'].get('path'):
         # Reported, never blocking: one real no-tools Cursor request proves the
-        # model connection; a version number or saved login does not.
+        # model connection; a version number or saved login does not. Start skips
+        # it (it can take a minute); the 智能体 page runs the same test on demand.
         workdir = Path(tempfile.mkdtemp(prefix='cursor-connection-'))
         report['cursor_connection'] = cursor_preflight(selected['cursor']['path'], env, workdir)
         report['cursor_connection']['evidence_dir'] = str(workdir)
