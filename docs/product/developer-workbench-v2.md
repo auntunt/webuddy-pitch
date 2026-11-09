@@ -2,6 +2,10 @@
 
 Vue 前端位于 `web/`，通过既有 Python HTTP API 读写业务状态。构建产物由服务提供 `/next/` 入口，前后端可以分别开发；客户端不直接访问数据库。
 
+## 开发方式
+
+分别启动 Python 后端和前端：后端沿用现有启动方式，默认监听 8790；前端执行 `npm ci --prefix web`、`npm run dev --prefix web`。Vite 将 API、登录和预览请求转发至后端，同源 Cookie 登录继续生效。可用 `WEBUDDY_API_URL` 指定开发后端地址。发布时执行 `npm run build --prefix web` 生成静态前端，安装包包含构建产物。
+
 ## 使用流程
 
 1. 在项目首页接入本机目录、导入 Git 仓库，或创建网页项目。

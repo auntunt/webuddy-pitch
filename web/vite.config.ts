@@ -5,6 +5,12 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   base: './',
   plugins: [vue()],
+  server: {
+    open: '/next/',
+    proxy: Object.fromEntries(['/api', '/login', '/logout', '/pv'].map(path => [path, {
+      target: process.env.WEBUDDY_API_URL || 'http://127.0.0.1:8790',
+    }])),
+  },
   build: {
     outDir: '../tmh/platform/web_dist',
     emptyOutDir: true,
