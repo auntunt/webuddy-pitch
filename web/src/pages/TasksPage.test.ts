@@ -3,11 +3,16 @@ import { mount, flushPromises } from '@vue/test-utils'
 import TasksPage from './TasksPage.vue'
 
 const getMock = vi.fn()
+const executorsReply = { executors: [{ name: 'codex', title: 'Codex', available: true, last_ok: true, models: ['gpt-6-astra'] }], default_agent: 'codex', default_model: 'gpt-6-astra' }
+function getByPath(path: string) {
+  if (path.includes('/task-executors')) return Promise.resolve(executorsReply)
+  return getMock(path)
+}
 const postMock = vi.fn()
 
 vi.mock('../api/client', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../api/client')>()
-  return { ...actual, get: (...a: unknown[]) => getMock(...a), post: (...a: unknown[]) => postMock(...a) }
+  return { ...actual, get: (...a: unknown[]) => getByPath(a[0] as string), post: (...a: unknown[]) => postMock(...a) }
 })
 
 describe('TasksPage', () => {
@@ -67,5 +72,22 @@ describe('TasksPage environment rows', () => {
     await w.find('form').trigger('submit')
     await flushPromises()
     expect(postMock.mock.calls[0][1].secrets).toEqual([])
+  })
+})
+
+describe('TasksPage executor and model', () => {
+  it('sends the chosen executor and model with the task', async () => {
+    getMock.mockResolvedValue({ items: [] })
+    postMock.mockResolvedValue({ key: 'TSK-3', goal: '出方案', secret_names: [] })
+    const w = mount(TasksPage, { props: { pkey: 'TSK' } })
+    await flushPromises()
+    const selects = w.findAll('select')
+    expect(selects.length).toBeGreaterThanOrEqual(3)
+    await w.find('input').setValue('切换')
+    await w.find('textarea').setValue('出方案')
+    await w.find('form').trigger('submit')
+    await flushPromises()
+    expect(postMock.mock.calls[0][1]).toHaveProperty('agent')
+    expect(postMock.mock.calls[0][1]).toHaveProperty('model')
   })
 })

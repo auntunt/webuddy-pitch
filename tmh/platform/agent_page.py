@@ -21,6 +21,12 @@ def record_test(data_dir, name: str, result: dict) -> None:
     path.write_text(json.dumps(tests, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
+def last_result(data_dir, name: str):
+    path = Path(data_dir) / TESTS
+    tests = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    return tests[name]["ok"] if name in tests else None
+
+
 def default_executor(data_dir, available_names) -> str:
     """The executor the 智能体 page last tested as 可用, among those available now; "" when none was tested."""
     path = Path(data_dir) / TESTS

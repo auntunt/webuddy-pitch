@@ -1641,6 +1641,8 @@ class Runner:
                                  if k in ('assignee','reviewer','revision')}
             member_configuration = candidates.configuration(ctx.platform,project)
         explicit = model not in (None, "auto")  # a model the person picked applies to every step of the run
+        if model is None and ticket:
+            model = (ticket.get("links") or {}).get("model")
         model = pick_model(conf[agent], mode, model)
         recorded = model or (configured_model(conf[agent]) if not authority else "")
         if authority:

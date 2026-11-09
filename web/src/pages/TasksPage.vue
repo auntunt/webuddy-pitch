@@ -14,6 +14,21 @@ const title = ref('')
 const body = ref('')
 const goal = ref<'出方案' | '修改并测试'>('修改并测试')
 const envRows = ref<{ name: string; value: string }[]>([])
+const executors = ref<{ name: string; title: string; available: boolean; last_ok: boolean | null; models: string[] }[]>([])
+const agent = ref('')
+const model = ref('')
+const customModel = ref('')
+const useCustom = ref(false)
+
+const modelOptions = () => executors.value.find((e) => e.name === agent.value)?.models ?? []
+
+async function loadExecutors() {
+  const r = await get<{ executors: typeof executors.value; default_agent: string; default_model: string }>('/api/task-executors')
+  executors.value = r.executors
+  agent.value = r.default_agent
+  model.value = r.default_model
+}
+
 
 function addRow() { envRows.value.push({ name: '', value: '' }) }
 function removeRow(i: number) { envRows.value.splice(i, 1) }
@@ -37,6 +52,8 @@ async function create() {
   try {
     const r = await post<{ key: string }>(`/api/projects/${encodeURIComponent(props.pkey)}/tasks`, {
       title: title.value.trim(), body: body.value.trim(), goal: goal.value, request_id: requestId(),
+      agent: agent.value,
+      model: useCustom.value ? customModel.value.trim() : model.value === '__custom' ? '' : model.value,
       secrets: envRows.value.filter((r) => r.name.trim()).map((r) => ({ name: r.name.trim(), value: r.value })),
     })
     notice.value = `已创建 ${r.key}`
@@ -51,7 +68,7 @@ async function create() {
   }
 }
 
-onMounted(load)
+onMounted(() => { load(); loadExecutors() })
 </script>
 
 <template>
@@ -76,6 +93,18 @@ onMounted(load)
       <h2>新建任务</h2>
       <label class="field">任务名<input v-model="title" required /></label>
       <label class="field">工作内容<textarea v-model="body" required></textarea></label>
+      <label class="field">执行器
+        <select v-model="agent">
+          <option v-for="e in executors" :key="e.name" :value="e.name" :disabled="!e.available">{{ e.title }} · {{ e.last_ok === true ? '可用' : e.last_ok === false ? '不可用' : '未测试' }}</option>
+        </select>
+      </label>
+      <label class="field">模型
+        <select v-if="!useCustom" v-model="model" @change="model === '__custom' ? (useCustom = true) : null">
+          <option v-for="m in modelOptions()" :key="m" :value="m">{{ m }}</option>
+          <option value="__custom">自定义…</option>
+        </select>
+        <input v-else v-model="customModel" placeholder="模型名" />
+      </label>
       <label class="field">要做到哪一步
         <select v-model="goal">
           <option value="修改并测试">修改并测试</option>

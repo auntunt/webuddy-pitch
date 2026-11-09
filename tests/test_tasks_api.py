@@ -50,3 +50,56 @@ class TaskSecretsRouteTest(TaskApiTest):
         events = " ".join(str(e) for e in self.P.store.events(ticket["id"]))
         self.assertIn("db_password", events)
         self.assertNotIn("PW-TASK-ROUTE-77", events + str(ticket))
+
+
+class TaskAgentModelTest(TaskApiTest):
+    def test_chosen_executor_and_model_are_stored_on_the_task(self):
+        from tmh.platform import agents
+        from unittest.mock import patch
+        conf = {"codex": {"title": "Codex", "bin": "codex", "models": [["gpt-6-astra", "GPT-6 Astra"]], "defaults": {}}}
+        with patch.object(agents, "load_config", return_value=conf), \
+                patch("tmh.platform.agents.available", return_value=[{"name": "codex", "available": True}]):
+            created = tasks.api_new_task(self.P, self.req({"title": "切换达梦", "body": "切换方案", "goal": "出方案",
+                                                           "agent": "codex", "model": "gpt-6-astra"}), "TSK")
+        ticket = self.P.store.ticket(created["key"])
+        self.assertEqual(ticket["links"]["agent"], "codex")
+        self.assertEqual(ticket["links"]["model"], "gpt-6-astra")
+        listed = tasks.api_tasks(self.P, self.req(), "TSK")["items"][0]
+        self.assertEqual((listed["agent"], listed["model"]), ("codex", "gpt-6-astra"))
+
+
+class StoredModelRunTest(unittest.TestCase):
+    def test_runner_start_passes_the_task_model_to_the_run(self):
+        import tempfile
+        from unittest.mock import patch
+        from tmh.platform import agents
+        from tmh.platform.store import Store
+        temp = tempfile.TemporaryDirectory(prefix="tmh-run-model-")
+        self.addCleanup(temp.cleanup)
+        data = Path(temp.name)
+        (data / "app").mkdir()
+        store = Store(data / "platform.db")
+        self.addCleanup(store.db.close)
+        project = store.add_project("RUN", "run", str(data / "app"))
+        ticket = store.create_ticket(project["id"], "task", "alice", body="切换", links={"agent": "codex", "model": "gpt-6-astra"})
+        conf = {"codex": {"title": "Codex", "bin": "codex", "models": [["gpt-6-astra", "x"]], "defaults": {}}}
+        runner = agents.Runner(store, data)
+        captured = {}
+
+        class FakeThread:
+            def __init__(self, target, args, daemon):
+                captured["args"] = args
+
+            def start(self):
+                captured["started"] = True
+
+        with patch.object(agents, "load_config", return_value=conf), \
+                patch.object(agents.threading, "Thread", FakeThread):
+            try:
+                runner.start(project, store.ticket(ticket["id"]), "codex", "plan", "alice")
+            except Exception as exc:
+                captured["error"] = repr(exc)
+        self.assertTrue(captured.get("started"), captured)
+        args = captured["args"]
+        self.assertEqual(args[3:5], ("codex", "plan"))
+        self.assertEqual(args[7], "gpt-6-astra")

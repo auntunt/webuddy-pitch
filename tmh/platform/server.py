@@ -63,6 +63,7 @@ from .api._common import (  # noqa: F401
 )
 from .api.tasks import (  # noqa: F401
     api_new_task,
+    api_task_executors,
     api_tasks,
 )
 from .api.workspace import (  # noqa: F401

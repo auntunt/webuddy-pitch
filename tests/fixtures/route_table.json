@@ -706,6 +706,11 @@
  ],
  [
   "GET",
+  "^/api/task-executors$",
+  "api_task_executors"
+ ],
+ [
+  "GET",
   "^/api/agent-settings$",
   "api_agent_settings"
  ],

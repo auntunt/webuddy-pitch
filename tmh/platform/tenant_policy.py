@@ -159,6 +159,7 @@ POST /api/tickets/<key>
 GET /api/agent-settings
 GET /api/agent-page
 GET /api/members
+GET /api/task-executors
 POST /api/agent-login
 GET /api/agent-login/<sid>
 POST /api/agent-gateway/models
