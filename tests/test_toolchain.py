@@ -60,8 +60,7 @@ class ToolchainTest(unittest.TestCase):
     def test_pins_are_present_and_well_formed(self):
         self.assertEqual(len(toolchain.JDK["digest"]), 64)
         self.assertEqual(len(toolchain.MAVEN["digest"]), 128)
-        self.assertTrue(toolchain.JDK["url"].startswith("https://"))
-        self.assertTrue(toolchain.MAVEN["url"].startswith("https://"))
+        self.assertTrue(all(u.startswith("https://") for u in toolchain.JDK["sources"] + toolchain.MAVEN["sources"]))
 
 
 if __name__ == "__main__":
