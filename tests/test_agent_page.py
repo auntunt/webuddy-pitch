@@ -49,3 +49,21 @@ class AgentPageTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DefaultExecutorTest(unittest.TestCase):
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory(prefix="tmh-default-exec-")
+        self.addCleanup(temp.cleanup)
+        self.data = Path(temp.name)
+
+    def test_last_passing_test_wins_and_untested_means_none(self):
+        self.assertEqual(agent_page.default_executor(self.data, ["claude", "codex"]), "")
+        agent_page.record_test(self.data, "codex", {"ok": True})
+        self.assertEqual(agent_page.default_executor(self.data, ["claude", "codex"]), "codex")
+        agent_page.record_test(self.data, "claude", {"ok": False, "reason": "403 封禁"})
+        self.assertEqual(agent_page.default_executor(self.data, ["claude", "codex"]), "codex")
+
+    def test_a_passing_executor_that_is_not_available_is_not_chosen(self):
+        agent_page.record_test(self.data, "codex", {"ok": True})
+        self.assertEqual(agent_page.default_executor(self.data, ["claude"]), "")

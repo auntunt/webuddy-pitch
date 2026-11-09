@@ -331,7 +331,7 @@ def executable(engine: str, config: dict) -> str:
                 if Path(cand).is_file():
                     return cand
         return "agent"
-    return exe
+    return shutil.which(exe) or exe
 
 
 def enabled(config: dict) -> bool:

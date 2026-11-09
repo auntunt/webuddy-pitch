@@ -112,8 +112,9 @@ class Orchestra:
     def _flow_agent(self, conf: dict, project: dict | None = None) -> str:
         from .agents import available
         from .agent_routes import resolve
+        from .agent_page import default_executor
         agents = [a["name"] for a in available(self.data_dir) if a["available"]]
-        fallback = conf.get("agent") if conf.get("agent") in agents else (agents[0] if agents else "")
+        fallback = conf.get("agent") if conf.get("agent") in agents else (default_executor(self.data_dir, agents) or (agents[0] if agents else ""))
         return resolve(self.data_dir, project, fallback=fallback)
 
     def _intake(self, p: dict, t: dict) -> None:
