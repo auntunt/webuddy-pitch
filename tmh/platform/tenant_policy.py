@@ -247,6 +247,7 @@ ADMIN_GLOBAL = frozenset(("/api/lead", "/api/readiness", "/api/testbox",
 AGENT_OPERATIONS = frozenset("""maps_list map_get map_create reform_report_create reform_report_get reforms_list reform_get reform_preview reform_events reform_resume_preview reform_create reform_update reform_control reform_archive run_recover status projects_list tickets_list ticket_get delivery_get ticket_create message_send
 messages_list request_get run_get run_start run_cancel run_retry run_recheck preview_get preview_start
 candidates_list candidate_get candidate_ci candidate_submit candidate_verify candidate_cancel candidate_preview
+candidate_resolve candidate_report_create candidate_report_get candidate_gate_ack
 candidate_assess candidate_decide harness_recipes harness_probe_start harness_probe_get harness_probe_cancel
 harness_library library_get library_search library_read library_build library_cancel library_resume
 library_reference library_unlink ticket_hold

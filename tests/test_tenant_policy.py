@@ -474,6 +474,32 @@ class TenantPolicyTest(unittest.TestCase):
         self.auth("/api/agent-scan", actor="owner")
         self.auth("/api/agent-test", method="POST", actor="owner")
 
+    def test_candidate_report_resolve_and_gate_ack_follow_tool_scopes_and_project_visibility(self):
+        from tmh.platform import candidates
+        candidates.schema(self.store)
+        alpha = self.tickets["ALPHA"]
+        self.store.x("INSERT INTO code_candidates(ticket_id,run_id,agent,base_commit,commit_sha,requirement_hash,configuration_hash,criteria,summary,fingerprint,ref,artifact_dir,created) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                     (alpha["id"], self.runs["ALPHA"]["id"], "agent:writer", "a" * 40, "b" * 40, "r", "c", "[]", "s", "f1", "refs/x", "/tmp/x", "2026-11-10 00:00:00"))
+        cid = self.store.one("SELECT id FROM code_candidates WHERE ticket_id=?", (alpha["id"],))["id"]
+        def tool(actor, scope):
+            return dict(policy.identity(self.P, actor), tool_connection={"scope": scope})
+        ack = {"candidate_id": cid, "reason": "reviewed", "request_id": "ack-1"}
+        with self.assertRaises(ApiError) as caught:
+            policy._agent(self.P, tool("owner", "develop"), "candidate_gate_ack", ack)
+        self.assertEqual(caught.exception.code, 403)
+        report = {"candidate_id": cid, "export_id": "a" * 64}
+        with self.assertRaises(ApiError) as caught:
+            policy._agent(self.P, tool("outsider", "read"), "candidate_report_get", report)
+        self.assertEqual(caught.exception.code, 403)
+        with self.assertRaises(ApiError) as caught:
+            policy._agent(self.P, tool("bob", "read"), "candidate_report_create", {"candidate_id": cid, "request_id": "rc-1"})
+        self.assertEqual(caught.exception.code, 403)
+        projects = policy._agent(self.P, tool("bob", "read"), "candidate_report_get", report)
+        self.assertEqual([p["key"] for p in projects], ["ALPHA"])
+        with self.assertRaises(ApiError) as caught:
+            policy._agent(self.P, tool("bob", "develop"), "candidate_resolve", {"ticket": alpha["key"], "base": "main", "commit": "main"})
+        self.assertEqual(caught.exception.code, 403)
+
     def test_entries_detect_is_project_scoped_and_execution_gated(self):
         path = "/api/projects/ALPHA/entries/detect"
         self.assertNotIn(("/api/projects/<key>/entries/detect"), policy.SAFE_POSTS)
