@@ -43,6 +43,35 @@ def load_users(data: Path) -> dict:
     return {name: record for name, record in _legacy_users(data).items() if not record.get("disabled", False)}
 
 
+def registration_enabled() -> bool:
+    """Explicit opt-in for the standalone internal-test instance."""
+    return os.environ.get("WEBUDDY_LAN_SIGNUP") == "admin"
+
+
+def register(data: Path, name: str, password: str) -> None:
+    from . import tenancy
+    if not registration_enabled():
+        raise ValueError("此实例未开放注册")
+    tenancy._username(name)
+    if len(password) < 8:
+        raise ValueError("密码至少 8 位")
+    password_hash = hash_password(password)
+    reg = tenancy.Registry(data)
+    try:
+        with reg.authorization_guard(), reg.transaction() as db:
+            if db.execute("SELECT 1 FROM accounts WHERE name=?", (name,)).fetchone():
+                raise ValueError("账号已存在，请登录或换一个账号名")
+            db.execute("INSERT INTO accounts VALUES(?,?,1,?,?)", (name, password_hash, secrets.token_hex(16), tenancy.now()))
+            db.execute("INSERT INTO platform_owners VALUES(?)", (name,))
+            db.execute("INSERT INTO memberships VALUES('default',?,'admin')", (name,))
+            db.execute("UPDATE access_meta SET revision=revision+1")
+            revision = db.execute("SELECT revision FROM access_meta").fetchone()[0]
+            db.execute("INSERT INTO access_audit(actor,action,tenant_id,payload,revision,created) VALUES(?,?,?,?,?,?)",
+                       (name, "lan_register_admin", "default", tenancy.encoded({"user": name}), revision, tenancy.now()))
+    finally:
+        reg.close()
+
+
 def has_accounts(data: Path) -> bool:
     """Authentication stays enabled even when every account is disabled."""
     from .tenancy import has_accounts as registered
@@ -232,7 +261,7 @@ FEISHU = ('<div class="or">或</div><a class="fs" id="fs" href="/login/feishu?ne
 AUTO = 'if(/Lark|Feishu/i.test(navigator.userAgent))location.replace(a.href);'
 
 
-def page(brand: str, err: str = "", name: str = "", next_: str = "/", feishu: bool = False, notice: str = "", auto: bool = True) -> str:
+def page(brand: str, err: str = "", name: str = "", next_: str = "/", feishu: bool = False, notice: str = "", auto: bool = True, signup: bool = False, registering: bool = False) -> str:
     """The sign-in page; with `feishu`, a 飞书 button, followed automatically inside the 飞书 client."""
     from urllib.parse import quote
     e = '<div class="err" role="alert">%s</div>' % html.escape(err) if err else ""
@@ -240,7 +269,18 @@ def page(brand: str, err: str = "", name: str = "", next_: str = "/", feishu: bo
         e += '<div class="note" role="status">%s</div>' % html.escape(notice)
     b, nxt = html.escape(brand), safe_next(next_)
     fs = FEISHU.replace("{qnext}", html.escape(quote(nxt, safe=""))).replace("{auto}", AUTO if auto and not err and not notice else "") if feishu else ""
-    return (PAGE.replace("{logo}", LOGO).replace("{brand}", b).replace("{err}", e).replace("{year}", time.strftime("%Y"))
+    template = PAGE
+    if signup:
+        target = "/login" if registering else "/register"
+        label = "已有账号，登录" if registering else "注册账号"
+        template = template.replace('<p class="hint">忘记密码请联系管理员重置</p>',
+                                    '<p class="hint"><a href="%s?next=%s">%s</a></p>' % (target, html.escape(quote(nxt, safe="")), label))
+    if registering:
+        template = template.replace('action="/login"', 'action="/register"').replace('欢迎回来', '创建账号')
+        template = template.replace('登录 {brand} 工作台', '内部测试 · 注册账号具有管理员权限')
+        template = template.replace('autocomplete="current-password"', 'autocomplete="new-password" minlength="8"')
+        template = template.replace('>登录</button>', '>注册并进入</button>')
+    return (template.replace("{logo}", LOGO).replace("{brand}", b).replace("{err}", e).replace("{year}", time.strftime("%Y"))
             .replace("{name}", html.escape(name)).replace("{next}", html.escape(nxt)).replace("{feishu}", fs))
 
 

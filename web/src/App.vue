@@ -11,13 +11,13 @@ watch(() => [route.params.key, app.ready], () => {
 
 const nav = computed(() => {
   const key = String(route.params.key || app.project || '')
-  const verify = key ? `/p/${encodeURIComponent(key)}/verify` : '/'
+  const verify = key ? `/p/${encodeURIComponent(key)}/verify` : '/projects'
   return [
     { to: '/', label: '任务总览', internal: true },
     { to: key ? `/p/${encodeURIComponent(key)}/assistant` : '/projects', label: 'AI 助手', internal: true },
-    { to: key ? `/p/${encodeURIComponent(key)}/work` : '/', label: '开发工作台', internal: true },
+    { to: key ? `/p/${encodeURIComponent(key)}/work` : '/projects', label: '开发工作台', internal: true },
     { to: verify, label: '验证现有改动', internal: true },
-    { to: key ? `/p/${encodeURIComponent(key)}/knowledge` : '/', label: '知识库', internal: true },
+    { to: key ? `/p/${encodeURIComponent(key)}/knowledge` : '/projects', label: '知识库', internal: true },
     { to: '/features', label: '全部功能', internal: true },
     { to: key ? `/p/${encodeURIComponent(key)}/settings` : '/settings', label: '设置', internal: true },
   ]
@@ -25,7 +25,7 @@ const nav = computed(() => {
 
 const mobileNav = computed(() => nav.value.filter(item => !['验证现有改动','设置'].includes(item.label)))
 const fullNav = [['/team','团队与分工'],['/meetings','会议与行动'],['/reform','改造计划'],['/deliveries','验证与交付'],['/projects','项目与环境'],['/runs','运行记录'],['/lead','流程与统计']]
-const isActive = (to: string) => route.path === to
+const isActive = (to: string) => route.path === to && to !== '/projects'
 
 onMounted(() => {
   if (!app.ready) loadApp()
@@ -39,7 +39,7 @@ onMounted(() => {
         <span class="brand-mark" aria-hidden="true">W</span>
         <span>{{ app.meta?.brand || 'Webuddy' }}</span>
       </router-link>
-      <label class="project-picker">
+      <label v-if="app.projects.length" class="project-picker">
         <span class="sr">项目</span>
         <select :value="route.params.key || app.project" @change="selectProject(($event.target as HTMLSelectElement).value); $router.push({ path: `/p/${encodeURIComponent(($event.target as HTMLSelectElement).value)}/work` })">
           <option v-for="p in app.projects" :key="p.key" :value="p.key">{{ p.name || p.key }}</option>

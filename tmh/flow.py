@@ -249,7 +249,7 @@ class FlowBuilder:
     # ---- resolution -------------------------------------------------
     def _class(self, name: str):
         cs = self.classes.get(name)
-        return cs[0] if cs else None
+        return cs[0] if cs and (len(cs) == 1 or cs[0].get("lang") != "java") else None
 
     def _concrete(self, name: str) -> list[str]:
         c = self._class(name)
@@ -339,6 +339,15 @@ class FlowBuilder:
         cls = self._class(cls_name)
         if not ms or not cls:
             return None
+        if cls.get("lang") == "java" and len(ms) > 1:
+            key = "%s.%s" % (cls["name"], meth_name)
+            nid = self._add_node(flow, {"key": key, "layer": self._layer(cls), "label": key,
+                                      "file": cls["file"], "line": ms[0]["line"], "ambiguous": True})
+            if parent:
+                flow["edges"].append({"from": parent, "to": nid})
+            flow["unresolved"].append({"call": key, "file": cls["file"], "line": ms[0]["line"],
+                                       "why": "重载方法尚未按参数类型解析；各声明保留在图谱中"})
+            return nid
         m = next((x for x in ms if "body" in x), ms[0])
         owner = self._class(m["class"]) or cls
         if depth and self._noise(owner, m):
@@ -405,6 +414,10 @@ class FlowBuilder:
                     continue
                 target_types = [t]
             for t in target_types:
+                if owner.get("lang") == "java" and len(self.classes.get(t, [])) > 1:
+                    flow["unresolved"].append({"call": "%s.%s" % (t, name), "file": m["file"], "line": line,
+                                               "why": "同名类型有多个来源，尚未解析到唯一声明"})
+                    continue
                 if t in self.repos and not self._has_body(t, name):
                     seen_calls.setdefault(("repo", t, name), line)
                     continue

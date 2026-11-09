@@ -160,20 +160,27 @@ def build(root: Path, use_cache: bool = True) -> dict:
     # classes and methods
     common = _common_package([c["fqn"] for cs in idx["classes"].values() for c in cs])
     flow_keys = set()
+    def class_id(c):
+        matches = [x for x in idx["classes"][c["name"]] if x["fqn"] == c["fqn"]]
+        return "cls:" + c["fqn"] + ("@" + c["file"] if c.get("lang") == "java" and len(matches) > 1 else "")
+
     for cname, cs in idx["classes"].items():
         for c in cs:
-            cid = "cls:" + c["fqn"]
+            cid = class_id(c)
             members = sorted(c["methods"]) + sorted(c["fields"])
             layer = fb._layer(c)
             node(cid, "cls", c["name"], c["fqn"], c["file"], c["line"], h=_h(members, c["bases"], c["annos"]), layer=layer, kind_=c["kind"],
                  bases=c["bases"], comment=c.get("comment", ""), bkey=c.get("bkey") or business_key(c["name"], c["fqn"], common))
             edge("file:" + c["file"], cid, "contains")
             for b in c["bases"]:
-                for bc in idx["classes"].get(b, []):
-                    edge(cid, "cls:" + bc["fqn"], "extends")
+                candidates = idx["classes"].get(b, [])
+                if len(candidates) == 1:
+                    edge(cid, class_id(candidates[0]), "extends")
+                elif candidates:
+                    nodes[cid]["data"].setdefault("unresolved_bases", []).append(b)
             for mname, ms in c["methods"].items():
                 mm = next((x for x in ms if "body" in x), ms[0])
-                fid = "fn:%s.%s" % (c["name"], mname)
+                fid = "fn:%s.%s" % (c["name"], mname) if len(cs) == 1 or c.get("lang") != "java" else "fn:%s.%s@%s" % (c["fqn"], mname, c["file"])
                 body_lines = (mm.get("end_line", mm["line"]) - mm["line"] + 1) if "body" in mm else 0
                 node(fid, "fn", mname, "%s.%s" % (c["name"], mname), mm["file"], mm["line"], mm.get("end_line", mm["line"]),
                      h=_h([_norm_code(x.get("body", "")) for x in ms], [sorted(x["params"].items()) for x in ms], mm.get("annos", "")),
@@ -181,10 +188,26 @@ def build(root: Path, use_cache: bool = True) -> dict:
                      abstract=True if mm.get("abstract") else None, texts=_cjk_literals(mm.get("body", "")),
                      bkey=re.split(r"[_\-.]", mm["file"].rsplit("/", 1)[-1])[0].lower() if c.get("kind") == "package" else None)
                 edge(cid, fid, "contains")
+                if c.get("lang") == "java":
+                    nodes[fid]["data"].update(analysis_scope="Java 结构索引；调用解析不含编译器类型推导",
+                                              symbol_kind="method_group")
+                    if len(cs) > 1 or len(ms) > 1:
+                        nodes[fid]["data"]["resolution"] = "ambiguous"
+                    for declaration in ms:
+                        signature = declaration.get("signature", "")
+                        did = "decl:%s@%s#%s(%s)" % (c["fqn"], c["file"], mname, signature)
+                        node(did, "declaration", mname, "%s.%s(%s)" % (c["fqn"], mname, signature),
+                             c["file"], declaration["line"], declaration.get("end_line", declaration["line"]),
+                             h=_h(declaration.get("body", ""), signature, declaration.get("annos", "")),
+                             cls=cid, signature=signature, params=declaration["params"],
+                             source=provenance, symbol_kind="method_declaration")
+                        edge(fid, did, "declares")
 
     # per-method direct facts: calls, table access, rules, effects
     table_sql = defaultdict(list)
     for cname, cs in idx["classes"].items():
+        if len(cs) != 1 and cs[0].get("lang") == "java":
+            continue  # Distinct declarations remain visible; never trace an arbitrary class.
         c = cs[0]
         for mname in c["methods"]:
             t = fb.trace(c["name"], mname, max_depth=0)
@@ -223,6 +246,9 @@ def build(root: Path, use_cache: bool = True) -> dict:
     # MyBatis statements: the SQL lives in XML, so it is part of the method's fingerprint
     for (ns, sid), info in fb.mybatis_sql.items():
         fid = "fn:%s.%s" % (ns.split(".")[-1], sid)
+        owners = idx["classes"].get(ns.split(".")[-1], [])
+        if len(owners) != 1 or owners[0]["fqn"] != ns:
+            continue
         n = nodes.get(fid)
         if n is not None:
             n["hash"] = _h(n["hash"], _norm_code(info["sql"]))
@@ -332,7 +358,15 @@ def build(root: Path, use_cache: bool = True) -> dict:
 
     diagnostics = idx.get("diagnostics", [])
     python_files = [f for f in files if f.endswith(".py")]
-    failed_python = sorted({d["file"] for d in diagnostics})
+    failed_python = sorted({d["file"] for d in diagnostics if d["file"].endswith(".py")})
+    for cs in idx["classes"].values():
+        for c in cs:
+            if c.get("lang") == "java" and len(cs) > 1:
+                diagnostics.append({"file": c["file"], "symbol": c["fqn"], "reason": "同名类型：声明分别保留，调用目标待解析"})
+            for name, methods in c["methods"].items():
+                if c.get("lang") == "java" and len(methods) > 1:
+                    diagnostics.append({"file": c["file"], "symbol": c["fqn"] + "." + name,
+                                        "reason": "重载方法：声明分别保留，调用参数类型待解析"})
     analysis = {"python": {"files": len(python_files), "parsed": len(python_files) - len(failed_python),
                            "unknown": failed_python}, "diagnostics": diagnostics}
     if index_source.digest(index_source.snapshot(root)) != provenance["snapshot_sha256"]:

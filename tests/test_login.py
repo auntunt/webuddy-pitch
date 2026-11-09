@@ -4,6 +4,7 @@ import sys
 import tempfile
 import threading
 import unittest
+from unittest.mock import patch
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlencode
@@ -82,6 +83,50 @@ class LoginTest(unittest.TestCase):
         st, h, _ = self.req("GET", "/logout")
         self.assertEqual((st, h["Location"]), (303, "/login"))
         self.assertIn("Max-Age=0", h["Set-Cookie"])
+
+
+class LanRegistrationTest(LoginTest):
+    def test_registration_is_opt_in(self):
+        with patch.dict("os.environ", {"WEBUDDY_LAN_SIGNUP": ""}):
+            self.assertEqual(self.req("GET", "/register")[0], 404)
+
+    def test_register_auto_login_admin_and_duplicate(self):
+        from tmh.platform.tenancy import Registry
+        with patch.dict("os.environ", {"WEBUDDY_LAN_SIGNUP": "admin"}):
+            body = {"username": "lan-person", "password": "test-password-123", "next": "/next/"}
+            self.assertEqual(self.req("POST", "/register", body)[0], 403)
+            headers = {"Origin": "http://127.0.0.1:%s" % self.port}
+            status, response, _ = self.req("POST", "/register", body, headers)
+            self.assertEqual(status, 303)
+            self.assertEqual(response["Location"], "/next/")
+            cookie = response["Set-Cookie"].split(";")[0]
+            self.assertEqual(self.req("GET", "/api/meta", headers={"Cookie": cookie})[0], 200)
+            reg = Registry(self.data)
+            try:
+                self.assertTrue(reg.context("lan-person")["platform_owner"])
+                self.assertEqual(reg.context("lan-person")["role"], "admin")
+            finally:
+                reg.close()
+            self.assertEqual(self.req("POST", "/register", {**body, "password": "replacement-pass"}, headers)[0], 400)
+            self.assertTrue(login.verify(self.data, "lan-person", body["password"]))
+
+    def test_empty_instance_requires_login(self):
+        with tempfile.TemporaryDirectory() as directory, patch.dict("os.environ", {"WEBUDDY_LAN_SIGNUP": "admin"}):
+            platform = Platform(Path(directory), "tester")
+            server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(platform, ""))
+            threading.Thread(target=server.serve_forever, daemon=True).start()
+            try:
+                conn = http.client.HTTPConnection("127.0.0.1", server.server_address[1])
+                conn.request("GET", "/next/")
+                response = conn.getresponse()
+                self.assertEqual(response.status, 303)
+                self.assertTrue(response.getheader("Location").startswith("/login"))
+                response.read()
+                conn.close()
+            finally:
+                server.shutdown()
+                server.server_close()
+                platform.store.db.close()
 
 
 if __name__ == "__main__":

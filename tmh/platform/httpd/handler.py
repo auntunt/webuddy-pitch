@@ -69,7 +69,7 @@ def make_handler(P: Platform, token: str = "", web_prefix: str = ""):
 
         def _authorized(self, q: dict) -> bool:
             self._who = ""
-            accounts = L.has_accounts(P.data_dir)
+            accounts = (L.has_accounts(P.data_dir) or L.registration_enabled())
             if accounts:
                 self._who = L.read_session(P.data_dir, _cookie(self.headers.get("Cookie", ""), "tmh_session"))
                 if self._who:
@@ -84,7 +84,7 @@ def make_handler(P: Platform, token: str = "", web_prefix: str = ""):
             if token and (q.get("token") or [""])[0] == token:
                 extra["Set-Cookie"] = "tmh_token=%s; Path=/; HttpOnly; SameSite=Strict" % token
             if not self._authorized(q):
-                if L.has_accounts(P.data_dir):
+                if (L.has_accounts(P.data_dir) or L.registration_enabled()):
                     nxt = (web_prefix + path) + (("?" + u.query) if u.query else "")
                     return self._send(303, b"", "text/plain", {"Location": "/login?next=" + quote(nxt, safe="")})
                 return self._send(401, "需要访问令牌：在地址后加 ?token=…".encode("utf-8"), "text/plain; charset=utf-8")
@@ -123,11 +123,18 @@ def make_handler(P: Platform, token: str = "", web_prefix: str = ""):
             secure = "; Secure" if (self.headers.get("X-Forwarded-Proto") or "") == "https" else ""
             return "tmh_session=%s; Path=/; Max-Age=%d; HttpOnly; SameSite=Lax%s" % (value, age, secure)
 
-        def _login(self, method: str, q: dict):
+        def _login(self, method: str, q: dict, registering: bool = False):
+            enabled = L.registration_enabled() and not getattr(P, "tenant_context", None)
+            if registering and not enabled:
+                return self._send(404, b"not found", "text/plain")
+            def login_page(*args, **kwargs):
+                return L.page(*args, signup=enabled, registering=registering, **kwargs)
+            if method not in ("GET", "POST"):
+                return self._send(405, b"method", "text/plain")
             if method == "GET":
                 if self._authorized(q) and self._who:
                     return self._send(303, b"", "text/plain", {"Location": L.safe_next((q.get("next") or ["/"])[0])})
-                return self._send(200, L.page(P.brand, next_=(q.get("next") or ["/"])[0]).encode("utf-8"), "text/html; charset=utf-8")
+                return self._send(200, login_page(P.brand, next_=(q.get("next") or ["/"])[0]).encode("utf-8"), "text/html; charset=utf-8")
             n = int(self.headers.get("Content-Length") or 0)
             if n > 8192:
                 return self._send(413, b"too large", "text/plain")
@@ -136,10 +143,19 @@ def make_handler(P: Platform, token: str = "", web_prefix: str = ""):
             nxt = (f.get("next") or ["/"])[0]
             who = self._client()
             if throttle.blocked(who):
-                return self._send(429, L.page(P.brand, "密码错误次数太多，请 10 分钟后再试", name, nxt).encode("utf-8"), "text/html; charset=utf-8")
-            if not L.verify(P.data_dir, name, pw):
+                return self._send(429, login_page(P.brand, "密码错误次数太多，请 10 分钟后再试", name, nxt).encode("utf-8"), "text/html; charset=utf-8")
+            if registering:
+                origin = self.headers.get("Origin") or ""
+                if not origin or urlparse(origin).netloc != self.headers.get("Host") or self.headers.get("Sec-Fetch-Site") == "cross-site":
+                    return self._send(403, b"same-origin required", "text/plain")
+                try:
+                    L.register(P.data_dir, name, pw)
+                except (ValueError, ApiError) as exc:
+                    throttle.fail(who)
+                    return self._send(400, login_page(P.brand, str(exc), name, nxt).encode("utf-8"), "text/html; charset=utf-8")
+            elif not L.verify(P.data_dir, name, pw):
                 throttle.fail(who)
-                return self._send(401, L.page(P.brand, "账号或密码不正确", name, nxt).encode("utf-8"), "text/html; charset=utf-8")
+                return self._send(401, login_page(P.brand, "账号或密码不正确", name, nxt).encode("utf-8"), "text/html; charset=utf-8")
             throttle.ok(who)
             return self._send(303, b"", "text/plain", {"Location": L.safe_next(nxt),
                                                        "Set-Cookie": self._session_cookie(L.make_session(P.data_dir, name), L.SESSION_DAYS * 86400)})
@@ -256,8 +272,8 @@ def make_handler(P: Platform, token: str = "", web_prefix: str = ""):
                 return self._capture(method, path)
             if not self._local_host():
                 return self._send(403, "只接受本机访问；对局域网开放请设置 TMH_TOKEN".encode("utf-8"), "text/plain; charset=utf-8")
-            if path == "/login":
-                return self._login(method, q)
+            if path in ("/login", "/register"):
+                return self._login(method, q, registering=path == "/register")
             if path.startswith("/pv/"):  # a change waiting for acceptance, running: people logged in, or the client's link
                 return self._preview(method, u, q)
             if path.startswith("/v/"):  # a client's link to a project's current version: the link is the credential
@@ -280,7 +296,7 @@ def make_handler(P: Platform, token: str = "", web_prefix: str = ""):
                     if token and (q.get("token") or [""])[0] == token:
                         extra["Set-Cookie"] = "tmh_token=%s; Path=/; HttpOnly; SameSite=Strict" % token
                     if not self._authorized(q):
-                        if L.has_accounts(P.data_dir):
+                        if (L.has_accounts(P.data_dir) or L.registration_enabled()):
                             return self._send(303, b"", "text/plain", {"Location": "/login"})
                         return self._send(401, "需要访问令牌：在地址后加 ?token=…".encode("utf-8"), "text/plain; charset=utf-8")
                     return self._send(200, page().encode("utf-8"), "text/html; charset=utf-8", extra)

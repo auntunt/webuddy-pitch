@@ -15,7 +15,7 @@ from pathlib import Path
 from .config import tmh_dir
 from .fsutil import open_db
 
-SCHEMA_VERSION = "7"
+SCHEMA_VERSION = "8"
 
 
 class ParseCache:

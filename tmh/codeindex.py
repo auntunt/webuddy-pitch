@@ -125,10 +125,12 @@ def _params(sig: str) -> dict:
     return out
 
 
-def _clean_head(head: str) -> tuple[str, str]:
+def _clean_head(head: str, lang: str = "cs") -> tuple[str, str]:
     """Return (annotations_text, head_without_annotations)."""
-    annos = " ".join(ANNOTATION.findall(head) + CS_ATTR.findall(head))
-    h = CS_ATTR.sub(" ", ANNOTATION.sub(" ", head))
+    annos = " ".join(ANNOTATION.findall(head) + (CS_ATTR.findall(head) if lang == "cs" else []))
+    h = ANNOTATION.sub(" ", head)
+    if lang == "cs":
+        h = CS_ATTR.sub(" ", h)
     return annos, " ".join(h.split())
 
 
@@ -177,20 +179,20 @@ def parse_source(rp: str, text: str, lang: str) -> list[dict]:
             i += 1
             continue
         head = masked[seg_start:i]
-        raw_annos = _clean_head(cmasked[seg_start:i])[0] if "@" in head or "[" in head else ""
+        raw_annos = _clean_head(cmasked[seg_start:i], lang)[0] if "@" in head or "[" in head else ""
         top = stack[-1] if stack else None
         in_class_body = top is not None and top[0] == "class"
         in_method = any(k == "method" for k, _ in stack)
         if c == "{":
             kind = ("block", None)
             if not in_method:
-                annos, h = _clean_head(head)
+                annos, h = _clean_head(head, lang)
                 annos = raw_annos or annos
                 cm = CLASS_HEAD.search(h)
                 if cm and (top is None or in_class_body or top[0] == "block"):
                     line = masked.count("\n", 0, seg_start + len(head) - len(head.lstrip())) + 1
                     bases = [b for b in re.split(r"[\s,:]+|extends|implements", cm.group(3)) if b and b not in ("extends", "implements", "where")]
-                    cls = {"name": cm.group(2), "kind": cm.group(1), "fqn": (pkg + "." if pkg else "") + cm.group(2), "file": rp, "line": line,
+                    cls = {"name": cm.group(2), "kind": cm.group(1), "fqn": ((top[1]["fqn"] + ".") if in_class_body else (pkg + "." if pkg else "")) + cm.group(2), "file": rp, "line": line,
                            "bases": [_strip_generics(b) for b in bases], "head": " ".join(cm.group(3).split())[:400], "annos": annos, "fields": {}, "methods": {}, "lang": lang,
                            "comment": _comment_above(lines, line)}
                     classes.append(cls)
@@ -202,7 +204,7 @@ def parse_source(rp: str, text: str, lang: str) -> list[dict]:
                         line = masked.count("\n", 0, i) + 1
                         decl_line = masked.count("\n", 0, seg_start + len(head) - len(head.lstrip())) + 1
                         meth = {"name": mm.group(1), "class": cls["name"], "file": rp, "line": decl_line, "body_start": i + 1,
-                                "body_end": None, "params": _params(mm.group(2)), "annos": annos,
+                                "body_end": None, "signature": mm.group(2).strip(), "params": _params(mm.group(2)), "annos": annos,
                                 "comment": _comment_above(lines, _first_code_line(lines, decl_line))}
                         cls["methods"].setdefault(meth["name"], []).append(meth)
                         kind = ("method", meth)
@@ -218,7 +220,7 @@ def parse_source(rp: str, text: str, lang: str) -> list[dict]:
                 if k == "method":
                     obj["body_end"] = i
         elif c == ";" and in_class_body:
-            _, h = _clean_head(head)
+            _, h = _clean_head(head, lang)
             h = re.sub(r"=.*$", "", h, flags=re.S).strip()
             toks = h.split()
             toks = [t for t in toks if t not in MODIFIERS]
@@ -230,7 +232,7 @@ def parse_source(rp: str, text: str, lang: str) -> list[dict]:
                 if mm and mm.group(1) not in CONTROL:
                     line = masked.count("\n", 0, seg_start + len(head) - len(head.lstrip())) + 1
                     top[1]["methods"].setdefault(mm.group(1), []).append({"name": mm.group(1), "class": top[1]["name"], "file": rp, "line": line,
-                                                                         "body_start": None, "body_end": None, "params": _params(mm.group(2)), "annos": raw_annos,
+                                                                         "body_start": None, "body_end": None, "signature": mm.group(2).strip(), "params": _params(mm.group(2)), "annos": raw_annos,
                                                                          "comment": _comment_above(lines, line), "abstract": True})
         seg_start = i + 1
         i += 1
