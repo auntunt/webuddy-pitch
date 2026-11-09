@@ -276,16 +276,25 @@ class Knowledge:
         unresolved = sum(int(f["data"].get("unresolved") or 0) for f in flows)
         ix = reg.get("index", {})
         coverage = {}
+        prov = {}
         fj = root / ".tmh" / "flows.json"
         if fj.exists():
             try:
-                coverage = (json.loads(fj.read_text(encoding="utf-8")) or {}).get("entry_coverage") or {}
+                fdata = json.loads(fj.read_text(encoding="utf-8")) or {}
+                coverage = fdata.get("entry_coverage") or {}
+                prov = fdata.get("provenance") or {}
             except ValueError:
                 coverage = {}
+        try:
+            live = g.provenance()  # current/stale vs the snapshot digest, unverifiable for legacy artifacts
+        except (ValueError, KeyError):
+            live = {"status": "unverifiable", "reason": "历史索引未记录来源"}
+        prov["status"] = live.get("index_status") or live.get("status") or prov.get("status", "")
+        prov["live"] = live
         return {"built": True, "entries": entries.most_common(), "flows": len(flows), "domains": doms,
                 "tables": len(g.nodes("tbl")), "top_tables": uses.most_common(8), "ext": sorted(ext, key=lambda e: -e["users"]),
                 "classes": len(g.nodes("cls")), "methods": len(g.nodes("fn")), "unresolved": unresolved,
-                "entry_coverage": coverage,
+                "entry_coverage": coverage, "provenance": prov,
                 "overview": ix.get("summary", ""), "overview_status": self._kb_status(ix) if ix else "",
                 "report": (root / ".tmh" / "report" / "index.html").exists(), "built_at": self.kb_overview(p).get("built_at", "")}
 

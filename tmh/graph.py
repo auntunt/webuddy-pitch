@@ -339,6 +339,8 @@ def build(root: Path, use_cache: bool = True) -> dict:
         raise ValueError("建图期间源码发生变化；旧索引保持，请重新构建")
     _write_db(root, nodes, edges, {"flows": len(flows), "analysis": analysis, "provenance": provenance, **stats}, source_files)
     x = tmh_dir(root)
+    m["provenance"] = provenance
+    fdata["provenance"] = provenance
     (x / "map.json").write_text(json.dumps(m, ensure_ascii=False), encoding="utf-8")
     (x / "flows.json").write_text(json.dumps(fdata, ensure_ascii=False), encoding="utf-8")
     cnt = Counter(n["kind"] for n in nodes.values())

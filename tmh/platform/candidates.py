@@ -10,6 +10,7 @@ from contextlib import contextmanager
 import hashlib
 import json
 from pathlib import Path
+import re
 import subprocess
 
 from .errors import ApiError
@@ -40,7 +41,43 @@ CREATE TABLE IF NOT EXISTS candidate_merges (
  candidate_id INTEGER PRIMARY KEY, author TEXT NOT NULL, request_id TEXT NOT NULL,
  evidence_hash TEXT NOT NULL, main TEXT NOT NULL, before_commit TEXT NOT NULL,
  commit_sha TEXT NOT NULL, state TEXT NOT NULL, created TEXT NOT NULL, updated TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS candidate_gate_acks (
+ id INTEGER PRIMARY KEY AUTOINCREMENT, candidate_id INTEGER NOT NULL,
+ author TEXT NOT NULL, classification_hash TEXT NOT NULL,
+ reason TEXT NOT NULL, created TEXT NOT NULL);
 """
+
+
+GATE_FILE = re.compile(
+    r"(^\.github/workflows/|\.gitlab-ci\.|(^|/)Jenkinsfile$|^\.tmh/|(^|/)pom\.xml$|"
+    r"(^|/)build\.gradle(\.kts)?$|(^|/)package\.json$|(^|/)pytest\.ini$|"
+    r"(^|/)setup\.cfg$|(^|/)pyproject\.toml$|(^|/)Makefile$|(^|/)tox\.ini$)", re.I)
+
+
+def gate_classification(diff: str) -> dict:
+    """Deterministic tamper-relevant diff facts; reuses gates.weaken's detectors."""
+    from . import gates
+    files = gates.split_diff(diff)
+    tests_added, tests_changed, tests_deleted, gate_files = [], [], [], []
+    for path, f in sorted(files.items()):
+        if gates.TEST_FILE.search(path):
+            if f["deleted"]:
+                tests_deleted.append(path)
+            elif f["new"]:
+                tests_added.append(path)
+            elif f["added"] or f["removed"]:
+                tests_changed.append(path)
+        if GATE_FILE.search(path) and (f["deleted"] or f["new"] or f["added"] or f["removed"]):
+            gate_files.append(path)
+    weak = gates.weaken(files)
+    weakening = list((weak.get("detail") or {}).get("hits") or []) if weak.get("state") == "fail" else []
+    blocking = bool(tests_deleted or tests_changed and weakening or gate_files)
+    return {"tests_added": tests_added, "tests_changed": tests_changed,
+            "tests_deleted": tests_deleted, "gate_files": gate_files,
+            "weakening": weakening,
+            "blocking": bool(tests_deleted or weakening or gate_files),
+            "sha256": _hash({"t": tests_changed, "d": tests_deleted, "g": gate_files,
+                             "w": weakening, "a": tests_added})}
 
 
 def schema(store):
@@ -48,6 +85,8 @@ def schema(store):
         store.db.executescript(SCHEMA)
         if "preview_hash" not in {r["name"] for r in store.q("PRAGMA table_info(candidate_assessments)")}:
             store.db.execute("ALTER TABLE candidate_assessments ADD COLUMN preview_hash TEXT NOT NULL DEFAULT ''")
+        if "gate" not in {r["name"] for r in store.q("PRAGMA table_info(code_candidates)")}:
+            store.db.execute("ALTER TABLE code_candidates ADD COLUMN gate TEXT NOT NULL DEFAULT ''")
         store.db.commit()
 
 
@@ -212,9 +251,10 @@ def submit(P, actor, args, mutation):
                   "外部候选登记；不是平台模型执行或人工采纳", args["summary"], diff, args["base_commit"])).lastrowid
             _write_run_inputs(st, current, run, inputs)
             cid = st.db.execute("""INSERT INTO code_candidates(ticket_id,run_id,agent,base_commit,commit_sha,
-                 requirement_hash,configuration_hash,criteria,summary,fingerprint,ref,artifact_dir,created)
-                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)""", (t["id"], run, actor, args["base_commit"], args["commit"],
-                 args["requirement_hash"], conf, _json(args["criteria"]), args["summary"], fp, ref, str(folder), stamp)).lastrowid
+                 requirement_hash,configuration_hash,criteria,summary,fingerprint,ref,artifact_dir,created,gate)
+                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (t["id"], run, actor, args["base_commit"], args["commit"],
+                 args["requirement_hash"], conf, _json(args["criteria"]), args["summary"], fp, ref, str(folder), stamp,
+                 _json(gate_classification(diff)))).lastrowid
             st.db.execute("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,'candidate',?,?)",
                           (t["id"], stamp, actor, "登记外部代码候选，等待平台独立验证", _json({"candidate": cid, "run": run, "commit": args["commit"]})))
             st.db.execute("UPDATE tickets SET status='doing',updated=? WHERE id=?", (stamp, t["id"]))
@@ -292,7 +332,15 @@ def view(P, cid, *, include_probe=True):
         needs.append("固定版本预览尚未就绪" + ("：" + pv["why"] if pv.get("why") else ""))
     if not technical_ok:
         needs.append("缺少当前验证对应的独立逐项技术验收，或仍有失败/未知项")
+    gate = json.loads(row["gate"] or "{}") if "gate" in row.keys() else {}
+    ack = st.one("SELECT * FROM candidate_gate_acks WHERE candidate_id=? AND classification_hash=? "
+                 "ORDER BY id DESC LIMIT 1", (cid, gate.get("sha256", ""))) if gate.get("blocking") else None
+    gate_missing = bool(gate.get("blocking") and not ack)
+    if gate_missing:
+        accepted = False
+        needs.append("门禁相关变更（改动或删除测试、加跳过标记、改动构建/CI 配置）需要操作者在网页确认")
     return {"id": cid, "ticket": t["key"], "run_id": row["run_id"], "author": row["agent"],
+            "gate_findings": gate, "gate_ack": dict(ack) if ack else None,
             "base_commit": row["base_commit"], "commit": row["commit_sha"], "ref": row["ref"],
             "requirement_hash": row["requirement_hash"], "criteria": json.loads(row["criteria"]), "summary": row["summary"],
             "current": not blocked, "blocked": blocked, "verification": v, "verification_passed": verification_ok,
@@ -306,6 +354,7 @@ def view(P, cid, *, include_probe=True):
             "ready_for_human": not needs, "missing": needs, "evidence_hash": eh,
             "human_decision": decision, "human_accepted": accepted,
             "state": "accepted" if accepted else "stale" if blocked else "awaiting_human" if not needs else "needs_verification",
+            "control_points": control_points(),
             "boundary": "Agent observations are attributed evidence, not human approval. Acceptance does not merge or deploy."}
 
 
@@ -391,6 +440,24 @@ def execute(P, actor, op, a, mutation=lambda: None):
                     raise ApiError(409, "当前候选不能签收：" + "；".join(v["missing"]))
                 _record(P, row, actor, op, a, mutation)
                 return view(P, row["id"])
+        if op == "candidate_gate_ack":
+            gate = json.loads(row["gate"] or "{}") if "gate" in row.keys() else {}
+            if not gate.get("blocking"):
+                raise ApiError(409, "此候选没有需要确认的门禁相关变更")
+            if implementation_author(row["agent"], actor):
+                raise ApiError(403, "固定候选的提交者不能确认自己的门禁相关变更")
+            reason = (a.get("reason") or "").strip()
+            if not reason:
+                raise ApiError(400, "确认必须写明理由")
+            mutation()
+            stamp = now()
+            st = P.store
+            st.db.execute("INSERT INTO candidate_gate_acks(candidate_id,author,classification_hash,reason,created) "
+                          "VALUES(?,?,?,?,?)", (row["id"], actor, gate["sha256"], reason, stamp))
+            st.db.execute("INSERT INTO events(ticket_id,ts,author,kind,body,data) VALUES(?,?,?,'gate_ack',?,?)",
+                          (row["ticket_id"], stamp, actor, "确认门禁相关变更分类", _json({"candidate": row["id"], "reason": reason})))
+            st.db.commit()
+            return view(P, row["id"])
     raise ApiError(400, "未知候选操作")
 
 
@@ -431,6 +498,23 @@ def _record(P, row, actor, op, a, mutation):
         except BaseException:
             st.db.rollback()
             raise
+
+
+def control_points() -> list:
+    """Honest gate boundary: states come from what Webuddy actually enforces;
+    nothing external is claimed connected without configuration to prove it."""
+    return [
+        {"name": "Webuddy 内部就绪", "state": "enforced",
+         "why": "实际生效：Webuddy 自己执行的采纳/合并受独立验证、逐项复核与操作者签收约束"},
+        {"name": "客户仓库必需检查", "state": "not_connected",
+         "why": "未接入外部仓库状态检查，仅建议。接入需要：仓库分支保护 required status check "
+               "名称、推送 webhook 或 CI 回写地址、以及服务端可达的凭据"},
+        {"name": "Webuddy 执行的合并", "state": "enforced",
+         "why": "实际生效：只有当前证据包绑定的人工签收通过后，Webuddy 才执行 ff-only 合并；"
+               "在客户仓库或其他工具里直接合并不受此约束"},
+        {"name": "部署许可", "state": "not_connected",
+         "why": "未接入部署系统；Webuddy 不发布，部署由现场发布流程单独把关"},
+    ]
 
 
 def browser_decide(P, user, args, mutation=lambda: None):

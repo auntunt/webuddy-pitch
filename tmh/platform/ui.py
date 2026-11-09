@@ -1626,6 +1626,7 @@ async function vMap(did){
       <dl>${a.entry_coverage.uncovered.map(u=>`<div><dt><code>${h(u.class)}</code></dt><dd class="sub">${h(u.why)} · ${h(u.file)}</dd></div>`).join('')}</dl>
       <div class="row"><button id="entryDetect">让直连模型识别入口规则</button><span id="entryDetectState" class="sub"></span></div>
     </details>`:''}
+    ${a.provenance?`<div class="sub" style="margin-top:8px">${a.provenance.status==='stale'?'<span class="warn">图谱基于旧版本</span> ':''}图谱来源提交 <code>${h((a.provenance.git_commit||a.provenance.source_version||'').slice(0,12)||'未知')}</code>${a.provenance.status==='unverifiable'?' · 来源无法核对':''}${a.provenance.generated_at?` · 构建于 ${h(a.provenance.generated_at.slice(0,19))}`:''}${a.provenance.index_revision?` · 索引修订 <code>${h(a.provenance.index_revision.slice(0,12))}</code>`:''}</div>`:''}
     <details class="arch-basis"><summary>分析依据${a.unresolved?' · '+a.unresolved+' 处调用待核对':''}<span>${h(a.built_at)}</span></summary>
       <p>统计来自源码解析，分组名称和说明沿用知识库；分组不等同于已确认的业务边界，也不表示应用组件或部署架构。</p>
       <p>${a.unresolved?`${a.unresolved} 处调用未能静态解析，相关路径需要进一步核对。`:'静态分析未报告断开的调用；动态行为仍需结合运行结果核对。'} 部署包与源码版本的一致性尚需核实。</p>

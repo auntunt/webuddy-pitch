@@ -125,6 +125,7 @@ SPECS.update({
     "candidate_preview": spec("启动已通过当前独立构建/测试的固定候选预览；不需要提前伪造人工采纳。", {"candidate_id": CID, "request_id": REQUEST}, ["candidate_id", "request_id"], write=True, execution=True),
     "candidate_assess": spec("独立复核者记录全部验收条件的实际结果，绑定当前verification_hash与preview_hash。属于技术证据，不是人的批准。", {"candidate_id": CID, "verification_hash": DIGEST, "preview_hash": DIGEST, "results": RESULTS, "note": text("完整复核说明", minLength=1), "request_id": REQUEST}, ["candidate_id", "verification_hash", "preview_hash", "results", "note", "request_id"], write=True),
     "candidate_decide": dict(spec("仅供操作者终端明确签收或退回当前证据包；不合并、不部署。MCP永不提供此操作。", {"candidate_id": CID, "evidence_hash": DIGEST, "decision": text("决定", enum=["accept", "reject"]), "note": text("操作者说明", minLength=1), "request_id": REQUEST}, ["candidate_id", "evidence_hash", "decision", "note", "request_id"], write=True), operator=True),
+    "candidate_gate_ack": dict(spec("仅供操作者终端确认当前门禁相关变更分类（改动/删除测试、跳过标记、构建或 CI 配置变更）；绑定当前分类哈希，新候选或新验证后失效。MCP永不提供此操作。", {"candidate_id": CID, "reason": text("确认理由", minLength=1), "request_id": REQUEST}, ["candidate_id", "reason", "request_id"], write=True), operator=True),
 })
 
 PID = integer("业务探测实验编号", minimum=1)
