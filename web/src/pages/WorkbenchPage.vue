@@ -198,7 +198,7 @@ onUnmounted(() => { generation++; clearPoll() })
           <p v-else class="empty">需求已保存。先分析需求或生成方案。</p>
           <template v-if="run">
             <div class="actions run-actions"><button v-if="['running','queued'].includes(run.status)" class="btn" :disabled="!!busy" @click="perform('cancel')">停止运行</button><button v-if="run.can_retry" class="btn" :disabled="!!busy" @click="perform('retry')">重试本次运行</button><button v-if="run.mode==='fix' && run.status==='done'" class="btn" :disabled="!!busy || run.recheck?.running" @click="perform('recheck',{kind:'tests'})">{{run.recheck?.running?'正在验证…':'运行项目检查'}}</button><button v-if="run.mode==='fix' && run.status==='done' && !run.decision" class="btn" :disabled="!!busy" @click="perform('decide',{decision:'accept'})">采纳当前改动</button><button v-if="run.decision?.startsWith('accept')" class="btn" :disabled="!!busy" @click="previewRun">启动预览</button><a v-if="preview?.url" class="btn" :href="appUrl(preview.url)" target="_blank" rel="noopener">打开预览</a></div>
-            <p v-if="preview?.preview.error" class="error">{{preview.preview.error}}</p>
+            <p v-if="preview?.preview.state === 'starting'" role="status">预览正在启动…</p><p v-if="preview?.preview.why || preview?.preview.error" class="error">{{preview.preview.why || preview.preview.error}}</p>
 
             <nav class="tabs" aria-label="运行产物"><button v-for="[key, label] in [['result','结果'], ['diff','代码差异'], ['verification','验证回执'], ['output','执行日志']]" :key="key" :class="{ current: tab === key }" @click="tab = key!">{{ label }}</button></nav>
             <DocumentText v-if="tab === 'result' && run.result" class="artifact" :text="run.result" />
