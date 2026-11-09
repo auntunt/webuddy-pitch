@@ -176,6 +176,7 @@ def _codex_candidates():
         dirs += [Path.home() / ".local/bin", Path("/usr/local/bin"), Path("/opt/homebrew/bin")]
     files = [str(p) for p in dirs if p.is_file()]
     dirs = [str(p) for p in dirs if p.is_dir()]
+    dirs += [d for d in os.environ.get("PATH", "").split(os.pathsep) if d and "codex" in d.lower()]
     return _which(["codex"], dirs) + files
 
 
@@ -201,8 +202,10 @@ def _toml_value(text, key, section=""):
         line = line.strip()
         if line.startswith("["):
             current = line.strip("[] ")
-        elif line.startswith(key) and "=" in line and (not section or current == section):
-            return line.split("=", 1)[1].strip().strip('"').strip("'")
+        elif "=" in line and (not section or current == section):
+            name, _, value = line.partition("=")
+            if name.strip() == key:
+                return value.strip().strip('"').strip("'")
     return ""
 
 
@@ -216,7 +219,10 @@ def _codex_home(home):
         info["model_provider"] = provider
         for key in ("base_url", "wire_api", "env_key"):
             info[key] = _toml_value(text, key, "model_providers." + provider) if provider else ""
-    info["auth_present"] = (Path(home) / "auth.json").is_file()
+        bearer = _toml_value(text, "experimental_bearer_token", "model_providers." + provider) if provider else ""
+        info["auth_present"] = bool(bearer) or bool(info["env_key"] and os.environ.get(info["env_key"])) or (Path(home) / "auth.json").is_file()
+    else:
+        info["auth_present"] = (Path(home) / "auth.json").is_file()
     return info
 
 
