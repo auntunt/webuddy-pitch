@@ -42,16 +42,6 @@ class LocalDefaultTests(unittest.TestCase):
                     server.api_testbox_save(platform, req)
                 self.assertEqual(server.api_testbox(platform, req)['conf'], original)
 
-    def test_migration_dispatch_includes_evidence_contract(self):
-        from tmh.platform import reform
-        plan = dict(kind='rewrite',title='迁移',goal='保留审批行为',items=[],criteria=['审批金额一致'])
-        item = dict(title='审批',order=1,flows=1,tables=1)
-        body = reform.ticket_body(plan,item,1)
-        for text in ('migrate-to-java','源代码位置','独立业务样例','父计划整体验收','审批金额一致'):
-            self.assertIn(text, body)
-        lead = reform.ticket_body(plan,dict(item,lead=True),1)
-        self.assertIn('迁移验证与追溯',lead)
-
     def test_detects_platform_specific_wrapper(self):
         from tmh import verify
         with tempfile.TemporaryDirectory() as root:

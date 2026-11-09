@@ -15,7 +15,7 @@ a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
 #svc{display:flex;gap:2px;padding:3px;border-radius:7px;background:rgba(255,255,255,.08);flex:none}
 #svc a{color:#C9D1DC;padding:4px 12px;border-radius:5px;font-size:13px;white-space:nowrap}#svc a:hover{text-decoration:none;color:#fff}
 #svc a.on{background:#fff;color:var(--navy);font-weight:600}
-body.svc-reform #top{background:var(--navy-rf)}body.svc-reform #svc a.on{color:var(--navy-rf)}
+
 #tabs .tsep{margin-left:auto;align-self:center;font-size:12px;color:var(--mut);padding-left:16px;border-left:1px solid var(--line);white-space:nowrap}
 .pts{display:flex;align-items:center;gap:6px;background:var(--navy3);border:1px solid #46546E;border-radius:999px;padding:3px 12px 3px 8px;font-size:13px;cursor:pointer;white-space:nowrap}
 .pts b{font-variant-numeric:tabular-nums;font-size:14px}.pts .dot{width:8px;height:8px;border-radius:50%;background:#FFC53D}

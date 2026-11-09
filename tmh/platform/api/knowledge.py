@@ -1,4 +1,4 @@
-"""Routes: flows, knowledge base, code maps, atlas, architecture, knowledge questions."""
+"""Routes: flows, knowledge base, code maps, architecture, knowledge questions."""
 from __future__ import annotations
 
 import os
@@ -57,20 +57,6 @@ def api_code_map_create(P, req, key):
     try:args=validate('map_create',dict(req.body,project=key))
     except ValueError as exc:raise ApiError(400,str(exc)) from exc
     return code_maps.create(P,P.project(key),req.user,args)
-
-
-@route("GET", "/api/projects/<key>/atlas")
-def api_atlas(P, req, key):
-    return P.kb.atlas(P.project(key))
-
-
-@route("GET", "/api/projects/<key>/atlas/flow/<fid>")
-def api_atlas_flow(P, req, key, fid):
-    try:
-        offset = int(req.arg("offset") or 0)
-    except ValueError:
-        raise ApiError(400, "步骤分页偏移必须是整数")
-    return P.kb.atlas_flow(P.project(key), unquote(fid), offset)
 
 
 @route("GET", "/api/projects/<key>/statecharts")

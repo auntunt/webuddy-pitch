@@ -77,8 +77,6 @@ GET /api/projects/<key>/kb
 GET /api/projects/<key>/kb/tree
 GET /api/projects/<key>/maps
 POST /api/projects/<key>/maps
-GET /api/projects/<key>/atlas
-GET /api/projects/<key>/atlas/flow/<fid>
 GET /api/projects/<key>/statecharts
 GET /api/projects/<key>/statecharts/renderer
 GET /api/projects/<key>/arch
@@ -141,10 +139,6 @@ POST /api/projects/<key>/evals/cases
 POST /api/projects/<key>/evals/history
 POST /api/projects/<key>/evals/history/import
 POST /api/projects/<key>/alerts
-GET /api/projects/<key>/reforms
-GET /api/projects/<key>/reforms/deps
-POST /api/projects/<key>/reforms
-POST /api/projects/<key>/reforms/<pid>
 GET /api/tickets
 POST /api/tickets
 GET /api/tickets/<key>
@@ -244,15 +238,7 @@ PUBLIC_CAPABILITIES = ("/bot/", "/hook/alert/", "/capture/", "/pv/", "/v/", "/si
 ADMIN_GLOBAL = frozenset(("/api/lead", "/api/readiness", "/api/testbox",
                          "/api/agent-settings", "/api/access-config", "/api/agent-scan", "/api/agent-test",
                          "/api/today", "/api/chats", "/api/clients", "/api/requirements"))
-AGENT_OPERATIONS = frozenset("""maps_list map_get map_create reform_report_create reform_report_get reforms_list reform_get reform_preview reform_events reform_resume_preview reform_create reform_update reform_control reform_archive run_recover status projects_list tickets_list ticket_get delivery_get ticket_create message_send
-messages_list request_get run_get run_start run_cancel run_retry run_recheck preview_get preview_start
-candidates_list candidate_get candidate_ci candidate_submit candidate_verify candidate_cancel candidate_preview
-candidate_resolve candidate_report_create candidate_report_get candidate_gate_ack
-candidate_assess candidate_decide harness_recipes harness_probe_start harness_probe_get harness_probe_cancel
-harness_library library_get library_search library_read library_build library_cancel library_resume
-library_reference library_unlink ticket_hold
-intake_get intake_start intake_understand intake_answer
-development_get development_start development_propose development_answer""".split())
+AGENT_OPERATIONS = frozenset("""maps_list map_get map_create run_recover status projects_list tickets_list ticket_get delivery_get ticket_create message_send messages_list request_get run_get run_start run_cancel run_retry run_recheck preview_get preview_start candidates_list candidate_get candidate_ci candidate_submit candidate_verify candidate_cancel candidate_preview candidate_resolve candidate_report_create candidate_report_get candidate_gate_ack candidate_assess candidate_decide harness_recipes harness_probe_start harness_probe_get harness_probe_cancel harness_library library_get library_search library_read library_build library_cancel library_resume library_reference library_unlink ticket_hold intake_get intake_start intake_understand intake_answer development_get development_start development_propose development_answer""".split())
 SAFE_POSTS = frozenset((
     "/api/projects/<key>/maps",
     "/api/projects/<key>/external-requirements",
@@ -502,27 +488,15 @@ def _agent(P, who, operation, body):
         from .tool_access import allowed_operations
         if operation not in allowed_operations(tool['scope']):
             raise ApiError(403, '此工具连接未获准执行该操作')
-    level = "manager" if operation in ("library_reference", "library_unlink", "reform_archive") else "contributor" if spec.get("write") else "viewer"
+    level = "manager" if operation in ("library_reference", "library_unlink") else "contributor" if spec.get("write") else "viewer"
     projects = []
     for field, kind in (("project", "project"), ("ticket", "ticket"), ("run_id", "run"),
                         ("candidate_id", "candidate"), ("probe_id", "probe"), ("session", "intake")):
         if field in args:
             target = _resource_project(P,kind,args[field])
-            if operation=='reform_archive' and tool:
-                _check(P,who,target,'contributor')  # connection scope and selected projects
-                with P.tenant_context.acting(who['actor']):
-                    _check(P,identity(P,who['actor']),target,'manager')
-                projects.append(target)
-            else:
-                projects.append(_check(P,who,target,level))
+            projects.append(_check(P,who,target,level))
     if len({p["id"] for p in projects}) > 1:
         raise ApiError(400, "请求中的资源不属于同一项目")
-    if args.get('plan_id'):
-        from . import reform
-        try:
-            reform.plan(P.data_dir,args['project'],args['plan_id'])
-        except KeyError:
-            raise ApiError(404,'没有这个项目的改造计划') from None
     if operation == "request_get":
         if tool:
             from .agent_api import member_actor
@@ -605,7 +579,6 @@ def authorize(P, method, path, query, body, actor):
             template.endswith("/lessons/<lid>") or template.endswith("/preview-conf") or
             template.endswith("/prod-requests") and body.get("action") in ("approve", "reject") or
             template == "/api/tickets/<key>" and "assignee" in body or
-            template == "/api/projects/<key>/reforms/<pid>" and body.get("action") in ("archive", "remove") or
             template == "/api/memory" and body.get("action") in ("lesson_share", "lesson_unshare", "lesson_take", "lesson_untake")):
         level = "manager"
     if method == "POST" and template == "/api/team" and body.get("action") in ("candidate_resolve", "candidate_report_get"):
@@ -689,12 +662,10 @@ def authorize(P, method, path, query, body, actor):
     safe |= template == "/api/tickets" and (body.get("handwork") is True or body.get("auto") is False and not (body.get("agent") and body.get("mode"))) and not body.get("code_at")
     if template == "/api/projects/<key>/ci" and method == 'POST':
         _check(P,who,_project(P,params['key']),'manager')
-    safe |= template == '/api/projects/<key>/reforms'  # draft creation and read-only preview
-    safe |= template == '/api/projects/<key>/reforms/<pid>' and action in ('update','archive','remove','report_create')
     safe |= template in ("/api/tickets/<key>/development", "/api/projects/<key>/ci")
     safe |= template == "/api/team" and action == "assign"
     safe |= template == "/api/team" and action == "comment"
-    safe |= template == "/api/team" and action in ("candidate_resolve", "candidate_report_get", "candidate_report_create")  # like reform report actions: no model or process
+    safe |= template == "/api/team" and action in ("candidate_resolve", "candidate_report_get", "candidate_report_create")  # no model or process
     if (template == "/api/tickets/<key>/claim" and body.get("on", True) is True
             and len(targets) == 1 and not who.get("tool_connection")):
         from .project_git import available

@@ -1,4 +1,4 @@
-"""Routes: commands, acceptance, learning, lessons, evals, alerts, reforms."""
+"""Routes: commands, acceptance, learning, lessons, evals, alerts."""
 from __future__ import annotations
 
 import re
@@ -130,9 +130,8 @@ def api_accept(P, req, key):
         raise ApiError(409, why)
     with signoff.verification_guard(P, key):
         sealed = signoff._record_accept(P, t, req.user, res == "pass", note)
-        integration_commit = t['links'].get('reform_integration_commit') if res == 'pass' else None
         P.store.event(t["id"], req.user, "accept" if res == "pass" else "reject", ("验收通过" if res == "pass" else "验收不通过") + ("：" + note if note else ""),
-                      dict({"result": res}, **({"integration_commit": integration_commit} if integration_commit else {}), **({"evidence": sealed} if sealed else {})))
+                      dict({"result": res}, **({"evidence": sealed} if sealed else {})))
         P.store.update_ticket(t["id"], req.user, status="closed" if res == "pass" else "doing")
         P.flow.accepted(P.store.project(t["project_id"]), P.store.ticket(t["id"]), res == "pass", note, req.user)
         return P.store.ticket(t["id"])
@@ -299,96 +298,3 @@ def api_alert_paste(P, req, key):
 def api_external_requirement(P, req, key):
     from ..external_requirements import sync
     return sync(P,P.project(key),req.user,req.body)
-
-
-@route("GET", "/api/projects/<key>/reforms")
-def api_reforms(P, req, key):
-    """Reform plans (restructuring, upgrades, migrations) with the live state of their tickets, and the domains to choose from."""
-    from .. import reform
-    p = P.project(key)
-    if req.arg('plan_id'):
-        from ..reform_api import packet, resume_preview, report
-        try:
-            value = reform.plan(P.data_dir,p['key'],req.arg('plan_id'))
-        except KeyError:
-            raise ApiError(404,'没有这个项目的改造计划') from None
-        if req.arg('view')=='export':
-            from ..report_exports import read
-            return read(P,p,value,{'export_id':req.arg('export_id'),'file':req.arg('file'),'offset':int(req.arg('offset') or 0)})
-        if req.arg('view')=='report':
-            return report(P,p,value)
-        return resume_preview(P,p,value) if req.arg('view')=='resume' else packet(P,p,value)
-    at = P.kb.atlas(p)
-    doms = [{"id": d["id"], "title": d["title"], "flows": d["flows"], "tables": d["tables"]} for d in at.get("domains") or []]
-    if req.arg('view')=='list':
-        from ...agent_contract import validate
-        from ..reform_api import execute
-        try:
-            args=dict(project=p['key'],after=int(req.arg('after') or 0),limit=int(req.arg('limit') or 20),archived=req.arg('archived')=='1')
-            if req.arg('status'):
-                args['status']=req.arg('status')
-            args=validate('reforms_list',args)
-        except ValueError as exc:
-            raise ApiError(400,str(exc)) from exc
-        return dict(execute(P,req,req.user,'reforms_list',args),
-            kinds={k:{'label':v[0],'desc':v[1]} for k,v in reform.KINDS.items()},built=bool(at.get('built')),domains=doms)
-    return {"kinds": {k: {"label": v[0], "desc": v[1]} for k, v in reform.KINDS.items()}, "built": bool(at.get("built")), "domains": doms,
-            "plans": [reform.view(P, p, x) for x in reform.plans(P.data_dir, p["key"],include_archived=req.arg("include_archived")=="1")][::-1]}
-
-
-@route("GET", "/api/projects/<key>/reforms/deps")
-def api_reform_deps(P, req, key):
-    from .. import reform
-    return {"deps": reform.dependencies(P.root(P.project(key)))}
-
-
-@route("POST", "/api/projects/<key>/reforms")
-def api_reform_new(P, req, key):
-    """{"kind", "title", "goal", "keep", "domains": [...], "wave"}; {"preview": true} only splits, saves nothing."""
-    from .. import reform
-    p = P.project(key)
-    at = P.kb.atlas(p)
-    try:
-        if req.body.get("preview"):
-            return reform.preview(at,req.body)
-        from ..reform_api import packet
-        from ..code_maps import validate_refs
-        validate_refs(P.store,p,req.body.get('map_refs',[]))
-        return packet(P, p, reform.create(P.data_dir, p["key"], at, req.body, req.user))
-    except ValueError as e:
-        raise ApiError(400, str(e))
-
-
-@route("POST", "/api/projects/<key>/reforms/<pid>")
-def api_reform_act(P, req, key, pid):
-    """{"action": "release", "n": 3} opens the next tickets; {"action": "remove"} drops the plan (its tickets stay)."""
-    from .. import reform
-    p = P.project(key)
-    try:
-        if req.body.get('action') in ('update','control','archive','report_create'):
-            from ..reform_api import execute
-            from ...agent_contract import validate
-            operation = 'reform_'+req.body['action']
-            body = {k:v for k,v in req.body.items() if k!='action'}
-            if operation == 'reform_control':
-                body['action'] = body.pop('control_action',None)
-            body.update(project=p['key'],plan_id=pid)
-            return execute(P,req,req.user,operation,validate(operation,body))
-        if req.body.get("action") == "remove":
-            reform.remove(P.data_dir, p["key"], pid)
-            return {"removed": pid}
-        if req.body.get("action") == "release":
-            n = req.body.get("n")
-            keys = reform.release(P, p, pid, int(n) if n else None, req.user)
-            return dict(reform.view(P, p, reform.plan(P.data_dir, p["key"], pid)), opened=keys)
-        if req.body.get("action") == "resume":
-            return reform.resume(P,p,pid,req.user)
-        if req.body.get("action") == "auto":
-            auto = req.body.get("on") if req.body.get("action") == "auto" else None
-            reform.configure(P.data_dir, p["key"], pid, None if auto is None else bool(auto), req.body.get("action") == "resume")
-            return reform.view(P, p, reform.plan(P.data_dir, p["key"], pid))
-    except KeyError:
-        raise ApiError(404, "没有这个改造计划")
-    except ValueError as e:
-        raise ApiError(400, str(e))
-    raise ApiError(400, "action 只能是 release、auto、resume 或 remove")

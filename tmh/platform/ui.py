@@ -5,7 +5,6 @@ The product name comes from --brand; the visual contract is recorded in DESIGN.m
 """
 from __future__ import annotations
 
-from .ui_atlas import ATLAS_CSS, ATLAS_JS
 from .ui_code_maps import MAP_CSS, MAP_JS
 from .ui_states import STATES_CSS, STATES_JS
 from .ui_access import ACCESS_BOOT_JS, ACCESS_CSS, ACCESS_JS
@@ -25,11 +24,10 @@ from .ui_memory import MEMORY_CSS, MEMORY_JS
 from .ui_learning import LEARNING_CSS, LEARNING_JS
 from .ui_team import TEAM_CSS, TEAM_JS
 from .ui_pilots import PILOTS_CSS, PILOTS_JS
-from .ui_reform import REFORM_CSS, REFORM_JS
 
 
 def page() -> str:
-    return HTML.replace("/*CSS*/", CSS + MAP_CSS + REFORM_CSS + ATLAS_CSS + STATES_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS + MEMORY_CSS + TEAM_CSS + WORKSPACE_CSS + LEARNING_CSS + ACCESS_CSS + COORDINATION_CSS + PILOTS_CSS + ASSISTANT_CSS).replace("/*JS*/", MAP_JS + REFORM_JS + TIME_JS + ACCESS_BOOT_JS + JS + ATLAS_JS + STATES_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS + WORKSPACE_JS + HANDOFFS_JS + MEMORY_JS + TEAM_JS + LEARNING_JS + ACCESS_JS + COORDINATION_JS + PILOTS_JS + ASSISTANT_JS)
+    return HTML.replace("/*CSS*/", CSS + MAP_CSS + STATES_CSS + WORK_CSS + DELIVERY_CSS + THEME_CSS + LIBRARY_CSS + MEMORY_CSS + TEAM_CSS + WORKSPACE_CSS + LEARNING_CSS + ACCESS_CSS + COORDINATION_CSS + PILOTS_CSS + ASSISTANT_CSS).replace("/*JS*/", MAP_JS + TIME_JS + ACCESS_BOOT_JS + JS + STATES_JS + WORK_JS + DELIVERY_JS + DRAFT_JS + LIBRARY_JS + WORKSPACE_JS + HANDOFFS_JS + MEMORY_JS + TEAM_JS + LEARNING_JS + ACCESS_JS + COORDINATION_JS + PILOTS_JS + ASSISTANT_JS)
 
 
 HTML = r"""<!doctype html>
@@ -41,7 +39,7 @@ HTML = r"""<!doctype html>
   <a class="brand" href="#/workspace" aria-label="工作台"><svg aria-hidden="true" width="32" height="32" viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="9" fill="currentColor"/><path d="m7 10 4 12 5-8 5 8 4-12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="brandName">Webuddy</span></a>
   <div id="tenantScope" hidden><label for="tenantSel">租户</label><select id="tenantSel" aria-label="当前租户"></select><span id="tenantRole"></span></div>
   <select id="projSel" title="切换项目" aria-label="项目范围"></select>
-  <nav id="svc" aria-label="服务"><a data-s="ops" href="#/board">运维<span>服务</span></a><a data-s="reform" href="#/reform">重构<span>服务</span></a></nav>
+
   <span class="sp"></span>
   <form id="say" autocomplete="off" onsubmit="event.preventDefault();sayOpen()"><input id="sayIn" placeholder="记录新的需求或问题…" aria-label="粘贴客户的话"><button id="sayGo" type="submit" aria-label="录入客户需求">＋<span> 记录需求</span></button></form>
   <button id="astToggle" title="AI 助手：查进度、提需求、执行任务（Ctrl+K）" aria-controls="ast" aria-expanded="false">AI 助手 <kbd>Ctrl K</kbd></button>
@@ -150,29 +148,25 @@ function md(src){
 function diffHtml(d){return '<pre class="diff">'+d.split('\n').map(l=>{const c=l.startsWith('+')&&!l.startsWith('+++')?'a':l.startsWith('-')&&!l.startsWith('---')?'d':(l.startsWith('@@')||l.startsWith('diff '))?'h':'';return c?`<span class="${c}">${h(l)}</span>`:h(l)}).join('\n')+'</pre>'}
 
 // ---------- shell
-// Two services on one base: 运维 (tickets from people, monitoring and alerts) and 重构 (reform plans released in
-// waves). Each has its own pages and its own numbers; the knowledge base, the map, agent runs and settings serve both.
-const SVC={ops:{name:'运维服务',tabs:[['home','工单看板','#/board'],['tickets','工单列表','#/tickets'],['lead','运维成效','#/lead'],['overview','监控总览','#/overview'],['eff','提效报告','#/eff'],['learn','闭环改进','#/learn'],['int','外部系统','#/int']]},
-  reform:{name:'重构服务',tabs:[['reform','改造计划','#/reform'],['rtickets','改造工单','#/rtickets'],['rdeps','依赖清单','#/rdeps']]}};
-const SHARED=[['atlas','项目图谱','#/atlas'],['kb','知识库','#/kb'],['library','知识与引用','#/library'],['map','业务与代码概览','#/map'],['runs','智能体运行','#/runs'],['settings','设置','#/settings']];
-const TOP=['home','tickets','lead','kb','reform','rtickets','rdeps'];
-S.svc=localStorage.getItem('tmh.svc')==='reform'?'reform':'ops';
+const SVC={ops:{name:'运维服务',tabs:[['home','工单看板','#/board'],['tickets','工单列表','#/tickets'],['lead','运维成效','#/lead'],['overview','监控总览','#/overview'],['eff','提效报告','#/eff'],['learn','闭环改进','#/learn'],['int','外部系统','#/int']]}};
+const SHARED=[['kb','知识库','#/kb'],['library','知识与引用','#/library'],['map','业务与代码概览','#/map'],['runs','智能体运行','#/runs'],['settings','设置','#/settings']];
+const TOP=['home','tickets','lead','kb'];
+S.svc='ops';
 function svcOf(view){for(const k in SVC)if(SVC[k].tabs.some(t=>t[0]===view))return k;return S.svc}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#accountMenu')?.open){$('#accountMenu').open=false;$('#me').focus()}});
 document.addEventListener('click',e=>{const account=$('#accountMenu');if(account?.open&&!account.contains(e.target))account.open=false;const d=document.querySelector('#tabs .tmore');if(d&&d.open&&!d.contains(e.target))d.open=false});
 function paintTabs(tab){
-  paintNav();$('#svc').hidden=true;document.body.classList.toggle('svc-reform',S.svc==='reform');ls.set('tmh.svc',S.svc);
+  paintNav();$('#svc').hidden=true;
   const v=curView(), group=navOf(v), sets={
     workspace:[['workspace','待处理任务'],['today','动态'],['home','流程总览'],['meetings','会议与行动']],
     projects:[['projects','项目与环境'],['settings','设置']],
-    reform:[['reform','改造计划'],['rtickets','改造工单'],['rdeps','依赖清单']],
-    tasks:[['tickets','全部需求'],['board','状态看板'],['reqs','需求对话'],['rtickets','重构工单']],
+    tasks:[['tickets','全部需求'],['board','状态看板'],['reqs','需求对话']],
     deliveries:[['deliveries','交付记录'],['versions','版本']],
     runs:[['runs','AI 工作记录']],
     insights:[['lead','运维成效'],['overview','监控'],['eff','提效报告']],
     team:[['team','分配与复核']],
-    memory:[['memory','项目知识'],['kb','知识页'],['atlas','业务与代码图谱'],['states','业务状态图'],['map','业务与代码概览'],['library','参考与引用'],['learn','经验复盘'],['handoff','项目交接']]};
-  const rows=sets[group]||sets.projects, extras=[...(!S.meta?.access||S.meta.access.role==='admin'?[['clients','客户']]:[]),['team','分配与复核'],['rdeps','依赖清单'],['int','外部系统'],['settings','设置']];
+    memory:[['memory','项目知识'],['kb','知识页'],['states','业务状态图'],['map','业务与代码概览'],['library','参考与引用'],['learn','经验复盘'],['handoff','项目交接']]};
+  const rows=sets[group]||sets.projects, extras=[...(!S.meta?.access||S.meta.access.role==='admin'?[['clients','客户']]:[]),['team','分配与复核'],['int','外部系统'],['settings','设置']];
   $('#tabs').hidden=['projects','team','memory','access'].includes(v);
   $('#tabs').setAttribute('aria-label','当前工作区');
   const link=([k,l])=>`<a data-r="${k}" href="#/${k==='handoff'?'handoff/'+encodeURIComponent(S.proj):k}" class="${k===v||(v==='t'&&k==='tickets')?'on':''}" ${k===v?'aria-current="page"':''}>${l}</a>`;
@@ -180,7 +174,7 @@ function paintTabs(tab){
 }
 async function boot(){
   try{S.meta=await get('/api/meta');accessBind(S.meta)}catch(e){if(ACCESS.base){accessLock(e.message);return}$('#main').innerHTML='<div class="empty">'+h(e.message)+'</div>';return}
-  if(ACCESS.base){S.proj=ls.get('tmh.proj')||'';S.scope=ls.get('tmh.scope')||'*';S.user=ACCESS.user;S.svc=ls.get('tmh.svc')==='reform'?'reform':'ops'}
+  if(ACCESS.base){S.proj=ls.get('tmh.proj')||'';S.scope=ls.get('tmh.scope')||'*';S.user=ACCESS.user}
   accessInit();
   if(S.meta.login)S.user=S.meta.user;else if(!S.user)S.user=S.meta.user||'';
   document.title=S.meta.brand;$('#brandName').textContent=S.meta.brand;
@@ -191,7 +185,6 @@ async function boot(){
   $('#projSel').onchange=e=>{WS.offset=0;const v=e.target.value;if(v==='__new'){newProject();paintSel();return}
     if(curView()==='maps'){if(v==='*'){location.hash='#/workspace'}else{setProj(v);location.hash='#/maps/'+encodeURIComponent(v)}return}
     if(curView()==='meetings'){S.scope=v;ls.set('tmh.scope',v);if(v!=='*')setProj(v);if(location.hash!=='#/meetings')location.hash='#/meetings';else render();return}
-    if(/^#\/projects\/[^/]+\/reforms\//.test(location.hash)){if(v==='*'){S.scope='*';ls.set('tmh.scope','*');location.hash='#/projects'}else{setProj(v);location.hash='#/reform'}return}
     if(v==='*'){S.scope='*';ls.set('tmh.scope','*');if(!isCross())location.hash='#/';else render();return}
     if(isCross()){S.scope=v;ls.set('tmh.scope',v)}setProj(v);render()};
   $('#ptsBtn').onclick=showPoints;sayWire();
@@ -209,7 +202,7 @@ async function loadProjects(){
 const CROSS=['home','board','tickets','lead','t','today','clients','c','reqs','versions','deliveries','delivery','workspace','projects','team','memory','meetings'];
 function curView(){return (location.hash||'#/').slice(2).split('/')[0]||'workspace'}
 function isCross(){return CROSS.includes(curView())}
-function paintSel(){accessPaintPermissions();const cross=isCross()&&!['t','delivery'].includes(curView())&&!/^#\/projects\/[^/]+\/reforms\//.test(location.hash),v=cross?S.scope:S.proj;
+function paintSel(){accessPaintPermissions();const cross=isCross()&&!['t','delivery'].includes(curView()),v=cross?S.scope:S.proj;
   $('#projSel').innerHTML=(cross?`<option value="*" ${v==='*'?'selected':''}>全部项目（${S.projects.length}）</option>`:'')+S.projects.map(p=>`<option value="${h(p.key)}" ${p.key===v?'selected':''}>${h(p.key)} · ${h(p.name)}</option>`).join('')+(cross?'':'<option value="*">全部项目</option>')+(!S.meta.access||S.meta.access.platform_owner?'<option value="__new">＋ 添加项目…</option>':'');
   $('#projSel').title=cross?(['deliveries','delivery'].includes(curView())?'查看项目范围（默认全部）':'看哪些项目的工单（默认全部）'):'这一页属于哪个项目'}
 function setProj(k){if(!k||k===S.proj)return;S.proj=k;ls.set('tmh.proj',k);A.reset();loadPoints()}
@@ -221,12 +214,11 @@ function render(){
   if(ACCESS.blocked)return;if(accessControlOnly())return accessRenderControl();stopPolls();if(S.meta)document.title=S.meta.brand;const r=(location.hash||'#/').slice(2).split('/');const view=r[0]||'workspace';
   document.body.classList.toggle('delivery-surface',['deliveries','delivery'].includes(view));
   if(view!=='t')S.svc=svcOf(view==='board'?'home':view);
-  paintTabs(view==='t'?(S.svc==='reform'?'rtickets':'home'):view==='board'?'home':view);
+  paintTabs(view==='t'?'home':view==='board'?'home':view);
   if(!S.proj&&!['intake','home','board','settings','access','deliveries','delivery','workspace','projects','memory','team','meetings','pilots'].includes(view)){$('#main').innerHTML=`<div style="max-width:640px;padding:20px 0"><h1>欢迎使用 ${h(S.meta.brand)}</h1><p class="sub">从一个新产品开始，或连接已有项目继续开发。</p><a class="btn primary" href="#/deliveries/new">创建新项目</a> <button onclick="newProject()">连接已有项目</button></div>`;return}
-  const V={maps:()=>vCodeMaps(decodeURIComponent(r[1]||S.proj),decodeURIComponent(r[2]||'')),intake:()=>vIntake(decodeURIComponent(r[1]||'')),pilots:()=>vPilots(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||''),decodeURIComponent(r[3]||''),decodeURIComponent(r[4]||'')),meetings:()=>vMeetings(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),workspace:()=>vWorkspace(decodeURIComponent(r[1]||'')),projects:()=>r[2]==='reforms'?vReform(decodeURIComponent(r[1]||''),decodeURIComponent(r[3]||'')):vProjects(decodeURIComponent(r[1]||'')),team:()=>r[1]==='ticket'?vTeam('team',decodeURIComponent(r[2]||'')):vTeam(r[1]||'mine'),memory:()=>vMemory(r[1]||'overview'),handoff:()=>vProjectBrief(decodeURIComponent(r[1]||S.proj)),deliveries:()=>vDeliveries(r[1]||''),delivery:()=>vDelivery(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/today'},atlas:()=>vAtlas(decodeURIComponent(r.slice(1).join('/'))),states:()=>vStates(decodeURIComponent(r[1]||'')),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),library:vLibrary,runs:vRuns,learn:vLearn,reform:vReform,rtickets:vRtickets,rdeps:vRdeps,int:vInt,settings:vSettings,access:vAccess}[view]||(()=>{location.hash='#/workspace'});
+  const V={maps:()=>vCodeMaps(decodeURIComponent(r[1]||S.proj),decodeURIComponent(r[2]||'')),intake:()=>vIntake(decodeURIComponent(r[1]||'')),pilots:()=>vPilots(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||''),decodeURIComponent(r[3]||''),decodeURIComponent(r[4]||'')),meetings:()=>vMeetings(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),workspace:()=>vWorkspace(decodeURIComponent(r[1]||'')),projects:()=>vProjects(decodeURIComponent(r[1]||'')),team:()=>r[1]==='ticket'?vTeam('team',decodeURIComponent(r[2]||'')):vTeam(r[1]||'mine'),memory:()=>vMemory(r[1]||'overview'),handoff:()=>vProjectBrief(decodeURIComponent(r[1]||S.proj)),deliveries:()=>vDeliveries(r[1]||''),delivery:()=>vDelivery(decodeURIComponent(r[1]||''),decodeURIComponent(r[2]||'')),today:vToday,clients:vClients,c:()=>vClient(decodeURIComponent(r[1]||'')),reqs:vReqs,versions:()=>vVersions(decodeURIComponent(r[1]||'')),board:vHome,home:vHome,lead:vLead,overview:vOverview,tickets:vTickets,t:()=>vTicket(decodeURIComponent(r[1]||''),r[2]||''),eff:vEff,map:()=>vMap(decodeURIComponent(r[1]||'')),matters:()=>{location.hash='#/today'},states:()=>vStates(decodeURIComponent(r[1]||'')),kb:()=>vKb(decodeURIComponent(r.slice(1).join('/'))),library:vLibrary,runs:vRuns,learn:vLearn,int:vInt,settings:vSettings,access:vAccess}[view]||(()=>{location.hash='#/workspace'});
   if(view!=='t')A.setTicket(null);
   paintSel();
-  if(view==='atlas'&&$('#atl')){S.renderP=Promise.resolve(vAtlas(decodeURIComponent(r.slice(1).join('/')))).then(()=>A.paintCtx());return}
   if(view==='kb'&&r[1]&&$('#kbTree')){S.renderP=Promise.resolve(kbRead(decodeURIComponent(r.slice(1).join('/')))).then(()=>A.paintCtx());return}
   $('#main').innerHTML='<div class="empty"><span class="spin"></span></div>';
   // a slow page that finishes after the user already moved on would paint over the newer one: draw the current page again
@@ -741,10 +733,9 @@ function ticketPathMapWire(key){
 async function vTicket(key,sub){
   const ticketRoute=location.hash,ticketScope=scopeQ(),ticketRead=S.ticketRead=(S.ticketRead||0)+1;
   let d=await get('/api/tickets/'+key);if(ticketRead!==S.ticketRead||ticketRoute!==location.hash||ticketScope!==scopeQ())return;const t=d.ticket;S.cur=d;setProj(d.project.key);paintSel();A.setTicket(t);
-  S.svc=(t.links||{}).reform?'reform':'ops';paintTabs(S.svc==='reform'?'rtickets':'home');
+  S.svc='ops';paintTabs('home');
   const opt=(pairs,v)=>pairs.map(([k,l])=>`<option value="${k}" ${k===v?'selected':''}>${l}</option>`).join('');
   const ext=t.external||{},e=d.evidence||{};let f=flowState(d),na=nextAction(d,f);
-  if(d.reform_state){const ref=t.links.reform;na={...na,tone:d.reform_state.evidence_validity==='valid'?'info':'warn',text:'<b>'+h(d.reform_state.label)+'</b> · '+h(d.reform_state.next_action)+' <a href="#/projects/'+encodeURIComponent(d.project.key)+'/reforms/'+encodeURIComponent(ref.plan)+'">返回改造计划 · 第 '+h(ref.batch||'旧')+' 批</a>'}}
   const res=f.pl&&f.pl.status==='done'?f.pl:f.an&&f.an.status==='done'?f.an:null;
   const accUi=`<textarea id="accNote" placeholder="验收说明（不通过时必填）" style="min-height:64px"></textarea>
      <div class="row" style="gap:8px;margin-top:8px"><button class="primary" id="accOk"${ticketSignoffAttrs(d)}>验收通过</button><button class="danger" id="accNo">验收不通过</button><button class="ghost" id="accDraft">让助手起草验收说明</button></div>`;
@@ -1611,7 +1602,7 @@ async function vMap(did){
   const a=await get('/api/projects/'+encodeURIComponent(project)+'/arch');
   if(project!==S.proj||request!==S.archRequest||curView()!=='map')return;
   const rep=`/p/${encodeURIComponent(project)}/report/index.html`;
-  const head=pageHead('业务与代码概览','从功能分组查找业务流、数据操作与代码依据。',`<a class="btn" href="#/atlas">查看关系图谱</a>${a.report?`<a class="btn" href="${rep}" target="_blank" rel="noopener">完整报告 ↗</a>`:''}`);
+  const head=pageHead('业务与代码概览','从功能分组查找业务流、数据操作与代码依据。',`${a.report?`<a class="btn" href="${rep}" target="_blank" rel="noopener">完整报告 ↗</a>`:''}`);
   if(!a.built){$('#main').innerHTML=head+'<div class="card"><h2>还没有代码分析结果</h2><p>完成全项目分析后，这里会显示功能分组、入口与数据操作。</p><a class="btn" href="#/kb">前往知识库</a></div>';return}
   $('#main').innerHTML=head+`<section class="arch-overview" aria-label="业务与代码概览">
     <div class="arch-summary"><div><strong>${a.domains.length}</strong><span>功能分组</span></div><div><strong>${a.flows}</strong><span>业务流</span></div><div><strong>${a.tables}</strong><span>数据表</span></div><div><strong>${a.ext.length}</strong><span>外部调用类型</span></div></div>
@@ -1695,64 +1686,6 @@ function evBatch(b,st,lab){const SC={queued:'mute',running:'info',done:'ok',fail
   return `<div class="ri"><div class="grow" style="min-width:0"><div class="rt"><span class="ev-tag ${{running:'info',part:'warn',failed:'bad',done:'ok'}[st]}">${lab}</span><b>评测回放 · ${b.runs.length} 个用例</b></div>
     <div class="sub">来源：<a href="#/learn">闭环改进</a> · ${h(b.runs[0].agent)}${mTag(b.runs[0])} · 发起人 ${h(b.runs[0].author)} · ${ago(b.runs[b.runs.length-1].created)}</div>
     <details class="sub2"><summary>展开用例</summary>${b.runs.map(r=>`<div class="svr"><span class="ev-tag ${SC[r.status]}">${h(r.status)}</span>${h(r.target)}<a href="javascript:void 0" onclick="showRun(${r.id})">运行 #${r.id}</a></div>`).join('')}</details></div><div class="ra"><a class="btn" href="#/learn">看得分</a></div></div>`}
-
-// ---------- 重构升级: a big reform split by business domain into ordinary change tickets, released in waves
-async function vReform(project=S.proj,pid=''){return pid?rfWorkspace(project,pid):rfList(project)}
-// ---------- 改造工单: every ticket a reform plan released, in plan order; not on the 运维 board or in its numbers
-async function vRtickets(){
-  const P='/api/projects/'+encodeURIComponent(S.proj);const [d,ts]=await Promise.all([get(P+'/reforms'),get('/api/tickets?svc=reform&project='+encodeURIComponent(S.proj))]);
-  const tk={};ts.forEach(t=>tk[t.key]=t);const f=JSON.parse(sessionStorage.getItem('tmh.rtf')||'{}');
-  const rows=[];d.plans.forEach(p=>p.items.filter(i=>i.ticket).forEach(i=>rows.push({p,i,t:tk[i.ticket]||{}})));
-  const show=rows.filter(r=>(!f.plan||r.p.id===f.plan)&&(!f.open||r.i.status!=='closed'));
-  $('#main').innerHTML=pageHead('改造工单','改造计划放出的工单。它们和运维工单走同一条自动处理流程（分析、改代码、构建测试、等验收），但不进运维看板和运维成效。',
-    `<div class="row" style="gap:8px;flex-wrap:wrap"><select id="rtP"><option value="">全部计划（${d.plans.length}）</option>${d.plans.map(p=>`<option value="${h(p.id)}" ${f.plan===p.id?'selected':''}>${h(p.title)}</option>`).join('')}</select><label class="sub" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="rtO" ${f.open?'checked':''}> 只看未关闭</label></div>`)+
-    (show.length?`<div class="tw"><table class="t"><tr><th>工单</th><th>计划</th><th class="num">部分</th><th>业务域</th><th>状态</th><th class="num">退回</th><th>负责人</th><th>更新</th></tr>${show.map(({p,i,t})=>`<tr><td><a href="#/t/${h(i.ticket)}">${h(i.ticket)}</a></td><td><span class="ev-tag info">${h(p.kind_label)}</span> ${h(p.title)}${p.paused?' <span class="ev-tag warn">暂停</span>':''}</td><td class="num">${i.lead?'先导':i.order+' / '+(p.counts.total-(p.counts.lead?1:0))}</td><td><b>${h(i.title)}</b></td><td>${h(i.current?.label||'未放出')}</td><td class="num">${i.rejects||''}</td><td>${h(t.assignee||'')||'<span class="sub">自动</span>'}</td><td class="sub">${t.updated?ago(t.updated):''}</td></tr>`).join('')}</table></div>`
-     :`<div class="empty">${rows.length?'没有符合条件的工单。':'还没有放出过改造工单。到“改造计划”建一个计划，放出第一批。'}</div>`);
-  const save=()=>{sessionStorage.setItem('tmh.rtf',JSON.stringify({plan:$('#rtP').value,open:$('#rtO').checked}));vRtickets()};
-  $('#rtP').onchange=save;$('#rtO').onchange=save}
-// ---------- 依赖清单: what the project declares, for writing upgrade and migration goals
-async function vRdeps(){
-  const r=await get('/api/projects/'+encodeURIComponent(S.proj)+'/reforms/deps');const by={};r.deps.forEach(x=>by[x.system]=(by[x.system]||0)+1);
-  $('#main').innerHTML=pageHead('依赖清单','从 pom.xml（含父 POM 和 properties 里的版本）、package.json、.csproj / packages.config、requirements*.txt 读出的依赖和版本。写升级、迁移计划的目标版本时对照。',
-    r.deps.length?`<input id="rdQ" placeholder="筛选名称" style="width:180px">`:'')+
-    (r.deps.length?`<div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:10px">${Object.entries(by).map(([k,n])=>`<span class="tag">${h(k)} ${n}</span>`).join('')}</div><div class="tw"><table class="t" id="rdT"><tr><th>类型</th><th>名称</th><th>版本</th><th>声明在</th></tr>${r.deps.map(x=>`<tr data-n="${h(x.name.toLowerCase())}"><td>${h(x.system)}</td><td class="key">${h(x.name)}</td><td class="key">${h(x.version||'—')}</td><td class="sub">${h(x.file)}</td></tr>`).join('')}</table></div>`
-     :'<div class="empty">没有找到 pom.xml、package.json、.csproj 或 requirements.txt。</div>');
-  if($('#rdQ'))$('#rdQ').oninput=e=>{const q=e.target.value.trim().toLowerCase();document.querySelectorAll('#rdT tr[data-n]').forEach(tr=>tr.hidden=!!q&&!tr.dataset.n.includes(q))}}
-function rfForm(){const project=S.proj,d=S.rf,P='/api/projects/'+encodeURIComponent(project)+'/reforms',f=$('#rfForm');f.hidden=false;$('#rfNew').hidden=true;document.querySelectorAll('#main>.rfp,#main>.empty').forEach(x=>x.hidden=true);
-  const RC={'低':'ok','中':'warn','高':'bad'};const draftKey='tmh.reform.draft.'+S.user+'.'+P;let draft=JSON.parse(sessionStorage.getItem(draftKey)||'{}'),kind=draft.kind||'restructure';const sel=new Set(draft.domains||[]);
-  const doms=d.domains.filter(x=>x.id!=='dom:_');
-  f.innerHTML=`<div class="card" style="margin-bottom:16px"><h2>新建改造计划</h2>
-   <div class="rfk">${Object.entries(d.kinds).map(([k,v])=>`<button class="rfkb ${k===kind?'on':''}" data-k="${k}"><b>${h(v.label)}</b><span>${h(v.desc)}</span></button>`).join('')}</div>
-   <div class="grid2" style="margin-top:12px"><div style="display:flex;flex-direction:column;gap:8px;min-width:0">
-    <label for="rfT">名称</label><input id="rfT" placeholder="名称，例如：请假审批模块分层整理">
-    <label for="rfG">目标、范围与验收标准</label><textarea id="rfG" style="min-height:90px" placeholder="改成什么样：目标、做法、完成的标准。例如：Spring 4.3 升到 5.3，JDK 8 升到 17，替换掉已废弃的接口。"></textarea>
-    <label for="rfK">不可变约束</label><textarea id="rfK" style="min-height:60px" placeholder="不能变的东西（可空）：对外接口、表结构、报表口径……"></textarea>
-    <label for="rfSource">固定源提交（完整 SHA）</label><input id="rfSource" required pattern="[0-9a-f]{40}([0-9a-f]{24})?">
-    <label for="rfEnvironment">目标环境</label><input id="rfEnvironment" required>
-    <label for="rfCriteria">验收标准，每行一条</label><textarea id="rfCriteria" required></textarea><label for="rfDependencies">依赖与前置条件，每行一条</label><textarea id="rfDependencies"></textarea>
-    <label for="rfTg">目标目录</label><input id="rfTg" placeholder="目标目录（跨语言重写必填，例如 java；新代码写在这里，原代码只读）">
-    <details id="rfLd"><summary>先导部分（可空）：各业务域都要用的公共部分，先单独做、验收通过后再放出其余部分</summary>
-     <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px"><label for="rfLt">先导名称</label><input id="rfLt" placeholder="名称，例如：工程骨架"><label for="rfLb">先导任务</label><textarea id="rfLb" style="min-height:70px" placeholder="要做什么，例如：建工程和依赖、数据库配置、建表、实体、登录鉴权、统一错误格式"></textarea></div></details>
-    <label class="sub" style="display:flex;gap:8px;align-items:center">每批上限 <input id="rfW" type="number" min="1" max="20" value="3" style="width:70px"> 张工单</label>
-    <label class="sub" style="display:flex;gap:8px;align-items:center"><input id="rfA" type="checkbox" checked> 当前代码部分通过集成验证与业务验收后，自动推进下一部分</label>
-    <details id="rfDeps"><summary>看项目当前依赖（升级、迁移时写目标版本用）</summary><div class="sub">加载中…</div></details></div>
-   <div style="min-width:0"><div class="hdr" style="margin-bottom:6px"><label for="rfScope">范围</label><select id="rfScope"><option value="all">全部业务域</option><option value="selected">选择部分业务域</option></select><input id="rfQ" placeholder="筛选" style="width:120px"><button class="ghost" id="rfAll">全选</button><button class="ghost" id="rfNone">清空</button></div>
-    <div class="rfdl" id="rfDl"></div></div></div>
-   <h3 style="margin:14px 0 6px">拆分预览 <span class="sub" id="rfPn" style="font-weight:400"></span></h3><div id="rfPv"><div class="sub">选择范围后查看拆分。部分范围零选择不能创建。</div></div>
-   <div class="row" style="gap:8px;margin-top:12px"><button class="primary" id="rfGo">建立计划</button><button id="rfRecoverCreate" ${sessionStorage.getItem(draftKey+'.create')?'':'hidden'}>找回上次创建</button><button class="ghost" id="rfX">取消</button><span class="sub">建好后不会马上开单，由你点“放出第一批”。</span></div></div>`;
-  const fields=['rfT','rfG','rfK','rfTg','rfLt','rfLb','rfW','rfScope','rfSource','rfEnvironment','rfCriteria','rfDependencies'];const saveDraft=()=>{const value={kind,domains:[...sel],rfA:$('#rfA').checked};fields.forEach(id=>value[id]=$('#'+id).value);sessionStorage.setItem(draftKey,JSON.stringify(value))};fields.forEach(id=>{if(draft[id]!==undefined)$('#'+id).value=draft[id]});if(draft.rfA!==undefined)$('#rfA').checked=draft.rfA;f.addEventListener('input',saveDraft);f.addEventListener('change',saveDraft);
-  const paint=()=>{const q=$('#rfQ').value.trim();$('#rfDl').innerHTML=doms.filter(x=>!q||x.title.includes(q)).map(x=>`<label class="rfd"><input type="checkbox" data-d="${h(x.id)}" ${sel.has(x.id)?'checked':''}><span class="grow">${h(x.title)}</span><span class="sub">${x.flows} 流 · ${x.tables} 表</span></label>`).join('')||'<div class="sub">没有匹配的业务域</div>';
-    document.querySelectorAll('#rfDl [data-d]').forEach(c=>c.onchange=()=>{c.checked?sel.add(c.dataset.d):sel.delete(c.dataset.d);$('#rfScope').value='selected';preview()})};
-  let tm,previewRevision='',read=0;const preview=()=>{saveDraft();const sequence=++read;previewRevision='';$('#rfGo').disabled=true;clearTimeout(tm);tm=setTimeout(async()=>{try{const r=await post(P,{preview:true,scope_mode:$('#rfScope').value,domains:[...sel],wave:+$('#rfW').value,lead:{title:$('#rfLt').value,body:$('#rfLb').value}});if(sequence!==read||!f.isConnected)return;previewRevision=r.knowledge_revision;$('#rfGo').disabled=!r.items.length;$('#rfPn').textContent=r.items.length+' 个代码部分；'+r.scheduling_reason;
-    $('#rfPv').innerHTML=`<div class="tw"><table class="t"><tr><th class="num">顺序</th><th>业务域</th><th class="num">业务流</th><th class="num">表</th><th>和别的域共用表</th><th>牵连</th></tr>${r.items.map(it=>`<tr><td class="num">${it.order}</td><td><b>${h(it.title)}</b></td><td class="num">${it.flows}</td><td class="num">${it.tables}</td><td>${it.shared.map(([n,c])=>`<span class="tag">${h(n)} ${c}</span>`).join(' ')||'<span class="sub">无</span>'}</td><td><span class="ev-tag ${RC[it.risk]}">${it.risk}</span></td></tr>`).join('')}</table></div>`}catch(e){if(sequence===read&&f.isConnected){$('#rfPn').textContent=e.message;$('#rfGo').disabled=true}}},250)};
-  document.querySelectorAll('.rfkb').forEach(b=>b.onclick=()=>{kind=b.dataset.k;document.querySelectorAll('.rfkb').forEach(x=>x.classList.toggle('on',x===b))});
-  $('#rfScope').onchange=preview;$('#rfW').onchange=preview;$('#rfLt').oninput=preview;$('#rfLb').oninput=preview;$('#rfQ').oninput=paint;$('#rfAll').onclick=()=>{const q=$('#rfQ').value.trim();doms.filter(x=>!q||x.title.includes(q)).forEach(x=>sel.add(x.id));paint();preview()};$('#rfNone').onclick=()=>{sel.clear();$('#rfScope').value='selected';paint();preview()};
-  $('#rfDeps').ontoggle=async e=>{if(!e.target.open||e.target.dataset.l)return;e.target.dataset.l=1;const r=await get(P+'/deps');
-    e.target.lastElementChild.outerHTML=r.deps.length?`<div class="tw" style="max-height:260px;overflow:auto"><table class="t"><tr><th>类型</th><th>名称</th><th>版本</th><th>文件</th></tr>${r.deps.map(x=>`<tr><td>${h(x.system)}</td><td class="key">${h(x.name)}</td><td class="key">${h(x.version||'—')}</td><td class="sub">${h(x.file)}</td></tr>`).join('')}</table></div>`:'<div class="sub">没有找到 pom.xml、package.json、.csproj 或 requirements.txt</div>'};
-  $('#rfX').onclick=()=>vReform(project);
-  $('#rfRecoverCreate').onclick=async()=>{try{const saved=JSON.parse(sessionStorage.getItem(draftKey+'.create'));if(!saved)throw new Error('没有待核对的创建请求');const created=await post(P,{...saved.body,request_id:saved.request_id});sessionStorage.removeItem(draftKey+'.create');toast('已找回原计划；当前编辑稿仍保留');if(f.isConnected)location.hash='#/projects/'+encodeURIComponent(project)+'/reforms/'+encodeURIComponent(created.id)}catch(e){$('#rfRecoverCreate').hidden=!sessionStorage.getItem(draftKey+'.create');toast(e.message)}};
-  $('#rfGo').onclick=async()=>{try{if(!/^[0-9a-f]{40}([0-9a-f]{24})?$/.test($('#rfSource').value)||!$('#rfEnvironment').value.trim()||!$('#rfCriteria').value.trim())throw new Error('请完整填写固定源提交、目标环境与验收标准；原稿已保留');const createBody={source_version:$('#rfSource').value,target_environment:$('#rfEnvironment').value,criteria:$('#rfCriteria').value.split('\n').filter(x=>x.trim()),dependencies:$('#rfDependencies').value.split('\n').filter(x=>x.trim()),kind,title:$('#rfT').value,goal:$('#rfG').value,keep:$('#rfK').value,target:$('#rfTg').value,lead:{title:$('#rfLt').value,body:$('#rfLb').value},wave:+$('#rfW').value,auto:$('#rfA').checked,scope_mode:$('#rfScope').value,knowledge_revision:previewRevision,domains:[...sel]};const pendingKey=draftKey+'.create',pending=JSON.parse(sessionStorage.getItem(pendingKey)||'null');if(pending&&JSON.stringify(createBody)!==JSON.stringify(pending.body))throw new Error('上次创建结果待核对；请恢复原输入后用原请求继续核对，当前草稿已保留');const saved=pending||{body:createBody,request_id:crypto.randomUUID()};sessionStorage.setItem(pendingKey,JSON.stringify(saved));$('#rfGo').disabled=true;let created;try{created=await post(P,{...saved.body,request_id:saved.request_id})}finally{$('#rfGo').disabled=false}sessionStorage.removeItem(pendingKey);sessionStorage.removeItem(draftKey);toast('计划已建立，尚未启动');if(f.isConnected)location.hash='#/projects/'+encodeURIComponent(project)+'/reforms/'+encodeURIComponent(created.id)}catch(e){$('#rfRecoverCreate').hidden=!sessionStorage.getItem(draftKey+'.create');toast(e.message)}};
-  paint();preview()}
 
 // ---------- 闭环改进: lessons from acceptance, the eval set, alerts that open tickets
 async function vLearn(){

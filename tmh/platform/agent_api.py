@@ -15,7 +15,6 @@ from types import SimpleNamespace
 from ..agent_contract import SPECS
 from .errors import ApiError
 from .store import now, _keyed
-from . import reform_api
 
 
 WRITES = frozenset(name for name, spec in SPECS.items() if spec["write"])
@@ -165,8 +164,6 @@ def _req(req, actor, body=None, query=None):
 def _resource(P, operation, args):
     if operation in ("maps_list","map_get","map_create"):
         return "project:%d:maps" % _project(P,args["project"])["id"]
-    if operation.startswith('reform'):
-        return "project:%d:reform:%s" % (_project(P,args['project'])['id'],args.get('plan_id','create'))
     if operation.startswith("library_"):
         return "project:%d:library" % _project(P, args["project"])["id"]
     if "probe_id" in args:
@@ -228,22 +225,13 @@ def _write(P, req, actor, operation, args):
                 st.db.commit()
                 if row["fingerprint"] != fingerprint:
                     raise ApiError(409, "同一 request_id 已用于不同操作或内容，请保留原回执并为新操作使用新编号")
-                if row['state'] in ('pending','uncertain') and operation.startswith('reform'):
-                    receipt = st.one('SELECT * FROM reform_operations WHERE actor=? AND request_id=?',(actor,request_id)) if st.one("SELECT name FROM sqlite_master WHERE name='reform_operations'") else None
-                    if receipt and receipt['fingerprint']==fingerprint:
-                        recovered = json.loads(receipt['result'])
-                        if operation=='reform_create':
-                            from .reform_api import packet
-                            recovered=dict(packet(P,_project(P,args['project']),recovered),operation_id=request_id,request_id=request_id,request_state='succeeded')
-                        st.x("UPDATE agent_requests SET state='complete',result=?,error='',updated=? WHERE agent=? AND request_id=?",(_json(recovered),now(),actor,request_id))
-                        return recovered
                 return _replay(row)
             # A lost launch receipt must prevent another launch, but must never
             # prevent stopping that run or discussing what happened. Cancellation
             # and message receipts do not themselves own an execution resource.
             pending = None
-            if operation not in ("run_recover", "run_cancel", "candidate_cancel", "harness_probe_cancel", "library_cancel", "message_send") and not (operation=="reform_control" and args["action"] in ("pause","cancel")):
-                pending = st.db.execute("SELECT request_id FROM agent_requests WHERE resource=? AND state IN ('pending','uncertain') AND operation IN ('reform_create','reform_update','reform_control','reform_archive','ticket_create','run_start','run_retry','run_recheck','preview_start','candidate_submit','candidate_verify','candidate_preview','candidate_decide','candidate_assess','harness_probe_start','library_build','library_resume','library_reference','library_unlink') LIMIT 1", (resource,)).fetchone()
+            if operation not in ("run_recover", "run_cancel", "candidate_cancel", "harness_probe_cancel", "library_cancel", "message_send"):
+                pending = st.db.execute("SELECT request_id FROM agent_requests WHERE resource=? AND state IN ('pending','uncertain') AND operation IN ('ticket_create','run_start','run_retry','run_recheck','preview_start','candidate_submit','candidate_verify','candidate_preview','candidate_decide','candidate_assess','harness_probe_start','library_build','library_resume','library_reference','library_unlink') LIMIT 1", (resource,)).fetchone()
             if pending:
                 raise ApiError(409, "needs_reconcile: 此对象还有未确认的请求 %s；先核对原始回执，不会开始重复操作" % pending["request_id"])
             ts = now()
@@ -296,7 +284,7 @@ def dispatch(P, req, operation):
     if operation in EXECUTIONS and req.h.headers.get("X-Webuddy-Execution") != "1":
         raise ApiError(403, "此操作会启动模型、构建或预览进程；客户端需显式启用执行权限 X-Webuddy-Execution: 1")
     _schema(P.store)
-    if operation in EXECUTIONS and operation!='run_recover' and not operation.startswith('library_') and not operation.endswith('_cancel') and not (operation=='reform_control' and args['action'] in ('pause','cancel')):
+    if operation in EXECUTIONS and operation!='run_recover' and not operation.startswith('library_') and not operation.endswith('_cancel'):
         from .project_library import require_development
         resource = _resource(P, operation, args)
         target = None
@@ -419,11 +407,6 @@ def _execute(P, req, actor, operation, a):
             raise ApiError(403,'工具未获此项目的读取权限')
         if operation=='map_create':req.agent_side_effect_started=True
         return code_maps.execute(P,project,actor,operation,a)
-    if operation.startswith('reform'):
-        project=_project(P,a['project'])
-        if visible_ids is not None and project['id'] not in visible_ids:
-            raise ApiError(403,'工具未获此项目的读取权限')
-        return reform_api.execute(P,req,actor,operation,a)
     if operation == 'run_recover':
         run = _run(P,a['run_id'])
         if run['project_id'] != _project(P,a['project'])['id']:

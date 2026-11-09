@@ -12,7 +12,7 @@ from ._common import _allowed_project_ids, _human_action, _personal_review_acces
 def api_tickets(P, req):
     pid = P.project(req.arg("project"))["id"] if req.arg("project") not in (None, "", "*", "all") else None
     return P.store.tickets(project_id=pid, status=req.arg("status") or None, text=req.arg("q") or None,
-                           assignee=req.arg("assignee") or None, limit=int(req.arg("limit") or 500), svc=req.arg("svc") or None,
+                           assignee=req.arg("assignee") or None, limit=int(req.arg("limit") or 500),
                            allowed_projects=_allowed_project_ids(P, req))
 
 
@@ -68,7 +68,6 @@ def api_ticket(P, req, key):
             if v:
                 r["verify"]["files"] = len(v.get("files") or [])
     from .. import epic, signoff, stage, workbench, intake, team, ai_accept, development
-    from .. import reform_state
     par = P.store.ticket(t["links"]["parent"]) if (t.get("links") or {}).get("parent") else None
     return {"ticket": t, "project": p, "events": P.store.events(t["id"]), "runs": [r for r in runs if r["mode"] != "ask"],
             "team_assignment": team.assignment(P, t),
@@ -79,7 +78,6 @@ def api_ticket(P, req, key):
             "stage": stage.compute(P, [t])[t["key"]],
             "evidence": P.ticket_evidence(p, t, runs), "auto_next": P.flow.next_step(t, retry=True)[0],
             "package": dict(signoff.brief(P.data_dir, t["key"]), personal_review=_personal_review_access(P, req, t)), "epic": epic.view(P, t) if epic.is_parent(t) else None,
-            "reform_state": reform_state.ticket(P,p,t) if t["links"].get("reform") else None,
             "parent": {"key": par["key"], "title": par["title"], "status": par["status"]} if par else None}
 
 

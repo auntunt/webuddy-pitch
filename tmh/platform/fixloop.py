@@ -394,9 +394,6 @@ class FixLoop:
     def execute(self, seq: list, untouched: bool = False) -> list:
         """Run the build commands on the change, or with `untouched` on the commit without it (the working tree may
         already hold the change, as when a finished change is built again)."""
-        from .reform_authority import run as reform_authority
-        if getattr(self.r,'tenant_context',None) is not None:
-            reform_authority(self.r,self.p,self.t)
         if seq and seq[0][1].startswith("project-tests:"):
             from . import project_tests
             try:

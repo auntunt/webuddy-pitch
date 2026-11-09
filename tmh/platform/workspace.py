@@ -63,7 +63,7 @@ def read(P, query, viewer):
         recorded_stage = handoff["stage"] if handoff else "unrecorded"
         items.append({"key": t["key"], "title": t["title"], "project": t["key"].rsplit("-", 1)[0], "status": t["status"],
                       "priority": t["priority"], "updated": t["updated"], "assignee": a["assignee"], "reviewer": a["reviewer"],
-                      "needs_review": needs_review, "reform": bool((t.get("links") or {}).get("reform")),
+                      "needs_review": needs_review,
                       "stage": recorded_stage, "stage_label": STAGES[recorded_stage],
                       "stage_source": "handoff" if handoff else "unrecorded", "handoff": handoff,
                       "next_actor": a["assignee"] if terminal_merge else handoff["next_actor"] if handoff else (a["reviewer"] if needs_review and a["reviewer"] else a["assignee"]) or None,

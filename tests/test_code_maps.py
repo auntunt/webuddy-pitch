@@ -27,7 +27,6 @@ class SavedMapsTest(unittest.TestCase):
         saved=code_maps.create(self.P,self.p,'fixture',self.args)
         before=self.P.store.db.total_changes
         current=code_maps.execute(self.P,self.p,'fixture','map_get',{'map_id':saved['id']})
-        self.assertEqual(current.pop('linked_plans'),[])
         self.assertEqual(current,saved)
         self.assertEqual(before,self.P.store.db.total_changes)
         self.assertTrue(all(e['kind'] in code_maps.RELATIONS for e in saved['relations']))
@@ -68,20 +67,6 @@ class SavedMapsTest(unittest.TestCase):
         source=json.loads(packet['content'][0]['text'])
         self.assertIn('return amount',source['text']);self.assertEqual(source['provenance']['index_status'],'stale')
 
-    def test_draft_handoff_survives_normalization_and_rejects_foreign_map(self):
-        from tmh.platform import reform,reform_api
-        from types import SimpleNamespace
-        saved=code_maps.create(self.P,self.p,'fixture',self.args)
-        refs=[{'map_id':saved['id'],'revision':1,'nodes':[saved['nodes'][0]['id']]}]
-        atlas={'built':'fixture','domains':[{'id':'one','title':'One','tables':0}]}
-        with patch.object(self.P.kb,'atlas',return_value=atlas):
-            plan=reform.create(self.P.data_dir,'EXT',atlas,dict(title='Refund scenario',goal='Preserve refund'),'fixture')
-            result=reform_api.execute(self.P,SimpleNamespace(user='fixture'),'fixture','reform_update',dict(project='EXT',plan_id=plan['id'],expected_revision=1,request_id='attach-map',reason='Scope reference',changes={'map_refs':refs}))
-            self.assertEqual(result['map_refs'],refs)
-            current=code_maps.execute(self.P,self.p,'fixture','map_get',{'map_id':saved['id']})
-            self.assertEqual(current['linked_plans'][0]['plan_id'],plan['id'])
-            with self.assertRaises(ApiError):code_maps.validate_refs(self.P.store,dict(self.p,id=999),refs)
-
     def test_registered_executor_actually_receives_selected_map(self):
         import json,sys,time
         from tmh.platform import agents
@@ -104,54 +89,6 @@ class SavedMapsTest(unittest.TestCase):
         receipt=json.loads((self.P.data_dir/'runs'/str(run['id'])/'context.json').read_text())
         item=next(m for m in receipt if m['mode']=='code_maps')
         self.assertEqual(item['maps'][0]['injected'],[node['id']])
-
-    def test_scenario_originals_report_keeps_independent_failure_and_map_reference(self):
-        import json,sys
-        from tests import test_project_tests as checks
-        from tmh.platform import reform,report_exports
-        # Independent policy is fixed before either implementation runs.
-        with (self.f.repo/'.gitignore').open('a') as out:out.write('report.json\nevidence/\nplan.json\n')
-        (self.f.repo/'refund-check.py').write_text("import json,sys\nfrom refund import refund\nexpected=1250\nactual=refund(1250)\npassed=actual==expected\nopen('report.json','w').write(json.dumps({'cases':[{'id':'sum','status':'pass' if passed else 'fail','input':1250,'expected':expected,'actual':actual}]}))\nsys.exit(0 if passed else 1)\n")
-        self.f.git('add','.');self.f.git('commit','-m','independent refund fixture')
-        source=self.f.git('rev-parse','HEAD')
-        graph.build(self.f.repo)
-        saved=code_maps.create(self.P,self.p,'fixture',dict(self.args,request_id='scenario-map'))
-        refs=[{'map_id':saved['id'],'revision':1,'nodes':[next(n['id'] for n in saved['nodes'] if n['name']=='refund')]}]
-        atlas={'built':'fixture','domains':[{'id':'one','title':'One','tables':0}]}
-        plan=reform.create(self.P.data_dir,'EXT',atlas,dict(title='Synthetic refund',goal='Refund exactly 1250 cents',source_version=source,target_environment='隔离Python进程与本地项目测试适配器',criteria=['输入1250分时原额退回；独立规则fixture://independent-refund-policy-v1'],map_refs=refs,scenario={'rules':['合成独立规则：退款保持1250分'],'expectation_sources':['fixture://independent-refund-policy-v1'],'sources':[{'id':'policy','kind':'policy','reference':'fixture://independent-refund-policy','version':'v1'}]}),'fixture')
-        with reform._transaction(self.P.data_dir,self.P.store) as db:
-            plans=reform._load(self.P.data_dir,'EXT',db);plans[0]['items'][0]['ticket']=self.f.ticket['key'];reform._save(self.P.data_dir,'EXT',plans,db)
-        self.P.store.update_ticket(self.f.ticket['id'],'fixture',title='合成退款规则验证',body='输入1250分时必须原额退回；此预期在实现执行前固定。',links={'reform':{'plan':plan['id']},'map_refs':refs})
-        helper=checks.ProjectTests('runTest');helper.root=self.f.repo
-        for body,want in [('0','failed'),('amount','passed')]:
-            (self.f.repo/'refund.py').write_text('def refund(amount):\n    return '+body+'\n')
-            profile=helper.profile('"'+sys.executable+'" -B refund-check.py')
-            result=helper.execute(profile,[{'id':'A1','text':'退款保持1250分','source':'fixture://independent-refund-policy-v1'}])
-            self.assertEqual(result['verification_state'],want,result)
-            run=self.P.store.create_run(self.p['id'],self.f.ticket['id'],'fixture-real-project-tests','verify','fixture','Independent 1250 cents; '+want)
-            self.P.store.update_run(run['id'],status='failed' if want=='failed' else 'done',exit_code=1 if want=='failed' else 0)
-            folder=self.P.data_dir/'runs'/str(run['id']);folder.mkdir(parents=True,exist_ok=True)
-            (folder/'verify.json').write_text(json.dumps(result))
-            import shutil
-            shutil.copytree(self.f.repo/'evidence',folder/'project-tests'/'fixture',dirs_exist_ok=True)
-        plan=reform.plan(self.P.data_dir,'EXT',plan['id'])
-        manifest=report_exports.create(self.P,self.p,plan,'fixture',dict(project='EXT',plan_id=plan['id'],expected_revision=plan['revision'],request_id='scenario-export'))
-        from tmh.report_download import download
-        from types import SimpleNamespace
-        client=SimpleNamespace(call=lambda op,a:report_exports.read(self.P,self.p,plan,a))
-        result=download(client,'EXT',plan['id'],manifest['export_id'],self.P.data_dir/'delivery')
-        reading=(Path(result['directory'])/'report.md').read_text()
-        self.assertIn(saved['id'],reading);self.assertIn('失败',reading);self.assertIn('1250',reading)
-        original=json.loads((Path(result['directory'])/(self.f.ticket['key']+'.json')).read_text())
-        self.assertEqual(len(original['runs']),2)
-        self.assertIsNone(original['ready_to_merge'])
-        import os,shutil
-        if os.environ.get('WEBUDDY_MAP_EVIDENCE_DIR'):
-            target=Path(os.environ['WEBUDDY_MAP_EVIDENCE_DIR']);target.mkdir(parents=True,exist_ok=True)
-            shutil.copytree(result['directory'],target/manifest['export_id'],dirs_exist_ok=True)
-            (target/'saved-map.json').write_text(json.dumps(code_maps.load(self.P.store,self.p,saved['id']),ensure_ascii=False,indent=2))
-            shutil.copytree(self.P.data_dir/'runs',target/'original-runs',dirs_exist_ok=True)
-
 
     def test_knowledge_is_frozen_material_not_automatic_adoption(self):
         from tmh import kb

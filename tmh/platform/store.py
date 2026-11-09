@@ -74,7 +74,6 @@ CREATE INDEX IF NOT EXISTS ix_events_ticket ON events(ticket_id);
 CREATE INDEX IF NOT EXISTS ix_runs_ticket ON runs(ticket_id);
 """
 
-REFORM_LIKE = '%"reform":%'  # tickets released by a reform plan carry links.reform
 JSON_COLS = {"labels", "links", "external", "data"}
 SESSION_KINDS = [("consult", "项目咨询"), ("matter", "维护事项"), ("ticket", "关联工单")]
 # columns added after the first release; older platform.db files get them on open
@@ -195,15 +194,11 @@ class Store:
         return self.project(pid)
 
     # ---- tickets
-    def tickets(self, project_id=None, status=None, text=None, assignee=None, limit=500, svc=None, *, allowed_projects=None) -> list:
-        """`svc` picks a service: "reform" for pieces of reform plans, "ops" for everything else."""
+    def tickets(self, project_id=None, status=None, text=None, assignee=None, limit=500, *, allowed_projects=None) -> list:
         sql, args = "SELECT t.*, p.key AS pkey FROM tickets t JOIN projects p ON p.id=t.project_id WHERE 1=1", []
         if allowed_projects is not None:
             sql += " AND t.project_id IN (%s)" % (",".join("?" for _ in allowed_projects) or "NULL")
             args.extend(allowed_projects)
-        if svc in ("ops", "reform"):
-            sql += " AND t.links %s ?" % ("LIKE" if svc == "reform" else "NOT LIKE")
-            args.append(REFORM_LIKE)
         if project_id:
             sql += " AND t.project_id=?"
             args.append(project_id)

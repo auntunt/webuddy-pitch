@@ -718,11 +718,6 @@ def _decide(P, token: str, action: str, name: str, verdicts: dict, note: str, cl
     from . import epic
     if epic.refuse(t, "accept"):
         raise ApiError(409, epic.refuse(t, "accept"))
-    from .reform_delivery import guard as reform_guard
-    try:
-        reform_guard(P,t,passed=action == 'sign')
-    except ValueError as exc:
-        raise ApiError(409,str(exc)) from exc
     who = "%s（甲方%s）" % (name, x["role"] or "确认人")
     data = {"signer": name, "role": x["role"], "ac": res, "note": note, "pack_hash": s["pack_hash"], "package_hash": s["hash"],
             "via": "签收链接", "client": client[:60], "ac_source": (s["snapshot"] or {}).get("ac_source", ""),
@@ -1072,11 +1067,6 @@ def record_accept(P, t: dict, by: str, passed: bool, note: str) -> str:
 
 def _record_accept(P, t: dict, by: str, passed: bool, note: str, via: str = "平台验收按钮", basis: dict | None = None) -> str:
     """The 验收 button inside the platform writes into the package too, so every verdict is on the chain."""
-    from .reform_delivery import guard as reform_guard
-    try:
-        reform_guard(P,t,passed=passed)
-    except ValueError as exc:
-        raise ApiError(409,str(exc)) from exc
     s = state(P.data_dir, t["key"])
     if passed:
         _require_current_binding(s)

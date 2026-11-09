@@ -13,50 +13,11 @@ def encoded(value):
     return json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()
 
 
-def create(P, project, plan, actor, args):
-    from .reform_api import report
-    from . import reform
-    from .scenario_report import markdown
-    st=P.store
-    fingerprint=hashlib.sha256(encoded(args)).hexdigest()
-    with st.lock, st.db:
-        st.db.execute('CREATE TABLE IF NOT EXISTS report_exports(id TEXT PRIMARY KEY, project_id INTEGER, plan_id TEXT, actor TEXT, request_id TEXT, fingerprint TEXT, manifest TEXT, UNIQUE(actor,request_id))')
-        st.db.execute('CREATE TABLE IF NOT EXISTS report_export_files(export_id TEXT, name TEXT, body BLOB, PRIMARY KEY(export_id,name))')
-        st.db.execute('BEGIN IMMEDIATE')
-        plan=reform.plan(P.data_dir,project['key'],plan['id'],store=st)
-        old=st.db.execute('SELECT * FROM report_exports WHERE actor=? AND request_id=?',(actor,args['request_id'])).fetchone()
-        if old:
-            if old['fingerprint']!=fingerprint:raise ApiError(409,'请求编号已用于其他导出')
-            return json.loads(old['manifest'])
-        if plan['revision']!=args['expected_revision']:raise ApiError(409,'计划修订已变化，请重新核对再生成报告')
-        value=report(P,project,plan,render=False)
-        children=value.pop('child_evidence')
-        files={}
-        summaries=[]
-        for child in children:
-            name=child['ticket']['key']+'.json'
-            files[name]=encoded(child)
-            summaries.append({'ticket':child['ticket']['key'],'file':name,'conclusions':child['conclusions']})
-        value['child_evidence_files']=summaries
-        files['plan.json']=encoded(value)
-        # The reading edition refers to originals instead of embedding them repeatedly.
-        files['report.md']=(markdown(value,include_raw=False)+'\n'+ '\n'.join(markdown(c,include_raw=False) for c in children)).encode()
-        entries=[{'name':name,'bytes':len(body),'sha256':hashlib.sha256(body).hexdigest(),'chunks':(len(body)+CHUNK-1)//CHUNK,'chunk_sha256':[hashlib.sha256(body[i:i+CHUNK]).hexdigest() for i in range(0,len(body),CHUNK)]} for name,body in sorted(files.items())]
-        export_id=hashlib.sha256(encoded(entries)+fingerprint.encode()+actor.encode()).hexdigest()
-        manifest={'export_id':export_id,'project':project['key'],'plan_id':plan['id'],'revision':plan['revision'],
-                  'generated_at':now(),'chunk_bytes':CHUNK,'files':entries,'current_validity':'not_checked',
-                  'notice':'冻结的保存证据；不触发验证、确认、合并或发布。保留至项目数据归档；不随读取自动清理。'}
-        st.db.execute('INSERT INTO report_exports VALUES(?,?,?,?,?,?,?)',(export_id,project['id'],plan['id'],actor,args['request_id'],fingerprint,encoded(manifest).decode()))
-        st.db.executemany('INSERT INTO report_export_files VALUES(?,?,?)',[(export_id,n,b) for n,b in files.items()])
-    return manifest
-
-
 def create_candidate(P, project, row, actor, args):
     """Frozen export of one candidate verification; same tables, segmenting and
-    sha receipts as reform reports. plan_id is 'candidate:<id>' so read() works
+    sha receipts as other frozen exports. plan_id is 'candidate:<id>' so read() works
     unchanged; current validity stays a live-view concern, the export is frozen."""
     from .candidates import view
-    from .reform_api import report as _r  # noqa: F401 (keeps import graph explicit)
     st = P.store
     fingerprint = hashlib.sha256(encoded(args)).hexdigest()
     with st.lock, st.db:

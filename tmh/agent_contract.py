@@ -53,45 +53,8 @@ SPECS.update({
     "map_create":spec("明确保存业务问题的有限静态子图；复用现有索引，不调用模型，不派发或确认。from_map只允许相同索引扩展并生成新地图。",dict(project=PROJECT,question=text(minLength=1,maxLength=2000),limit=integer(minimum=1,maximum=60,default=30),from_map=MAP,request_id=REQUEST),["project","question","request_id"],write=True),
 })
 
-PLAN = text("稳定改造计划编号", pattern=r"^r[A-Za-z0-9]+$")
-REFORM_FIELDS = {
-    "kind":text("改造类型",enum=["restructure","upgrade","migrate","adapt","rewrite"]),
-    "title":text("改造名称",minLength=1), "goal":text("完整目标与范围",minLength=1),
-    "keep":text("不可变约束；无额外约束时明确写无"),
-    "scope_mode":text("明确范围",enum=["all","selected"]),
-    "domains":dict(type="array",uniqueItems=True,items=text(minLength=1)),
-    "lead":dict(type="object",additionalProperties=False,properties={"title":text(),"body":text()},required=["title","body"]),
-    "wave":integer("每批上限；未确认并行关系时每部分集成后串行推进",minimum=1,maximum=20),
-    "source_version":text("固定源提交",pattern=r"^[0-9a-f]{40}([0-9a-f]{24})?$"),
-    "target_environment":text("目标环境",minLength=1),
-    "criteria":dict(type="array",minItems=1,items=text(minLength=1)),
-    "dependencies":dict(type="array",items=text(minLength=1)),
-    "target":text("项目内目标目录；重写必填"),
-    "knowledge_revision":text("preview返回的知识修订",pattern=r"^[0-9a-f]{64}$"),
-}
-from .scenario_contract import SCHEMA as SCENARIO_SCHEMA
-REFORM_REQUIRED = ['title','goal','scope_mode','domains']
-REFORM_FIELDS['map_refs'] = dict(type='array',maxItems=10,items=dict(type='object',additionalProperties=False,required=['map_id','revision','nodes'],properties=dict(map_id=MAP,revision=integer(minimum=1),nodes=dict(type='array',minItems=1,maxItems=60,uniqueItems=True,items=text(minLength=1)))))
-REFORM_FIELDS['scenario'] = SCENARIO_SCHEMA
-REFORM_FIELDS['supersedes'] = dict(type='object',additionalProperties=False,required=['plan_id','revision','reason'],properties={'plan_id':PLAN,'revision':integer(minimum=1),'reason':text(minLength=1)})
-REFORM_RESOURCE = {"project":PROJECT,"plan_id":PLAN}
-REFORM_MUTATION = dict(REFORM_RESOURCE,expected_revision=integer("当前计划修订",minimum=1),request_id=REQUEST)
 SPECS.update({
-    "reforms_list":spec("按项目分页读取同一套持久改造计划。归档与活动分开；不启动执行。",dict(PAGE,project=PROJECT,archived=dict(type="boolean",default=False),status=text(enum=["draft","active","paused","blocked","accepted","cancelled","archived"])),["project"]),
-    "reform_get":spec("读取当前摘要；scope/tasks/checkpoints视图读取完整范围或分页内容。not_checked不能当作通过。",dict(PAGE,**REFORM_RESOURCE,view=text(enum=["summary","scope","tasks","checkpoints","report"])),["project","plan_id"]),
-    "reform_preview":spec("按明确范围与固定知识修订预览拆分；不建单、不调用模型。",dict(project=PROJECT,scope_mode=REFORM_FIELDS['scope_mode'],domains=REFORM_FIELDS['domains'],wave=REFORM_FIELDS['wave'],lead=REFORM_FIELDS['lead']),["project","scope_mode","domains"]),
-    "reform_events":spec("按稳定事件ID分页读取完整已保存历史；早期历史缺口会明确标注。",dict(PAGE,**REFORM_RESOURCE),["project","plan_id"]),
-    "reform_resume_preview":spec("读取计划及现行运行恢复预检，不清除未知结果，不启动执行。",REFORM_RESOURCE,["project","plan_id"]),
-    "reform_create":spec("保存改造草稿，返回身份和修订；允许待补源版本、环境或标准，缺条件时不能启动。创建不调用模型。",dict(REFORM_FIELDS,project=PROJECT,request_id=REQUEST),REFORM_REQUIRED+["project","request_id"],write=True),
-    "reform_update":spec("修订尚未派发的完整契约；已开始的契约不能无声改写。",dict(REFORM_MUTATION,reason=text(minLength=1),changes=dict(type="object",additionalProperties=False,minProperties=1,required=[],properties=REFORM_FIELDS)),list(REFORM_MUTATION)+["reason","changes"],write=True),
-    "reform_control":spec("控制计划调度：暂停不停止当前运行；取消保留已派发工作及历史。执行仍受当前授权和批次门禁约束。",dict(REFORM_MUTATION,action=text(enum=["start","release_next","pause","resume","cancel"])),list(REFORM_MUTATION)+["action"],write=True,execution=True),
-    "reform_archive":spec("归档无活跃或待调度工作的计划，保留历史。要求当前项目管理权限，不隐式停止或启动。",REFORM_MUTATION,list(REFORM_MUTATION),write=True),
     "run_recover":spec("核对已有运行的停止回执和所有权，可能进行受管回收；不重跑、不批准。",dict(project=PROJECT,run_id=RID,request_id=REQUEST),["project","run_id","request_id"],write=True,execution=True),
-})
-
-SPECS.update({
-    'reform_report_create':spec('显式生成冻结报告与完整附件。写入导出记录，不调用模型、不验收；原请求号可查询回执。',REFORM_MUTATION,list(REFORM_MUTATION),write=True),
-    'reform_report_get':spec('读取已有冻结清单或48KiB附件分段；逐段及整文件SHA256校验。同一export_id可恢复，不生成内容。',dict(REFORM_RESOURCE,export_id=text(pattern=r'^[0-9a-f]{64}$'),file=text(),offset=integer(minimum=0)),['project','plan_id','export_id']),
 })
 
 SID = text("需求对话编号；intake_start 返回的 session.id", pattern=r"^[0-9a-f]{12}$")

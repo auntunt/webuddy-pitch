@@ -277,7 +277,7 @@ class Orchestra:
 
     def accepted(self, p: dict, t: dict, passed: bool, note: str, by: str) -> dict:
         """A person's verdict on a task: keep what it teaches, send a rejected automatic change back to be redone,
-        and tell every app that listens (for instance a reform plan moving on to its next wave)."""
+        and tell every app that listens."""
         from . import learn
         later = (t.get("links") or {}).get("later")
         out = {} if later else learn.on_accept(self, p, t, passed, note, by)

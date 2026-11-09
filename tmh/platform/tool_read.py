@@ -12,8 +12,6 @@ import json
 from pathlib import Path
 
 from .errors import ApiError
-from .scenario_report import markdown as scenario_markdown
-from ..scenario_contract import recorded as scenario_recorded
 
 NOTICE = '仅提供已保存的历史记录；当前提交、进程、健康、验证及人工决定有效性均未核对。历史 URL 仅为原文，不是可导航的有效预览。'
 
@@ -326,9 +324,7 @@ def ticket_get(P, key, visible_ids):
     requirement = None
     if evidence_original['jsonl_status'] == 'complete':
         requirement = _requirement(t, P.store, reference_inputs=inputs, contract_records=evidence)
-    from . import reform_state
     return {'ticket': t, 'project': p, 'events': P.store.events(t['id']), 'runs': runs,
-            'reform_state': reform_state.ticket(P,p,t) if t['links'].get('reform') else None,
             'team_assignment': team.assignment(P, t), 'history': {'historical': True,
                 'runs': [run_history(P, run) for run in runs],
                 'evidence': evidence, 'evidence_original': evidence_original},
@@ -370,18 +366,6 @@ def delivery_get(P, key, visible_ids, *, render=True):
     packet = ticket_get(P, key, visible_ids)
     t = packet['ticket']
     candidates = [candidate(P, row['id'], visible_ids) for row in packet['external_candidates']]
-    from . import reform
-    ref=t.get('links',{}).get('reform') or {}
-    scenario=None
-    if ref.get('plan'):
-        try:
-            plan=reform.plan(P.data_dir,packet['project']['key'],ref['plan'],store=P.store)
-        except KeyError:
-            scenario={'status':'unavailable','reason':'关联计划不存在'}
-        else:
-            scenario=dict(scenario_recorded(plan.get('scenario')),plan_id=plan['id'],revision=plan['revision'],
-                source_version=plan.get('source_version'),target_environment=plan.get('target_environment'),
-                supersedes=plan.get('supersedes'),predecessor_contract=plan.get('predecessor_contract'))
     consumption=[]
     for history in packet['history']['runs']:
         run=history['run']
@@ -397,7 +381,7 @@ def delivery_get(P, key, visible_ids, *, render=True):
                 'cost_source':timing.get('cost_source','unknown'),
                 'notice':'单次进程回执；不汇总重叠缓存口径，不把CLI费用当供应商账单。'})
     result = {'schema_version': 1, 'ticket': t, 'project': packet['project'],
-            'scenario':scenario,'consumption':consumption,
+            'consumption':consumption,
             'conclusions':{'checks_finished':'not_checked','engineering_gate':'not_checked','business_acceptance':'see_recorded_events'},
             'development': development.read(P.store, t),
             'repository': packet['repository'], 'team_assignment': packet['team_assignment'],
@@ -412,6 +396,4 @@ def delivery_get(P, key, visible_ids, *, render=True):
             'links': {'task': '#/t/' + t['key'], 'review': '#/team/ticket/' + t['key']}}
     from .store import now
     result['generated_at']=now()
-    if render:
-        result['report_markdown']=scenario_markdown(result)
     return result

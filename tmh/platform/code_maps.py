@@ -121,12 +121,7 @@ def execute(P, project, actor, op, args):
     if args.get('node_id') and args.get('knowledge_id'):raise ApiError(400,'一次只读取一个源码节点或知识来源')
     value=load(P.store,project,args['map_id'])
     if not args.get('node_id') and not args.get('knowledge_id'):
-        from . import reform
-        linked=[{'plan_id':p['id'],'revision':p['revision'],'title':p['title'],'source_version':p.get('source_version'),
-                 'tasks':[i['ticket'] for i in p['items'] if i.get('ticket')],
-                 'deep_link':'#/projects/'+project['key']+'/reforms/'+p['id']} for p in reform.plans(P.data_dir,project['key'],include_archived=True,store=P.store)
-                 if any(r['map_id']==value['id'] for r in p.get('map_refs',[]))]
-        return dict(view(value),linked_plans=linked)
+        return view(value)
     if args.get('knowledge_id'):
         knowledge=next((k for k in value.get('knowledge_references',[]) if k['id']==args['knowledge_id']),None)
         node=dict(id=knowledge['id'],file=knowledge['path'],line=1,label=knowledge['record'].get('title',knowledge['id']),authority=knowledge['authority'],source_version='knowledge:'+knowledge['sha256']) if knowledge else None
@@ -149,8 +144,9 @@ def execute(P, project, actor, op, args):
 
 
 def validate_refs(store,project,refs):
-    from ..agent_contract import REFORM_FIELDS,_validate_value
-    try:_validate_value('map_refs',REFORM_FIELDS['map_refs'],refs)
+    from ..agent_contract import MAP,_validate_value,integer,text
+    rule=dict(type='array',maxItems=10,items=dict(type='object',additionalProperties=False,required=['map_id','revision','nodes'],properties=dict(map_id=MAP,revision=integer(minimum=1),nodes=dict(type='array',minItems=1,maxItems=60,uniqueItems=True,items=text(minLength=1)))))
+    try:_validate_value('map_refs',rule,refs)
     except ValueError as exc:raise ApiError(400,str(exc)) from exc
     for ref in refs:
         value=load(store,project,ref['map_id'])

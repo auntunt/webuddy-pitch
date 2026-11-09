@@ -37,7 +37,7 @@ input[type=checkbox],input[type=radio]{min-height:0;width:16px;height:16px;accen
 .skip-link{z-index:100}
 
 /* Header is global; the project scope remains visible while routes change. */
-#top,body.svc-reform #top{
+#top{
  height:var(--shell-height);min-height:var(--shell-height);display:flex;align-items:center;
  gap:14px;padding:0 24px;background:#fff;color:var(--fg);border-bottom:1px solid var(--line);
  position:sticky;top:0;z-index:16;box-shadow:none;
@@ -67,7 +67,7 @@ input[type=checkbox],input[type=radio]{min-height:0;width:16px;height:16px;accen
 #logout{color:var(--mut);font-size:12px}
 #svc{background:var(--soft);border-color:var(--line);border-radius:6px}
 #svc a{color:var(--mut);font-size:12px}
-#svc a.on,body.svc-reform #svc a.on{background:#fff;color:var(--blue);box-shadow:none}
+#svc a.on{background:#fff;color:var(--blue);box-shadow:none}
 
 /* Main navigation is a true sidebar; the page's own tabs stay in its context. */
 #wrap{display:flex;align-items:flex-start;min-height:calc(100dvh - var(--shell-height))}
@@ -286,7 +286,7 @@ body.ast-on #ast{z-index:25}
 }
 @media(max-width:950px){
  :root{--shell-height:112px;--workspace-nav-width:170px}
- #top,body.svc-reform #top{height:auto;min-height:var(--shell-height);display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:9px 12px;padding:12px 18px}
+ #top,
  #top .brand{grid-column:1;grid-row:1;font-size:16px}#account{grid-column:3;grid-row:1;justify-self:end}
  #projSel{grid-column:1;grid-row:2;max-width:100%;width:100%;min-width:0}
  #say{grid-column:2;grid-row:2;max-width:none;width:auto;justify-self:stretch}#say input{width:135px}
@@ -298,7 +298,7 @@ body.ast-on #ast{z-index:25}
 }
 @media(max-width:700px){
  :root{--shell-height:116px;--workspace-nav-width:0px;--workspace-gap:18px}
- #top,body.svc-reform #top{position:sticky;top:0;padding:10px 14px;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;height:auto;min-height:var(--shell-height)}
+ #top,
  #top .brand{font-size:16px;grid-column:1;grid-row:1;min-width:0}#top .brand svg{display:block;width:26px;height:26px}
  #brandName{display:inline}#top .brand #brandName{display:inline}
  #account{grid-column:3;grid-row:1;gap:6px;max-width:100%}#top .me{display:inline-flex;font-size:11px;min-height:30px;padding:5px 9px;max-width:110px;white-space:normal;overflow-wrap:anywhere}

@@ -2,7 +2,7 @@
 
 Business domains, flows, tables, entry points and the code evidence behind them, read from the project's graph
 (graph.db) and knowledge-base pages (.tmh/knowledge). The coding line (orchestra.py) asks it which flows a task
-touches; the apps show it as the atlas, the knowledge base and the architecture map; after a run it queues the pages
+touches; the apps show it as the knowledge base and the architecture map; after a run it queues the pages
 that run made stale. It does not know about tickets except to show which open ones sit on a flow.
 """
 from __future__ import annotations
@@ -298,86 +298,6 @@ class Knowledge:
                 "overview": ix.get("summary", ""), "overview_status": self._kb_status(ix) if ix else "",
                 "report": (root / ".tmh" / "report" / "index.html").exists(), "built_at": self.kb_overview(p).get("built_at", "")}
 
-    # ------------------------------------------------------------ project atlas
-    # The knowledge base drawn as one picture: business domains, the tables they share, and inside each domain its
-    # flows; a flow opens as its chain entry → methods → tables. Facts come from the tool-parsed graph, titles and
-    # summaries from the written pages, and open tickets sit on the flows they touch.
-    def _open_tickets_by_flow(self, p: dict) -> dict:
-        out = {}
-        for t in self.store.tickets(project_id=p["id"], limit=5000):
-            if t["status"] == "closed":
-                continue
-            for f in ((t.get("links") or {}).get("flows") or []):
-                out.setdefault(f, []).append({"key": t["key"], "title": t["title"], "status": t["status"]})
-        return out
-
-    def atlas(self, p: dict) -> dict:
-        from .. import kb
-        from ..graph import Graph, graph_path
-        root = self.root(p)
-        if not graph_path(root).exists():
-            return {"built": False}
-        g = Graph(root)
-        reg = kb.load_registry(root)
-        tk = self._open_tickets_by_flow(p)
-        doms, by_key = [], {}
-        for n in g.nodes("dom"):
-            r = reg.get(n["id"], {})
-            d = {"id": n["id"], "title": r.get("title") or n["label"] or n["name"], "summary": r.get("summary", ""),
-                 "status": self._kb_status(r) if r else "仅事实", "flows": 0, "tables": {}, "tickets": 0, "written": 0}
-            doms.append(d)
-            by_key[n["data"].get("key") or n["name"]] = d
-        other = {"id": "dom:_", "title": "未划分业务域", "summary": "", "status": "", "flows": 0, "tables": {}, "tickets": 0, "written": 0}
-        flows = []
-        for f in g.nodes("flow"):
-            r = reg.get(f["id"], {})
-            d = by_key.get(f.get("domain") or "", other)
-            st = self._kb_status(r) if r else "仅事实"
-            crud = f["data"].get("crud") or {}
-            ts = tk.get(f["id"], [])
-            d["flows"] += 1
-            d["tickets"] += len(ts)
-            d["written"] += st in ("已确认", "待确认")
-            for t, ops in crud.items():
-                d["tables"][t] = d["tables"].get(t, "") + ops
-            flows.append({"id": f["id"], "title": r.get("title") or f["name"], "domain": d["id"], "entry": f["data"].get("trigger", ""),
-                          "kind": f["data"].get("entry_kind", ""), "status": st, "summary": r.get("summary", ""), "crud": crud,
-                          "steps": f["data"].get("steps") if isinstance(f["data"].get("steps"), int) else len(f["data"].get("steps") or []),
-                          "unresolved": f["data"].get("unresolved") or 0, "file": f["file"], "line": f["line"], "tickets": ts})
-        if other["flows"]:
-            doms.append(other)
-        tables = {}
-        for d in doms:
-            for t, ops in d["tables"].items():
-                x = tables.setdefault(t, {"id": "tbl:" + t, "name": t, "domains": {}, "flows": 0, "write": False})
-                x["domains"][d["id"]] = ops
-                x["write"] = x["write"] or any(c in ops for c in "CUDP")
-        for f in flows:
-            for t in f["crud"]:
-                if t in tables:
-                    tables[t]["flows"] += 1
-        for t in tables.values():
-            n = g.node(t["id"])
-            r = reg.get(t["id"], {})
-            t["label"] = (r.get("title") or (n and n["label"]) or "") if (r.get("title") or (n and n["label"] != t["name"])) else ""
-            t["summary"] = r.get("summary", "")
-        # two domains are linked when they touch the same table; the shared tables say why
-        links = {}
-        for t in tables.values():
-            ds = sorted(t["domains"])
-            for i in range(len(ds)):
-                for j in range(i + 1, len(ds)):
-                    links.setdefault((ds[i], ds[j]), []).append(t["name"])
-        for d in doms:
-            d["tables"] = len(d["tables"])
-        ix = reg.get("index", {})
-        return {"built": True, "project": {"key": p["key"], "name": p["name"], "summary": ix.get("summary", "")},
-                "domains": doms, "flows": flows, "tables": list(tables.values()),
-                "links": [{"a": a, "b": b, "tables": ts[:12], "n": len(ts)} for (a, b), ts in links.items()],
-                "stats": {"domains": len(doms), "flows": len(flows), "tables": len(tables), "methods": len(g.nodes("fn")),
-                          "tickets": sum(len(v) for v in tk.values()), "written": sum(d["written"] for d in doms)},
-                "built_at": self.kb_overview(p).get("built_at", "")}
-
     def statecharts(self, p: dict) -> dict:
         """业务状态图: the charts agents drew (.tmh/knowledge/statecharts/*.json) and whether one is being drawn now."""
         from ..graph import graph_path
@@ -386,42 +306,6 @@ class Knowledge:
         running = [r["id"] for r in self.store.runs(project_id=p["id"], limit=50)
                    if r["mode"] == "chart" and r["status"] in ("queued", "running")]
         return {"built": graph_path(root).exists(), "charts": statecharts.load(root), "running": running}
-
-    LAYER = {"entry": "入口", "controller": "入口", "service": "业务", "biz": "业务", "dao": "数据", "mapper": "数据", "repository": "数据"}
-
-    def atlas_flow(self, p: dict, fid: str, offset=0, limit=60) -> dict:
-        """One flow as a chain: entry, the methods it runs (with layer, file:line and what each reads or writes), tables, side effects."""
-        from .. import kb
-        from ..graph import Graph
-        g = Graph(self.root(p))
-        n = g.node(fid if fid.startswith("flow:") else "flow:" + fid)
-        if not n:
-            raise ApiError(404, "没有这条业务流")
-        reg = kb.load_registry(self.root(p))
-        r = reg.get(n["id"], {})
-        steps, seen = [], set()
-        all_steps = list({e["dst"]:e for e in g.out(n["id"], "step")}.values())
-        if offset < 0 or not 1 <= limit <= 60:
-            raise ApiError(400,"步骤分页范围不正确")
-        for e in all_steps[offset:offset+limit]:
-            m = g.node(e["dst"])
-            if not m or m["id"] in seen:
-                continue
-            seen.add(m["id"])
-            lay = (m["data"].get("layer") or "").lower()
-            io = [{"table": x["dst"][4:], "op": x["op"] or ("W" if x["kind"] == "writes" else "R")} for x in g.out(m["id"]) if x["kind"] in ("reads", "writes")]
-            fx = [(g.node(x["dst"]) or {}).get("label") or x["dst"][4:] for x in g.out(m["id"], "effect")]
-            calls = [x["dst"] for x in g.out(m["id"], "calls")]
-            steps.append({"id": m["id"], "label": m["label"] or m["name"], "name": m["name"], "layer": self.LAYER.get(lay, "其他"),
-                          "comment": m["data"].get("comment", ""), "file": m["file"], "line": m["line"], "end": m.get("end_line") or m["line"],
-                          "io": io, "effects": fx, "calls": calls})
-        d = n["data"]
-        return {"id": n["id"], "title": r.get("title") or n["name"], "summary": r.get("summary", ""), "status": self._kb_status(r) if r else "仅事实",
-                "entry": d.get("trigger", ""), "kind": d.get("entry_kind", ""), "handler": d.get("handler", ""), "crud": d.get("crud") or {},
-                "file": n["file"], "line": n["line"], "steps": steps, "steps_total":len(all_steps), "offset":offset,
-                "next_offset":offset+limit if offset+limit<len(all_steps) else None, "provenance":g.provenance(),
-                "relationship_basis":"静态解析；流程关联不代表逐方法调用或实测", "unresolved": d.get("unresolved") or 0,
-                "tickets": self._open_tickets_by_flow(p).get(n["id"], [])}
 
     def domain_detail(self, p: dict, did: str) -> dict:
         """One functional group for 业务与代码概览: each flow's entry, handler, file:line, tables and the boundaries tools could not resolve."""

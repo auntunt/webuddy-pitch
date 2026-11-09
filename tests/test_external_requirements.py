@@ -2,14 +2,41 @@
 import concurrent.futures
 import json
 import unittest
-from tests import test_reform_mcp as reform_fixture
+import threading
+import urllib.request
+from http.server import ThreadingHTTPServer
+from unittest.mock import patch
+
+from tests import test_external_candidates as fixtures
 from tmh.platform import external_requirements as E
 from tmh.platform.errors import ApiError
+from tmh.platform.server import make_handler
 
 
 class ExternalRequirementsTest(unittest.IsolatedAsyncioTestCase):
-    setUp=reform_fixture.ReformMCPTest.setUp
-    web=reform_fixture.ReformMCPTest.web
+    def setUp(self):
+        self.fixture=fixtures.ExternalCandidateTest('runTest')
+        self.addCleanup(self.fixture.doCleanups)
+        self.fixture.setUp()
+        self.P=self.fixture.P
+        self.submitted=[]
+        dispatch=patch.object(self.P.flow,'submit',side_effect=lambda p,t:self.submitted.append(t['key']))
+        dispatch.start()
+        self.addCleanup(dispatch.stop)
+        self.http=ThreadingHTTPServer(('127.0.0.1',0),make_handler(self.P,token='stdio-fixture-token'))
+        self.thread=threading.Thread(target=self.http.serve_forever,daemon=True)
+        self.thread.start()
+        self.addCleanup(self.http.server_close)
+        self.addCleanup(self.thread.join,2)
+        self.addCleanup(self.http.shutdown)
+        self.endpoint='http://127.0.0.1:'+str(self.http.server_port)
+
+    def web(self,path,body=None):
+        request=urllib.request.Request(self.endpoint+path,data=json.dumps(body).encode() if body is not None else None,
+            headers={'X-TMH-Token':'stdio-fixture-token','X-TMH':'1','Content-Type':'application/json'})
+        with urllib.request.urlopen(request) as response:
+            return json.load(response)
+
     async def test_http_inbound_replay_revision_conflict_and_no_automatic_flow(self):
         path=self.fixture.repo/'.tmh/config.json'
         conf=json.loads(path.read_text());conf['integrations']={'tools':{'fixture-group':{'type':'generic','url':'https://fixture.invalid'}}}

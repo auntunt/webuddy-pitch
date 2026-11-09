@@ -58,8 +58,6 @@ def serve(data_dir: Path, host: str = "127.0.0.1", port: int = 8790, user: str =
             P.preview_port = preview_port
             threading.Thread(target=pv.serve_forever, daemon=True).start()
             print("预览版本地址：%s" % (os.environ.get("TMH_PREVIEW_BASE") or "端口 %d" % preview_port))
-    from .. import reform
-    reform.reconcile(P)
     from .. import handwork
     handwork.heartbeat(P)  # 我来写: wb/* branches pushed by people are picked up every minute
     from .. import intake

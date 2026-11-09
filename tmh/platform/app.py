@@ -14,7 +14,7 @@ from .coderefs import FILE_LINE
 from .errors import ApiError
 from .knowledge import Knowledge
 from .orchestra import Orchestra
-from .store import PRIORITIES, REFORM_LIKE, RUN_MODES, STATUSES, Store, TYPES, now, timestamp_offset
+from .store import PRIORITIES, RUN_MODES, STATUSES, Store, TYPES, now, timestamp_offset
 
 
 def _routed_agent(P, project, requested=None, fallback=""):
@@ -58,8 +58,6 @@ class Platform:
         from .operator_access import initialize
         self.operator_key_path = initialize(self.data_dir)
         self.store = Store(self.data_dir / "platform.db")
-        from . import reform
-        reform.initialize(self.data_dir,self.store)
         from .external_requirements import initialize as initialize_external_requirements
         initialize_external_requirements(self.store)
         self.runner = Runner(self.store, self.data_dir)
@@ -168,9 +166,8 @@ class Platform:
         if allowed_projects is not None:
             ps = [x for x in ps if x["id"] in allowed_projects]
         ids = [x["id"] for x in ps] or [-1]
-        # 运维 only: reform pieces are followed on the reform service's own pages
-        tinn = "project_id IN (%s) AND links NOT LIKE '%s'" % (",".join("?" * len(ids)), REFORM_LIKE)
-        inn = "project_id IN (%s) AND (ticket_id IS NULL OR ticket_id NOT IN (SELECT id FROM tickets WHERE links LIKE '%s'))" % (",".join("?" * len(ids)), REFORM_LIKE)
+        tinn = "project_id IN (%s)" % ",".join("?" * len(ids))
+        inn = "project_id IN (%s)" % ",".join("?" * len(ids))
         by = {}
         for r in st.q("SELECT status, COUNT(*) n FROM tickets WHERE %s GROUP BY status" % tinn, ids):
             by[r["status"]] = r["n"]
@@ -234,7 +231,7 @@ class Platform:
         q = ",".join("?" * len(ids))
         tickets = st.q("SELECT id, project_id, num, title, status, priority, assignee, updated, links FROM tickets WHERE project_id IN (%s) "
                        "AND (status!='closed' OR id IN (SELECT ticket_id FROM events WHERE kind='flow' AND data LIKE '%%\"release\": \"waiting\"%%')) "
-                       "AND links NOT LIKE '%s'" % (q, REFORM_LIKE), ids)
+                       % q, ids)
         running = st.one("SELECT COUNT(*) n FROM runs WHERE project_id IN (%s) AND status IN ('queued','running') AND mode!='ask'" % q, ids)["n"]
         conf = self.flow.autoflow()
         try:
@@ -277,7 +274,7 @@ class Platform:
         ps = st.projects()
         agents = {a["name"] for a in __import__("tmh.platform.agents", fromlist=["available"]).available(self.data_dir)} | self.MACHINE
         since = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time() - days * 86400))
-        tickets = st.tickets(limit=100000, svc="ops")  # reform pieces are counted on the reform service's own page
+        tickets = st.tickets(limit=100000)
         tid = {t["id"]: t for t in tickets}
         evs = [e for e in st.q("SELECT ticket_id, ts, author, kind, body FROM events WHERE ts>=? ORDER BY id", (since,)) if e["ticket_id"] in tid]
         closed_at = {}

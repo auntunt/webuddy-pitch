@@ -102,7 +102,7 @@ def history(store, p: dict) -> list:
                                            "WHERE t.project_id=? AND e.kind='accept'", (pid,))}
     ran = {r["ticket_id"] for r in store.q("SELECT DISTINCT ticket_id FROM runs WHERE project_id=? AND ticket_id IS NOT NULL", (pid,))}
     out = []
-    for t in store.tickets(project_id=pid, limit=100000, svc="ops"):
+    for t in store.tickets(project_id=pid, limit=100000):
         r = _history_row(t, [{"kind": "accept"}] if t["id"] in acc else [], [1] if t["id"] in ran else [])
         if r:
             out.append(r)
@@ -156,7 +156,7 @@ def _reopened(evs: list, accepted_at: str) -> bool:
 def compute(store, p: dict, usage_rows: list, month: str = "", kb: dict | None = None, sealed: dict | None = None,
             books: dict | None = None, packages: dict | None = None) -> dict:
     pid = p["id"]
-    tickets = store.tickets(project_id=pid, limit=100000, svc="ops")  # 提效报告 is the 运维 service's; reform pieces are reported on their plans
+    tickets = store.tickets(project_id=pid, limit=100000)
     ids = [t["id"] for t in tickets]
     by_id = {t["id"]: t for t in tickets}
     ev = {}

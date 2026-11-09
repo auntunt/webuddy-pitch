@@ -33,7 +33,7 @@ from .coderefs import FILE_LINE
 from .errors import ApiError
 from .knowledge import Knowledge
 from .orchestra import Orchestra
-from .store import PRIORITIES, REFORM_LIKE, RUN_MODES, STATUSES, TYPES, Store, now, timestamp_offset
+from .store import PRIORITIES, RUN_MODES, STATUSES, TYPES, Store, now, timestamp_offset
 
 # Compatibility surface: the platform was split into app.py, api/ and httpd/. Everything that used to be
 # importable from here still is.
@@ -124,8 +124,6 @@ from .api.knowledge import (  # noqa: F401
     _kb_confirm_actor,
     api_arch,
     api_arch_domain,
-    api_atlas,
-    api_atlas_flow,
     api_code_map_create,
     api_code_maps,
     api_entries_detect,
@@ -199,10 +197,6 @@ from .api.lessons import (  # noqa: F401
     api_lesson,
     api_lesson_share_preview,
     api_lesson_snapshot,
-    api_reform_act,
-    api_reform_deps,
-    api_reform_new,
-    api_reforms,
     api_session_ticket,
     api_ticket_draft,
 )

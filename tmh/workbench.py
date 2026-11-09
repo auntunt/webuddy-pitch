@@ -190,11 +190,6 @@ def parser():
     q.add_argument("project")
     q.add_argument("binding_id", type=int)
     request(q)
-    q = add("report-download", "恢复下载已有冻结报告；不生成、不验收")
-    q.add_argument("project")
-    q.add_argument("plan_id")
-    q.add_argument("export_id")
-    q.add_argument("directory", type=Path)
     q = add("mcp", "运行官方 SDK stdio MCP 服务")
     q.add_argument("--read-only", action="store_true", help="仅提供读取工具")
     q.add_argument("--allow-execution", action="store_true", help="开放模型运行、停止、重验与预览启动工具")
@@ -350,10 +345,6 @@ def main(argv=None):
             except ImportError:
                 raise ClientError("MCP 需要 Python 3.10+ 和可选依赖：python -m pip install -e '.[mcp]'。CLI 无需该依赖。", "missing_mcp_sdk")
             return serve(client, read_only=a.read_only, allow_execution=a.allow_execution and not a.read_only) or 0
-        if a.command == "report-download":
-            from .report_download import download
-            print(json.dumps(download(client,a.project,a.plan_id,a.export_id,a.directory),ensure_ascii=False))
-            return 0
         if a.command == "preflight":
             from .workspace_preflight import inspect
             result = inspect(client, a.ticket, a.directory)

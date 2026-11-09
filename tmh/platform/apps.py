@@ -10,20 +10,16 @@ from __future__ import annotations
 APPS = [
     {"key": "ops", "name": "运维服务", "desc": "报单、导入和告警来的问题：定位、修复、验收，统计响应和解决时长。",
      "sources": ["人工报单", "Jira / 禅道导入", "助手会话", "告警和报错日志（alerts.py）"], "home": "#/board"},
-    {"key": "reform", "name": "重构服务", "desc": "老项目的结构重构、依赖升级、框架迁移、兼容适配：按业务域拆成改造工单，一批验收通过再放下一批。",
-     "sources": ["改造计划（reform.py）"], "home": "#/reform"},
 ]
 
 
 def app_of(t: dict) -> str:
-    """Which service a ticket belongs to: a piece of a reform plan carries links.reform, everything else is 运维."""
-    return "reform" if (t.get("links") or {}).get("reform") else "ops"
+    return "ops"
 
 
 def wire(P) -> None:
     """Connect the apps that react to verdicts. 运维 needs nothing: its tickets simply end at acceptance; a 大需求
     (epic.py) is 运维 too, its children ordinary tickets, but it listens to move its batches on."""
-    from . import epic, reform
-    P.flow.listen(reform.listener(P))
+    from . import epic
     P.flow.listen(epic.listener(P))
     P.flow.start_from(epic.base_for(P))

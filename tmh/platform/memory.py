@@ -96,7 +96,7 @@ def _features(t):
     return {"flows": set(links.get("flows") or []), "files": set(files), "errors": set(errors),
             "words": learn._grams(text) - _GENERIC,
             "title": re.sub(r"\W", "", t["title"].lower()),
-            "kind": "reform" if links.get("reform") else t.get("type", "bug")}
+            "kind": t.get("type", "bug")}
 
 
 def _similar(a, b, fa=None, fb=None):
