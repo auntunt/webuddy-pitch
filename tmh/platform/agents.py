@@ -1387,7 +1387,25 @@ def make_worktree(data_dir: Path, project: dict, ticket: dict | None, rid: int, 
     wt = Path(data_dir) / "worktrees" / name
     wt.parent.mkdir(parents=True, exist_ok=True)
     git(root, "worktree", "add", "-b", branch, str(wt), base or "HEAD")
+    _exclude_build_output(root)
     return wt, branch
+
+
+BUILD_OUTPUT = ("target/", "build/", "out/", "bin/", "obj/", "node_modules/", "dist/", ".gradle/", "*.class",
+                "__pycache__/", ".pytest_cache/")
+
+
+def _exclude_build_output(root: Path) -> None:
+    """Build output stays out of the change's diff. Written to .git/info/exclude, so the project's own files are untouched."""
+    common = subprocess.run(["git", "-C", str(root), "rev-parse", "--git-common-dir"], capture_output=True, text=True)
+    if common.returncode != 0:
+        return
+    path = (Path(root) / common.stdout.strip()) / "info" / "exclude"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    current = path.read_text(encoding="utf-8") if path.exists() else ""
+    missing = [p for p in BUILD_OUTPUT if p not in current.splitlines()]
+    if missing:
+        path.write_text(current + ("" if current.endswith("\n") or not current else "\n") + "\n".join(missing) + "\n", encoding="utf-8")
 
 
 def worktree_diff(wt: Path) -> str:
