@@ -53,3 +53,23 @@ class BuildOutputExcludeTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CheckWorktreeExcludeTest(unittest.TestCase):
+    def test_check_runner_writes_the_exclude_into_a_detached_worktree_repo(self):
+        temp = tempfile.TemporaryDirectory(prefix="tmh-check-exclude-")
+        self.addCleanup(temp.cleanup)
+        root = Path(temp.name) / "app"
+        root.mkdir()
+        git(root, "init", "-q", "-b", "main")
+        git(root, "config", "user.email", "t@t")
+        git(root, "config", "user.name", "t")
+        (root / "Main.java").write_text("class Main {}\n", encoding="utf-8")
+        git(root, "add", "-A")
+        git(root, "commit", "-qm", "base")
+        wt = Path(temp.name) / "wt"
+        git(root, "worktree", "add", "-q", "--detach", str(wt), "HEAD")
+        agents._exclude_build_output(wt)
+        (wt / "target").mkdir()
+        (wt / "target" / "Main.class").write_text("x", encoding="utf-8")
+        self.assertEqual(git(wt, "status", "--porcelain=v1", "--untracked-files=all"), "")

@@ -423,8 +423,9 @@ class FixLoop:
         return self._local(seq, self.wt)
 
     def _local(self, seq: list, where: Path) -> list:
-        from . import toolchain
+        from . import agents, toolchain
         out = []
+        agents._exclude_build_output(where)
         base, diff = git(where, "rev-parse", "HEAD").strip(), worktree_diff(where)
         prepared = toolchain.prepare(where, Path(self.r.data_dir) / "toolchains",
                                      str(self.set.get("maven_mirror") or ""), Path(self.r.data_dir) / "toolchains" / "tasks" / str(self.rid))
