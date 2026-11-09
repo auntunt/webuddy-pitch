@@ -59,9 +59,14 @@ await submit('#agentForm');assert.equal(mutations[1].body.action,'update');asser
 await agentSettingsLoad();agentSettingsEdit(data,null);
 $('#agentEngine').value='cursor';$('#agentEngine').onchange();
 assert.equal($('#agentProfile').disabled,true);
+assert.equal($('#agentEnv').disabled,true);
+assert.equal($('#agentSecrets').querySelectorAll('[data-secret]').length,1);
+$('#agentSecrets').querySelector('[data-secret]').value='fixture-cursor-key';
 $('#agentName').value='team-cursor';$('#agentTitle').value='Cursor';
 postHandler=()=>({...data,revision:'two'});await submit('#agentForm');
 assert.equal(mutations[0].body.config.engine,'cursor');
 assert.equal('profile' in mutations[0].body.config,false);
+assert.equal('environment' in mutations[0].body.config,false);
+assert.deepEqual(mutations[0].body.config.secrets,{api_key:'fixture-cursor-key'});
 assert.equal($('#agentEngine').disabled,true);
 ''')

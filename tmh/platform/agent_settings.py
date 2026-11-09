@@ -101,14 +101,14 @@ def save(data_dir, body):
             else:
                 c.pop('environment', None)
         c.update(title=title.strip(), models=models, defaults=defaults, run_timeout=timeout)
-        if value.get('secrets'):
-            engine = agents.engine_name(name, c)
-            c['environment'] = {**(c.get('environment') or {}),
-                                **executor_setup.set_secret(data_dir, name, engine, value['secrets'])}
         try:
             agents.engine_name(name, c)
         except ValueError as exc:
             raise ApiError(400, str(exc)) from exc
+        if value.get('secrets'):
+            engine = agents.engine_name(name, c)
+            c['environment'] = {**(c.get('environment') or {}),
+                                **executor_setup.set_secret(data_dir, name, engine, value['secrets'])}
         raw[name] = c
         path = Path(data_dir) / 'agents.json'
         fd, temporary = tempfile.mkstemp(prefix='.agents-', dir=data_dir)

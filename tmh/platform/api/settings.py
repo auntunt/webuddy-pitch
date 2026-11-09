@@ -57,10 +57,10 @@ def api_agent_test(P, req):
     engine = agents.engine_name(name, c)
     if engine not in ("codex", "claude", "cursor") or "cmd" in c:
         raise ApiError(400, "这个执行器暂不支持连接测试")
-    exe = c.get("bin") or agents.executable(engine, c)
+    exe = agents.executable(engine, c)
     env = dict(os.environ)
     env.update(executor_setup.spawn_env(P.data_dir, name, c))
-    return executor_setup.probe(engine, exe, env)
+    return executor_setup.probe(engine, exe, env, model=agents.pick_model(c, "fix", None), profile=c.get("profile", ""))
 
 
 @route("POST", "/api/agent-settings")

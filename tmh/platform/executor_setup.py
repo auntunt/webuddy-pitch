@@ -22,15 +22,15 @@ SECRET_FIELDS = {"codex": ("base_url", "api_key", "model", "wire_api"),
                  "claude": ("base_url", "api_key", "model"),
                  "cursor": ("api_key",)}
 _ENV_KEY = lambda name: "WEBUDDY_KEY_" + re.sub(r"[^A-Za-z0-9]", "_", name).upper()
-_BIN = re.compile(r"[A-Za-z0-9_./\\: ~+\-]{1,500}")
+_BIN = re.compile(r"[\w./\\: ~+()\-]{0,500}")
 _ABS = re.compile(r"^(?:/|[A-Za-z]:[\\/]|\\\\|~[\\/]|~)")
 
 MARKER = "TMH_OK"
 
 
 def validate_bin(value):
-    if not isinstance(value, str) or not value.strip() or not _BIN.fullmatch(value):
-        raise ApiError(400, "执行命令只能包含路径、字母、数字、点、横线和空格")
+    if not isinstance(value, str) or not _BIN.fullmatch(value):
+        raise ApiError(400, "填写命令名或路径（支持中文和括号）；留空自动查找，不支持命令参数或脚本")
 
 
 def validate_environment(value):
@@ -84,31 +84,40 @@ def set_secret(data_dir, name, engine, fields):
     codex/claude. Returns the non-secret `environment` to persist in agents.json."""
     if engine not in SECRET_FIELDS:
         raise ApiError(400, "这个执行器不支持连接配置")
+    if not isinstance(fields, dict):
+        raise ApiError(400, "连接配置必须是对象")
     unknown = set(fields) - set(SECRET_FIELDS[engine])
     if unknown:
         raise ApiError(400, "不认识的配置项：" + ",".join(sorted(unknown)))
+    if any(not isinstance(v, str) for v in fields.values()):
+        raise ApiError(400, "连接配置必须是文本")
     fields = {k: v.strip() for k, v in fields.items() if str(v or "").strip()}
     secrets = load_secrets(data_dir)
     environment = {}
     home = Path(data_dir) / "executor-homes" / name
     if engine == "codex":
+        old = _codex_home(home)
+        previous = {k: old.get(k, "") for k in ("base_url", "model", "wire_api")}
+        previous["api_key"] = (secrets.get(name, {}).get("env") or {}).get(_ENV_KEY(name), "")
+        fields = {**previous, **fields}
         if not fields.get("api_key") or not fields.get("base_url"):
             raise ApiError(400, "Codex 连接需要 API 地址和密钥")
         wire = fields.get("wire_api") or "responses"
         if wire not in ("responses", "chat"):
             raise ApiError(400, "wire_api 只能是 responses 或 chat")
         model = fields.get("model") or ""
-        lines = ['model_provider = "%s"' % name]
-        if model:
-            lines.insert(0, 'model = "%s"' % model)
-        lines += ["", "[model_providers.%s]" % name, 'name = "%s"' % name,
-                  'base_url = "%s"' % fields["base_url"], 'wire_api = "%s"' % wire,
-                  'env_key = "%s"' % _ENV_KEY(name)]
-        _write_private(home / "config.toml", "\n".join(lines) + "\n")
+        cfg = home / "config.toml"
+        text = cfg.read_text(encoding="utf-8-sig") if cfg.exists() else ""
+        text = _toml_update(text, "", {"model_provider": name, **({"model": model} if model else {})})
+        text = _toml_update(text, "model_providers." + name,
+                            {"name": name, "base_url": fields["base_url"], "wire_api": wire, "env_key": _ENV_KEY(name)})
+        _write_private(cfg, text)
         secrets[name] = {"env": {_ENV_KEY(name): fields["api_key"]}}
         environment["CODEX_HOME"] = str(home)
     elif engine == "claude":
-        env = {}
+        cfg = home / "settings.json"
+        settings = json.loads(cfg.read_text(encoding="utf-8-sig")) if cfg.exists() else {}
+        env = dict(settings.get("env") or {})
         if fields.get("base_url"):
             env["ANTHROPIC_BASE_URL"] = fields["base_url"]
         if fields.get("api_key"):
@@ -117,7 +126,7 @@ def set_secret(data_dir, name, engine, fields):
             env["ANTHROPIC_MODEL"] = fields["model"]
         if not env:
             raise ApiError(400, "Claude 连接需要至少一项配置")
-        _write_private(home / "settings.json", json.dumps({"env": env}, ensure_ascii=False, indent=1) + "\n")
+        _write_private(home / "settings.json", json.dumps({**settings, "env": env}, ensure_ascii=False, indent=1) + "\n")
         secrets[name] = {}
         environment["CLAUDE_CONFIG_DIR"] = str(home)
     else:  # cursor
@@ -195,14 +204,46 @@ def _cursor_candidates():
     return _which(["agent", "cursor-agent"], dirs) + files
 
 
+def _toml_update(text, section, values):
+    lines, current, remaining = [], "", dict(values)
+    found = not section
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("["):
+            if current == section:
+                lines.extend(k + " = " + json.dumps(v, ensure_ascii=False) for k, v in remaining.items())
+                remaining.clear()
+            current = stripped.strip("[] ")
+            found = found or current == section
+        if current == section and "=" in line and line.split("=", 1)[0].strip() in values:
+            key = line.split("=", 1)[0].strip()
+            if key in remaining:
+                lines.append(key + " = " + json.dumps(remaining.pop(key), ensure_ascii=False))
+        else:
+            lines.append(line)
+    if remaining:
+        if section and not found:
+            lines += ["", "[" + section + "]"]
+        lines.extend(k + " = " + json.dumps(v, ensure_ascii=False) for k, v in remaining.items())
+    return "\n".join(lines) + "\n"
+
+
 def _toml_value(text, key, section=""):
     current = ""
     for line in text.splitlines():
         line = line.strip()
         if line.startswith("["):
             current = line.strip("[] ")
-        elif line.startswith(key) and "=" in line and (not section or current == section):
-            return line.split("=", 1)[1].strip().strip('"').strip("'")
+        elif "=" in line and current == section and line.split("=", 1)[0].strip() == key:
+            value = line.split("=", 1)[1].strip()
+            if value.startswith('"'):
+                try:
+                    return json.JSONDecoder().raw_decode(value)[0]
+                except ValueError:
+                    return ""
+            if value.startswith("'"):
+                return value[1:].split("'", 1)[0]
+            return value.split("#", 1)[0].strip()
     return ""
 
 
@@ -226,7 +267,7 @@ def _claude_home(home):
     if cfg.is_file():
         try:
             data = json.loads(cfg.read_text(encoding="utf-8-sig"))
-            info["model"] = data.get("model", "")
+            info["model"] = (data.get("env") or {}).get("ANTHROPIC_MODEL") or data.get("model", "")
             info["base_url"] = (data.get("env") or {}).get("ANTHROPIC_BASE_URL", "")
             info["token_set"] = bool((data.get("env") or {}).get("ANTHROPIC_AUTH_TOKEN"))
         except ValueError:
@@ -285,20 +326,29 @@ def cursor_failure(text):
     return ()
 
 
-def probe(engine, exe, env, timeout=45):
+def probe(engine, exe, env, timeout=45, model="", profile=""):
+    with tempfile.TemporaryDirectory(prefix="tmh-probe-") as workdir:
+        return _probe(engine, exe, env, timeout, model, profile, Path(workdir))
+
+
+def _probe(engine, exe, env, timeout, model, profile, workdir):
     """One no-tools request; PASS only when the exact marker is returned."""
-    workdir = Path(tempfile.mkdtemp(prefix="tmh-probe-"))
     prompt = "Reply with exactly %s. Do not use tools, read files, or modify files." % MARKER
     if engine == "cursor":
         cmd = [exe, "--trust", "--print", "--output-format", "stream-json", "--sandbox", "disabled", "--mode", "ask"]
         stdin = prompt
     elif engine == "codex":
-        cmd = [exe, "exec", "--sandbox", "read-only", prompt]
+        cmd = [exe, "exec", "--sandbox", "read-only", "--skip-git-repo-check", "--json"] + (["--profile", profile] if profile else [])
         stdin = None
     else:  # claude
-        cmd = [exe, "-p", prompt, "--allowedTools", ""]
+        cmd = [exe, "-p", "--output-format", "json", "--allowedTools", ""]
         stdin = None
-    report = {"ok": False, "command": [cmd[0]] + cmd[1:-1] + (["<prompt>"] if engine != "cursor" else [])}
+    if model:
+        cmd += ["--model", model]
+    report = {"ok": False, "command": cmd + (["<prompt>"] if engine != "cursor" else []),
+              "model": model, "profile": profile}
+    if engine != "cursor":
+        cmd.append(prompt)
     try:
         result = subprocess.run(cmd, input=stdin, cwd=str(workdir), env=env,
                                 capture_output=True, encoding="utf-8", errors="replace", timeout=timeout)
@@ -307,7 +357,24 @@ def probe(engine, exe, env, timeout=45):
     except OSError as exc:
         return {**report, "error": "无法启动执行器：%s" % exc}
     out = (result.stdout or "") + (result.stderr or "")
-    ok = result.returncode == 0 and MARKER in result.stdout
+    answer, failed = "", False
+    for line in (result.stdout or "").splitlines():
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        if not isinstance(event, dict):
+            continue
+        if event.get("type") in ("error", "turn.failed"):
+            failed = True
+        if event.get("type") == "result":
+            failed = failed or bool(event.get("is_error")) or event.get("subtype", "success") != "success"
+            answer = event.get("result", "")
+        elif engine == "codex" and event.get("type") == "item.completed":
+            item = event.get("item") or {}
+            if item.get("type") == "agent_message":
+                answer = item.get("text", "")
+    ok = result.returncode == 0 and not failed and isinstance(answer, str) and answer.strip() == MARKER
     report["returncode"] = result.returncode
     if ok:
         report["ok"] = True

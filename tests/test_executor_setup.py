@@ -75,7 +75,7 @@ class SecretHomesTest(unittest.TestCase):
         self.assertNotIn('sk-real-key', toml)
         self.assertEqual(executor_setup.spawn_env(self.data, 'codex', {'environment': env})['WEBUDDY_KEY_CODEX'], 'sk-real-key')
         with self.assertRaises(ApiError):
-            executor_setup.set_secret(self.data, 'codex', 'codex', {'base_url': 'x'})
+            executor_setup.set_secret(self.data, 'new-codex', 'codex', {'base_url': 'x'})
         with self.assertRaises(ApiError):
             executor_setup.set_secret(self.data, 'codex', 'codex', {'base_url': 'x', 'api_key': 'k', 'wire_api': 'sse'})
 
@@ -263,3 +263,64 @@ def test_cursor_failure_mapping():
             assert reason in got[0], (text, got)
         else:
             assert got == ()
+
+
+def test_unicode_and_blank_binary():
+    for value in ('', r'C:\用户\工具 (x64)\agent.cmd'):
+        executor_setup.validate_bin(value)
+    assert agents.executable('codex', {'bin': ''}) == 'codex'
+
+
+def test_partial_connections_preserve_credentials_and_settings(tmp_path):
+    env = executor_setup.set_secret(tmp_path, 'c', 'codex', {
+        'base_url': 'https://example.test/v1', 'api_key': 'fixture-key', 'model': 'old'})
+    cfg = Path(env['CODEX_HOME']) / 'config.toml'
+    cfg.write_text(cfg.read_text() + '\n[profiles.work]\nmodel = "profile-model"\n')
+    executor_setup.set_secret(tmp_path, 'c', 'codex', {'model': 'new', 'api_key': ''})
+    info = executor_setup._codex_home(cfg.parent)
+    assert info['model'] == 'new'
+    assert info['base_url'] == 'https://example.test/v1'
+    assert '[profiles.work]' in cfg.read_text()
+    assert executor_setup.spawn_env(tmp_path, 'c', {})['WEBUDDY_KEY_C'] == 'fixture-key'
+    env = executor_setup.set_secret(tmp_path, 'cl', 'claude', {
+        'base_url': 'https://example.test', 'api_key': 'fixture-token', 'model': 'old'})
+    cfg = Path(env['CLAUDE_CONFIG_DIR']) / 'settings.json'
+    saved = json.loads(cfg.read_text()); saved['permissions'] = {'allow': ['Read']}
+    cfg.write_text(json.dumps(saved))
+    executor_setup.set_secret(tmp_path, 'cl', 'claude', {'model': 'new'})
+    saved = json.loads(cfg.read_text())
+    assert saved['env']['ANTHROPIC_AUTH_TOKEN'] == 'fixture-token'
+    assert saved['env']['ANTHROPIC_BASE_URL'] == 'https://example.test'
+    assert saved['permissions'] == {'allow': ['Read']}
+    assert executor_setup._claude_home(cfg.parent)['model'] == 'new'
+
+
+def test_toml_exact_key_section_and_escaped_value():
+    text = 'model_provider = "p"\nmodel = "real" # comment\n[profiles.x]\nmodel = "other"\n'
+    assert executor_setup._toml_value(text, 'model') == 'real'
+    assert executor_setup._toml_value('[profiles.x]\nmodel = "other"', 'model') == ''
+    updated = executor_setup._toml_update(text, '', {'model': 'quoted"model'})
+    assert executor_setup._toml_value(updated, 'model') == 'quoted"model'
+
+
+def test_probe_uses_final_result_and_saved_selection():
+    from types import SimpleNamespace
+    import subprocess
+    outputs = [
+        ('Reply with exactly TMH_OK.', False),
+        ('{"type":"user","message":"TMH_OK"}', False),
+        ('{"type":"result","result":"prefix TMH_OK"}', False),
+        ('{"type":"result","result":"TMH_OK","is_error":true}', False),
+        ('{"type":"result","result":"TMH_OK"}', True),
+    ]
+    for output, ok in outputs:
+        with patch.object(subprocess, 'run', return_value=SimpleNamespace(stdout=output, stderr='', returncode=0)) as run:
+            assert executor_setup.probe('cursor', 'agent', {}, model='saved-model')['ok'] is ok
+            assert '--model' in run.call_args.args[0]
+            assert 'saved-model' in run.call_args.args[0]
+            assert not Path(run.call_args.kwargs['cwd']).exists()
+    with patch.object(subprocess, 'run', return_value=SimpleNamespace(
+            stdout='{"type":"item.completed","item":{"type":"agent_message","text":"TMH_OK"}}', stderr='', returncode=0)) as run:
+        assert executor_setup.probe('codex', 'codex', {}, profile='work')['ok']
+        assert '--skip-git-repo-check' in run.call_args.args[0]
+        assert run.call_args.args[0][run.call_args.args[0].index('--profile')+1] == 'work'
