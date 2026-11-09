@@ -365,14 +365,7 @@ def make_handler(P: Platform, token: str = "", web_prefix: str = ""):
                 from .. import code_return
                 from pathlib import Path as _P
                 try:
-                    root = _P(P.project(unquote(m.group(1)))["root"])
-                    kind, tkey = m.group(3), unquote(m.group(2))
-                    if kind == "patch":
-                        data, ctype, name = code_return.patch(root, tkey), "text/x-patch; charset=utf-8", tkey + ".patch"
-                    elif kind == "files":
-                        data, ctype, name = code_return.changed_files_zip(root, tkey), "application/zip", tkey + "-changed.zip"
-                    else:
-                        data, ctype, name = code_return.full_archive(root, tkey), "application/zip", tkey + ".zip"
+                    data, ctype, name = code_return.download(_P(P.project(unquote(m.group(1)))["root"]), unquote(m.group(2)), m.group(3))
                 except ApiError as e:
                     return self._send(e.code, str(e).encode("utf-8"), "text/plain; charset=utf-8")
                 return self._send(200, data, ctype, {"Content-Disposition": 'attachment; filename="%s"' % name})

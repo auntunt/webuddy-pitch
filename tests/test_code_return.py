@@ -1,4 +1,4 @@
-"""Task code can be taken back out read-only: patch, changed files, full archive."""
+"""Task code can be taken back out read-only, committed or not, and says which in every download."""
 import io
 import subprocess
 import tempfile
@@ -27,39 +27,63 @@ class CodeReturnTest(unittest.TestCase):
         (self.root / "gone.txt").write_text("bye\n")
         git(self.root, "add", "-A")
         git(self.root, "commit", "-qm", "base")
-        git(self.root, "checkout", "-q", "-b", "tmh/TSK-1-r7")
-        (self.root / "keep.txt").write_text("changed\n")
-        (self.root / "new.txt").write_text("new\n")
-        (self.root / "gone.txt").unlink()
-        git(self.root, "add", "-A")
-        git(self.root, "commit", "-qm", "task")
-        git(self.root, "checkout", "-q", "main")
+        self.wt = Path(temp.name) / "wt"
+        git(self.root, "worktree", "add", "-q", "-b", "tmh/TSK-1-r7", str(self.wt), "main")
 
-    def test_patch_contains_the_committed_change(self):
-        text = code_return.patch(self.root, "TSK-1").decode()
-        self.assertIn("+changed", text)
-        self.assertIn("+new", text)
+    def edit(self):
+        (self.wt / "keep.txt").write_text("changed\n")
+        (self.wt / "new.txt").write_text("new\n")
+        (self.wt / "gone.txt").unlink()
 
-    def test_changed_files_zip_has_only_changed_files_and_deletions(self):
-        names = zipfile.ZipFile(io.BytesIO(code_return.changed_files_zip(self.root, "TSK-1"))).namelist()
-        self.assertEqual(sorted(names), ["DELETED_FILES.txt", "keep.txt", "new.txt"])
+    def commit(self):
+        git(self.wt, "add", "-A")
+        git(self.wt, "commit", "-qm", "task")
 
-    def test_full_archive_is_the_task_branch_tree(self):
-        names = zipfile.ZipFile(io.BytesIO(code_return.full_archive(self.root, "TSK-1"))).namelist()
-        self.assertIn("keep.txt", names)
-        self.assertNotIn("gone.txt", names)
+    def names(self, data):
+        return zipfile.ZipFile(io.BytesIO(data)).namelist()
 
-    def test_reads_do_not_change_the_project_folder(self):
-        before = git(self.root, "status", "--porcelain"), git(self.root, "rev-parse", "HEAD")
-        code_return.patch(self.root, "TSK-1")
-        code_return.changed_files_zip(self.root, "TSK-1")
-        code_return.full_archive(self.root, "TSK-1")
-        self.assertEqual(before, (git(self.root, "status", "--porcelain"), git(self.root, "rev-parse", "HEAD")))
-        self.assertEqual(git(self.root, "branch", "--show-current").strip(), "main")
+    def test_uncommitted_state_includes_worktree_edits_and_is_labelled(self):
+        self.edit()
+        body, ctype, name = code_return.download(self.root, "TSK-1", "patch")
+        self.assertIn("未提交".encode(), body[:200])
+        self.assertIn("+changed", body.decode("utf-8", "replace"))
+        self.assertIn("+new", body.decode("utf-8", "replace"))
+        self.assertIn("-bye", body.decode("utf-8", "replace"))
+        self.assertIn("uncommitted", name)
+        files, _, fname = code_return.download(self.root, "TSK-1", "files")
+        self.assertIn("uncommitted", fname)
+        self.assertEqual(sorted(self.names(files)), ["DELETED_FILES.txt", "STATUS.txt", "keep.txt", "new.txt"])
+        self.assertIn("未提交".encode(), zipfile.ZipFile(io.BytesIO(files)).read("STATUS.txt"))
+        archive, _, aname = code_return.download(self.root, "TSK-1", "archive")
+        self.assertIn("uncommitted", aname)
+        self.assertIn("new.txt", self.names(archive))
+        self.assertNotIn("gone.txt", self.names(archive))
 
-    def test_missing_branch_is_a_plain_not_found(self):
+    def test_committed_state_is_labelled_with_the_commit(self):
+        self.edit()
+        self.commit()
+        body, _, name = code_return.download(self.root, "TSK-1", "patch")
+        sha = git(self.root, "rev-parse", "--short=12", "tmh/TSK-1-r7").strip()
+        self.assertIn(("已提交 " + sha).encode(), body[:200])
+        self.assertIn("committed", name)
+        files, _, fname = code_return.download(self.root, "TSK-1", "files")
+        self.assertIn("committed", fname)
+        self.assertIn("STATUS.txt", self.names(files))
+
+    def test_reads_do_not_change_index_refs_or_project_folder(self):
+        self.edit()
+        before = (git(self.root, "status", "--porcelain"), git(self.root, "rev-parse", "HEAD"),
+                  git(self.root, "rev-parse", "tmh/TSK-1-r7"), git(self.wt, "status", "--porcelain"))
+        code_return.download(self.root, "TSK-1", "patch")
+        code_return.download(self.root, "TSK-1", "files")
+        code_return.download(self.root, "TSK-1", "archive")
+        after = (git(self.root, "status", "--porcelain"), git(self.root, "rev-parse", "HEAD"),
+                 git(self.root, "rev-parse", "tmh/TSK-1-r7"), git(self.wt, "status", "--porcelain"))
+        self.assertEqual(before, after)
+
+    def test_missing_branch_is_not_found(self):
         with self.assertRaises(ApiError) as caught:
-            code_return.patch(self.root, "NOPE-9")
+            code_return.download(self.root, "NOPE-9", "patch")
         self.assertEqual(caught.exception.code, 404)
 
 
