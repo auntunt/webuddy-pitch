@@ -286,7 +286,7 @@ def cursor_preflight(cursor_bin, env, workdir):
               'ok': False, 'command': cmd}
     try:
         result = subprocess.run(cmd, input=prompt, cwd=str(workdir), env=env,
-                                capture_output=True, encoding='utf-8', errors='replace', timeout=45)
+                                capture_output=True, encoding='utf-8', errors='replace', timeout=120)
         replies = []
         for line in result.stdout.splitlines():
             try:
