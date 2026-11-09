@@ -57,7 +57,7 @@ def api_agent_test(P, req):
     engine = agents.engine_name(name, c)
     if engine not in ("codex", "claude", "cursor") or "cmd" in c:
         raise ApiError(400, "这个执行器暂不支持连接测试")
-    exe = c.get("bin") or agents.executable(engine, c)
+    exe = agents.executable(engine, c)
     env = dict(os.environ)
     env.update(executor_setup.spawn_env(P.data_dir, name, c))
     from .. import agent_page
@@ -417,7 +417,7 @@ def api_agent_login(P, req):
     if name not in conf:
         raise ApiError(404, "没有这个执行器")
     engine = agents.engine_name(name, conf[name])
-    exe = conf[name].get("bin") or agents.executable(engine, conf[name])
+    exe = agents.executable(engine, conf[name])
     env = dict(os.environ)
     env.update(executor_setup.spawn_env(P.data_dir, name, conf[name]))
     return agent_connect.start_login(engine, exe, env)

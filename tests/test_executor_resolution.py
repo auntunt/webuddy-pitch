@@ -36,3 +36,11 @@ class ExecutorResolutionTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ProbeLaunchPathTest(unittest.TestCase):
+    def test_configured_bare_bin_is_resolved_before_launch(self):
+        shim = Path(tempfile.mkdtemp(prefix="tmh-cursor-")) / "agent.CMD"
+        shim.write_text("@echo off\n", encoding="utf-8")
+        with patch.object(agents.shutil, "which", side_effect=lambda name, path=None: str(shim) if name == "agent" else None):
+            self.assertEqual(agents.executable("cursor", {"bin": "agent"}), str(shim))
