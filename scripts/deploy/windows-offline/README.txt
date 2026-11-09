@@ -3,12 +3,13 @@ Webuddy Windows x64 客户离线运行包
 适用：Windows 10/11 x64。本包不支持 Windows ARM、Windows 7、WSL 或 Linux。
 
 1. 将整个 ZIP 解压到本地可写目录（例如 D:\Webuddy）。不要在 ZIP 内直接启动。
-2. 双击 start.cmd 启动，浏览器打开 http://127.0.0.1:8790/ 。
+2. 双击 start.cmd 启动。默认开启局域网访问：启动窗口会打印“本机地址”和“局域网地址”
+   （都带访问令牌），用浏览器打开即可；其他电脑打开“局域网地址”。
 3. 打开网页 设置 → 智能体：点击“扫描本机”自动发现 Codex / Claude Code / Cursor
    （命令路径、配置目录、模型与 API 地址），按结果点“采用”；需要密钥时在
    “连接配置”里填写并点“测试连接”。
-4. 需要局域网访问时，在 设置 → 访问方式 选择“局域网”，确认对外地址并保存；
-   管理员运行 configure-firewall.ps1 放行端口后重启 Webuddy。
+4. 其他电脑连不上时，以管理员身份运行一次 configure-firewall.ps1（或在 Windows 防火墙
+   提示时允许 Python）。只想本机访问：在 设置 → 访问方式 选“仅本机”，保存后重启 Webuddy。
 5. 停止：在启动窗口按 Ctrl+C，等待“已停止”。不批量结束系统 Python/Node 进程。
 
 安装和启动不会下载文件、安装全局软件、改注册表或全局 PATH。

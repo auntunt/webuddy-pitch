@@ -2,8 +2,11 @@
 import argparse
 import datetime
 import hashlib
+import ipaddress
 import json
 import os
+import secrets
+import socket
 from pathlib import Path
 import re
 import shutil
@@ -65,7 +68,7 @@ def configuration(root, filename):
     env['PYTHONUTF8'] = '1'
     local = Path(env.get('LOCALAPPDATA', str(Path.home()))) / 'Webuddy' / 'data'
     data = Path(config.get('data_dir') or env.get('TMH_DATA_DIR') or local).expanduser().resolve()
-    host = config.get('host', env.get('TMH_HOST', '127.0.0.1'))
+    host = config.get('host', env.get('TMH_HOST', '0.0.0.0'))
     port = int(config.get('port', env.get('TMH_PORT', '8790')))
     if not isinstance(host, str) or not 1 <= port <= 65535:
         raise ValueError('Invalid host or port')
@@ -73,6 +76,67 @@ def configuration(root, filename):
     if set(tools) - {'codex', 'claude', 'git', 'node', 'cursor'}:
         raise ValueError('Unknown tool override')
     return config, env, data, host, port
+
+
+def primary_ipv4():
+    """IPv4 of the interface with the default route; link-local/loopback skipped."""
+    try:
+        probe = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            probe.connect(('192.0.2.1', 9))  # route selection only; no packet is sent
+            addr = probe.getsockname()[0]
+        finally:
+            probe.close()
+        ip = ipaddress.ip_address(addr)
+        if ip.version == 4 and not ip.is_loopback and not ip.is_link_local:
+            return addr
+    except OSError:
+        pass
+    try:
+        for addr in socket.gethostbyname_ex(socket.gethostname())[2]:
+            try:
+                ip = ipaddress.ip_address(addr)
+            except ValueError:
+                continue
+            if ip.version == 4 and not ip.is_loopback and not ip.is_link_local:
+                return addr
+    except OSError:
+        pass
+    return ''
+
+
+def lan_bootstrap(filename, config, env, host, port):
+    """LAN default: persist a generated token + public URL into the resolved config."""
+    if host not in ('0.0.0.0', '::'):
+        return None
+    changed = False
+    if 'TMH_TOKEN' not in env:
+        env['TMH_TOKEN'] = secrets.token_urlsafe(24)
+        changed = True
+    if 'TMH_PUBLIC_URL' not in env:
+        address = primary_ipv4()
+        if address:
+            env['TMH_PUBLIC_URL'] = 'http://%s:%d' % (address, port)
+            changed = True
+    if changed:
+        target = Path(filename)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        written = dict(config)
+        stored = dict(written.get('environment') or {})
+        for key in ('TMH_TOKEN', 'TMH_PUBLIC_URL'):
+            if key in env:
+                stored.setdefault(key, env[key])
+        written['environment'] = stored
+        fd, tmp = tempfile.mkstemp(prefix='.config-', dir=target.parent)
+        try:
+            with os.fdopen(fd, 'w', encoding='utf-8') as f:
+                json.dump(written, f, ensure_ascii=False, indent=2)
+                f.write('\n')
+            os.replace(tmp, target)
+        finally:
+            if os.path.exists(tmp):
+                os.unlink(tmp)
+    return env.get('TMH_PUBLIC_URL', '')
 
 
 def disabled_executors(data):
@@ -184,13 +248,10 @@ def cursor_preflight(cursor_bin, env, workdir):
                       ok=result.returncode == 0 and any('CURSOR_OK' in value for value in replies))
         if not report['ok']:
             report['error_excerpt'] = _preflight_excerpt(result.stdout + result.stderr)
-            text = (result.stdout + result.stderr).lower()
-            if 'uv_os_get_passwd' in text:
-                report['error'] = 'Cursor could not read Windows user information (uv_os_get_passwd).'
-            elif 'not logged in' in text or 'unauthenticated' in text:
-                report['error'] = 'Cursor authentication failed; use Cursor login or a supported Cursor API key.'
-            elif 'sandbox mode is enabled but not available' in text:
-                report['error'] = 'Unsupported sandbox mode.'
+            from tmh.platform.executor_setup import cursor_failure
+            known = cursor_failure(result.stdout + result.stderr)
+            if known:
+                report['error'] = '%s（%s）' % (known[0], known[1])
             else:
                 report['error'] = 'No successful CURSOR_OK result; inspect the evidence directory.'
     except (OSError, subprocess.SubprocessError) as exc:
@@ -240,7 +301,14 @@ def main(argv=None):
     if args.arguments:
         raise ValueError('start takes no additional arguments')
     load_secrets(env)
+    public = lan_bootstrap(filename or config_path(ROOT, env), config, env, host, port)
     os.environ.update(env)
+    if host in ('0.0.0.0', '::'):
+        # A token-protected server answers 401 to the bare loopback address too.
+        print('本机地址：http://127.0.0.1:%d/?token=%s' % (port, env['TMH_TOKEN']))
+        if public:
+            print('局域网地址：%s/?token=%s' % (public, env['TMH_TOKEN']))
+        print('如果其他电脑无法连接：请以管理员身份运行 configure-firewall.ps1（或在 Windows 防火墙提示时允许 Python）')
     from tmh.cli import main as cli
     from tmh.platform.windows_process import receipt_lock
     with receipt_lock(data / '.offline-server'):

@@ -96,7 +96,7 @@ class WindowsOfflineBundleTest(unittest.TestCase):
             path.write_text(original, encoding='utf-8-sig')
             config, env, selected, host, port = launcher.configuration(root, path)
             self.assertEqual(selected, data.resolve())
-            self.assertEqual((host, port), ('127.0.0.1', 8790))
+            self.assertEqual((host, port), ('0.0.0.0', 8790))
             self.assertEqual(env['TMH_TOKEN_FILE'], 'private-token-file')
             self.assertFalse(data.exists())
             self.assertEqual(path.read_text(encoding='utf-8-sig'), original)

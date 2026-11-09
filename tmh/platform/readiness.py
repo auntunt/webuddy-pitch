@@ -62,8 +62,9 @@ def _agents(P) -> list:
                            "WHERE " + ordinary + " AND agent=? AND status IN ('done','failed') AND result != ? ORDER BY id DESC LIMIT 1", (a["name"], INTERRUPTED))
         text = " ".join((last.get("output") or "", last.get("result") or "")) if last else ""
         why = signin(text) if last and last["status"] == "failed" else ""
-        if last and last["status"] == "failed" and "Workspace Trust Required" in text:
-            why = ("项目工作区尚未信任", "在该项目目录交互运行一次这个执行器，核对目录后确认信任，再重试任务")
+        if last and last["status"] == "failed" and a["name"] == "cursor":
+            from .executor_setup import cursor_failure
+            why = cursor_failure(text) or why
         if why:
             out.append(_item("agent:" + a["name"], a["title"], "bad", "%s 跑不起来（运行 #%d）：%s" % (a["title"], last["id"], why[0]), why[1]))
     # a run the platform cut off by restarting says nothing about the agent; only the end of the log is needed

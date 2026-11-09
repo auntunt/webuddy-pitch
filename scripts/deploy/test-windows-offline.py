@@ -10,18 +10,104 @@ from pathlib import Path
 import socket
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import urllib.error
 import urllib.request
 
 
+def cursor_e2e(root, evidence):
+    """Real Cursor API run end-to-end through the bundle. Skipped without the key."""
+    out = Path(evidence)
+    out.mkdir(parents=True, exist_ok=True)
+    target = out / 'cursor-e2e.json'
+    if not os.environ.get('CURSOR_API_KEY'):
+        target.write_text(json.dumps({'cursor_e2e': 'not_run (no CURSOR_API_KEY secret)'}, ensure_ascii=False))
+        return 0
+    import urllib.request
+    python = root / 'runtime/python/python.exe'
+    launcher = root / 'launcher.py'
+    check = subprocess.run([str(python), '-B', str(launcher), 'check'],
+                           capture_output=True, text=True, encoding='utf-8', timeout=300)
+    report = json.loads(check.stdout) if check.returncode == 0 else {}
+    conn = report.get('cursor_connection') or {}
+    if not conn.get('ok'):
+        target.write_text(json.dumps({'cursor_e2e': 'failed', 'stage': 'cursor preflight',
+                                      'error': str(conn.get('error') or conn.get('error_excerpt') or check.stdout[:400])}, ensure_ascii=False))
+        return 1
+    work = Path(tempfile.mkdtemp(prefix='e2e '))
+    repo = work / 'fixture 项目'
+    repo.mkdir(parents=True)
+    subprocess.run(['git', 'init'], cwd=repo, capture_output=True, check=True)
+    subprocess.run(['git', 'config', 'user.email', 'e2e@local'], cwd=repo, check=True, capture_output=True)
+    subprocess.run(['git', 'config', 'user.name', 'e2e'], cwd=repo, check=True, capture_output=True)
+    app = repo / 'app.py'
+    app.write_text('print("hi")\n', encoding='utf-8')
+    subprocess.run(['git', 'add', '.'], cwd=repo, capture_output=True, check=True)
+    subprocess.run(['git', 'commit', '-m', 'init'], cwd=repo, capture_output=True, check=True)
+    data = work / 'data'
+    config = work / 'config.json'
+    with socket.socket() as sock:
+        sock.bind(('127.0.0.1', 0))
+        port = sock.getsockname()[1]
+    config.write_text(json.dumps({'data_dir': str(data), 'host': '127.0.0.1', 'port': port}))
+    server = subprocess.Popen([str(python), '-B', str(launcher), '--config', str(config), 'start'],
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    def api(method, path, body=None):
+        request = urllib.request.Request('http://127.0.0.1:%d%s' % (port, path), method=method,
+                                         data=json.dumps(body).encode() if body is not None else None,
+                                         headers={'Content-Type': 'application/json'})
+        try:
+            with urllib.request.urlopen(request, timeout=30) as resp:
+                return json.loads(resp.read())
+        except urllib.error.HTTPError as e:
+            raise AssertionError('%s %s -> %s: %s' % (method, path, e.code, e.read()[:300]))
+    try:
+        for _ in range(60):
+            try:
+                urllib.request.urlopen('http://127.0.0.1:%d/api/meta' % port, timeout=2)
+                break
+            except OSError:
+                time.sleep(1)
+        else:
+            raise AssertionError('server did not start')
+        api('POST', '/api/projects', {'key': 'e2e', 'name': 'e2e', 'root': str(repo)})
+        run = api('POST', '/api/projects/e2e/runs', {'mode': 'fix', 'agent': 'cursor',
+                  'target': '在 app.py 末尾加一行注释 # e2e-done，保存后用 shell 运行 git status 确认改动'})
+        rid = run.get('run', {}).get('id') or run.get('id')
+        status, detail = '', {}
+        deadline = time.time() + 480
+        while time.time() < deadline:
+            detail = api('GET', '/api/runs/%d' % rid)
+            status = detail.get('status', '')
+            if status in ('done', 'failed', 'cancelled'):
+                break
+            time.sleep(5)
+        changed = app.read_text(encoding='utf-8')
+        rejected = (detail.get('output') or '').count('被拒绝的命令')
+        record = {'cursor_e2e': 'passed' if (status == 'done' and rejected == 0 and '# e2e-done' in changed)
+                  else 'failed', 'run': rid, 'status': status, 'rejected_calls': rejected,
+                  'file_changed': '# e2e-done' in changed,
+                  'result_excerpt': (detail.get('result') or '')[:300]}
+        target.write_text(json.dumps(record, ensure_ascii=False, indent=2))
+        return 0 if record['cursor_e2e'] == 'passed' else 1
+    except Exception as exc:
+        target.write_text(json.dumps({'cursor_e2e': 'failed', 'error': str(exc)[:400]}, ensure_ascii=False))
+        return 1
+    finally:
+        server.terminate()
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('bundle', type=Path)
     p.add_argument('--expect-network-blocked', action='store_true')
+    p.add_argument('--cursor-e2e', metavar='EVIDENCE_DIR')
     args = p.parse_args()
     root = args.bundle.resolve()
+    if args.cursor_e2e:
+        raise SystemExit(cursor_e2e(root, args.cursor_e2e))
     launcher = root / 'launcher.py'
     spec = importlib.util.spec_from_file_location('launcher', launcher)
     launch = importlib.util.module_from_spec(spec)

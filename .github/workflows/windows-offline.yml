@@ -47,6 +47,19 @@ jobs:
         run: |
           $archive = Get-ChildItem "$env:RUNNER_TEMP/bundle/*.zip" | Select-Object -First 1
           ./scripts/deploy/test-windows-offline.ps1 -Archive $archive.FullName -Evidence "$env:RUNNER_TEMP/offline-evidence"
+      - name: Cursor end-to-end (real API key)
+        shell: pwsh
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          $archive = Get-ChildItem "$env:RUNNER_TEMP/bundle/*.zip" | Select-Object -First 1
+          $dest = "$env:RUNNER_TEMP/cursor-e2e"
+          Expand-Archive -LiteralPath $archive.FullName -DestinationPath $dest
+          $root = Join-Path $dest 'Webuddy'
+          $python = Join-Path $root 'runtime\python\python.exe'
+          if ($env:CURSOR_API_KEY) { irm 'https://cursor.com/install?win32=true' | iex }
+          & $python -B scripts/deploy/test-windows-offline.py $root --cursor-e2e "$env:RUNNER_TEMP/offline-evidence"
+          if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
       - name: Retain technical receipts
         if: always()
         uses: actions/upload-artifact@v4
@@ -58,6 +71,7 @@ jobs:
             ${{ runner.temp }}/bundle/content-audit.json
             ${{ runner.temp }}/bundle/bundle.json
             ${{ runner.temp }}/offline-evidence/receipt.json
+            ${{ runner.temp }}/offline-evidence/cursor-e2e.json
             ${{ runner.temp }}/offline-evidence/**/Webuddy/MANIFEST.json
             ${{ runner.temp }}/offline-evidence/**/server-*.log
           if-no-files-found: warn

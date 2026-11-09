@@ -320,7 +320,15 @@ def executable(engine: str, config: dict) -> str:
         configured = os.environ.get("WEBUDDY_CURSOR_BIN")
         if configured:
             return configured
-        return shutil.which("agent") or shutil.which("cursor-agent") or "agent"
+        found = shutil.which("agent") or shutil.which("cursor-agent")
+        if found:
+            return found
+        if sys.platform == "win32":
+            local = os.environ.get("LOCALAPPDATA", "")
+            for cand in (local + r"\cursor-agent\agent.cmd", local + r"\cursor-agent\cursor-agent.cmd") if local else ():
+                if Path(cand).is_file():
+                    return cand
+        return "agent"
     return exe
 
 
@@ -414,8 +422,9 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
                    "先运行 `tmh-kb.cmd status` 和 `tmh-kb.cmd notes`，然后立即领取指定页面。"
                    "领取与校验分别使用 `tmh-kb.cmd next --page 页面ID`、`tmh-kb.cmd done 页面ID`。"
                    "读取和检索使用内置文件工具，写入仅限任务指定的 .tmh/knowledge 页面。"
-                   "不要尝试 python/python3、Bash 或其他 Shell 命令。"
-                   "如果命令返回 rejected，立即报告具体被拒绝的命令并结束，不要反复尝试或无止境扫描。")
+                   "查业务流、表和影响面也可用 `\"%s\" %s <子命令> --repo %s`。"
+                   "如果命令返回 rejected，立即报告具体被拒绝的命令并结束，不要反复尝试或无止境扫描。"
+                   % (sys.executable, Path(root) / ".tmh" / "tool" / "tmh.py", root))
     elif tool.is_file():
         if sys.platform == "win32":  # python3 on Windows resolves to a non-working WindowsApps stub
             out.append("查业务流、表和影响面用 `\"%s\" %s <子命令> --repo %s`（下文写作 `tmh <子命令>`）。" % (sys.executable, tool, root))
@@ -723,8 +732,10 @@ def command(conf: dict, agent: str, mode: str, prompt: str, prompt_file: Path, w
         # Native Windows has no Cursor OS sandbox: keep CLI permissions and drop
         # --force (user approved running Cursor's own checks instead).
         if sys.platform == "win32":
-            policy = [] if mode in ("fix", "edit", "kb", "chart") else ["--mode", "ask"]
-            return [exe, "--trust", "--print", "--output-format", "stream-json", "--sandbox", "disabled"] + policy + extra + (["--resume", resume] if resume else [])
+            # Write modes need --force: without it every shell call is rejected on site.
+            policy = ["--force"] if mode in ("fix", "edit", "kb", "chart") else ["--mode", "ask"]
+            argv = [exe, "--trust", "--print", "--output-format", "stream-json", "--sandbox", "disabled"] + policy + extra + (["--resume", resume] if resume else [])
+            return argv
         policy = ["--force"] if mode in ("fix", "edit", "kb", "chart") else ["--mode", "ask"]
         return [exe, "--trust", "--print", "--output-format", "stream-json", "--sandbox", "enabled"] + policy + extra + (["--resume", resume] if resume else [])
     raise ValueError("智能体 %s 没有配置 cmd" % agent)
@@ -743,8 +754,31 @@ class StreamParser:
         self.reported_model = None
         self.completed = False
         self.failed = False
+        self.rejected = []
+        self._reject_streak = 0
+        self.stopped_rejections = ""
 
     def feed(self, line: str) -> str:
+        if self.agent == "cursor" and line.lstrip().startswith("{"):
+            try:
+                ev = json.loads(line)
+            except ValueError:
+                ev = None
+            if isinstance(ev, dict) and ev.get("type") == "tool_call" and ev.get("subtype") == "completed":
+                call = ev.get("tool_call") or {}
+                for key in ("shellToolCall", "mcpToolCall", "editToolCall"):
+                    tc = call.get(key)
+                    if not isinstance(tc, dict):
+                        continue
+                    if "rejected" in json.dumps(tc.get("result") or {}):
+                        cmd = str(tc.get("args") or tc.get("command") or key)[:120]
+                        self.rejected.append(cmd)
+                        self._reject_streak += 1
+                        if self._reject_streak >= 3:
+                            self.stopped_rejections = ("连续 %d 次命令被拒绝，已停止运行：%s"
+                                                       % (self._reject_streak, "；".join(self.rejected[-3:])))
+                        return "被拒绝的命令：%s\n" % cmd
+                    self._reject_streak = 0
         if self.agent == "codex" and line.lstrip().startswith("{"):
             try:
                 ev = json.loads(line)
@@ -1531,7 +1565,8 @@ class Runner:
         label = {"timeout": "达到整次任务总时限", "cancelled": "已请求取消",
                  "orphaned": "启动器退出后仍有子进程存活", "cleanup_failed": "进程回收未完成",
                  "owner_lost": "平台连接中断，受管进程已停止",
-                 "model_invocation_limit": "达到模型进程调用次数上限", "error": "执行或证据保存发生错误"}.get(reason, reason)
+                 "model_invocation_limit": "达到模型进程调用次数上限", "error": "执行或证据保存发生错误",
+                 "rejected": "连续多次命令被执行器拒绝"}.get(reason, reason)
         return "运行停止：%s。原始输出、过程证据和已有改动已保留；检查后可新建运行继续。" % label if reason else ""
 
     def finish_invocation(self, rid, code, result):
@@ -2211,7 +2246,7 @@ class Runner:
             if sys.platform == "win32" and engine == "cursor" and (tool / "tmh-kb.cmd").is_file():
                 # Cursor's shell resolves the knowledge bridge by name on Windows.
                 env["PATH"] = str(tool) + os.pathsep + env.get("PATH", "")
-        pending, buf, last = "", [], time.monotonic()
+        pending, buf, last, stop_reported = "", [], time.monotonic(), False
         def output(chunk, final=False):
             nonlocal pending, buf, last
             pending += chunk
@@ -2225,6 +2260,10 @@ class Runner:
                 text = parser.feed(line)
                 if text:
                     buf.append(text)
+                if parser.stopped_rejections and not stop_reported:
+                    stop_reported = True
+                    buf.append("— %s\n" % parser.stopped_rejections)
+                    self._stopped(rid, "rejected")
             if buf and (final or time.monotonic() - last > 0.4 or len(buf) > 50):
                 st.append_output(rid, "".join(buf))
                 buf, last = [], time.monotonic()

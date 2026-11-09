@@ -262,6 +262,29 @@ def scan():
     return {"codex": codex, "claude": claude, "cursor": cursor}
 
 
+CURSOR_FAILURES = [
+    (r"Workspace Trust Required",
+     "项目工作区尚未信任", "在该项目目录交互运行一次 agent，确认信任后再重试"),
+    (r"Sandbox mode is enabled but not available",
+     "Cursor 沙箱模式不可用", "Webuddy 已传 --sandbox disabled；检查是否有外部配置覆盖了它"),
+    (r"uv_os_get_passwd",
+     "Cursor 无法读取 Windows 用户信息",
+     "请在普通用户桌面会话中启动 Webuddy，不要在受限/服务会话中运行"),
+    (r"Not logged in|unauthenticated|Authentication required",
+     "Cursor 未登录", "在 Webuddy 运行的同一 Windows 账号执行 `agent login`，或在设置里填写 Cursor API Key"),
+    (r"Failed to load models",
+     "Cursor 模型列表获取失败", "检查 Cursor API Key 与网络；或在智能体设置里直接填写模型名"),
+]
+
+
+def cursor_failure(text):
+    """(what, fix) when output matches a known Cursor failure, else ()."""
+    for pattern, what, fix in CURSOR_FAILURES:
+        if re.search(pattern, text or ""):
+            return what, fix
+    return ()
+
+
 def probe(engine, exe, env, timeout=45):
     """One no-tools request; PASS only when the exact marker is returned."""
     workdir = Path(tempfile.mkdtemp(prefix="tmh-probe-"))
@@ -291,4 +314,7 @@ def probe(engine, exe, env, timeout=45):
     else:
         excerpt = re.sub(r"(sk-[A-Za-z0-9_\-]{8,}|wbt_[A-Za-z0-9_.\-]{8,}|[A-Za-z0-9_\-]{24,})", "***", out)
         report["error_excerpt"] = excerpt.strip()[-400:]
+        known = cursor_failure(out)
+        if known:
+            report["reason"], report["fix"] = known
     return report

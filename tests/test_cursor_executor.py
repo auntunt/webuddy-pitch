@@ -39,7 +39,7 @@ class CursorExecutorTest(unittest.TestCase):
             agents.member_codex_binding({'engine':'cursor'}, '')
 
     def test_windows_cursor_allowlist_mode(self):
-        """Windows: --sandbox disabled, no --force; read-only keeps --mode ask."""
+        """Windows: --sandbox disabled; write modes use --force, read-only keeps --mode ask without it."""
         conf = {'cursor': dict(agents.BUILTIN['cursor'], bin='fixture-cursor'),
                 'codex': dict(agents.BUILTIN['codex'], bin='fixture-codex'),
                 'claude': dict(agents.BUILTIN['claude'], bin='fixture-claude')}
@@ -52,7 +52,10 @@ class CursorExecutorTest(unittest.TestCase):
                 self.assertEqual(cmd[cmd.index('--sandbox') + 1], 'disabled', cmd)
                 self.assertEqual(cmd.count('--sandbox'), 1)
                 self.assertIn('--trust', cmd)
-                self.assertNotIn('--force', cmd)
+                if mode in ('fix', 'edit', 'kb', 'chart'):
+                    self.assertIn('--force', cmd)  # write modes need it or every shell call is rejected
+                else:
+                    self.assertNotIn('--force', cmd)
                 if mode not in ('fix', 'edit', 'kb', 'chart'):
                     self.assertEqual(cmd[cmd.index('--mode') + 1], 'ask')
             cmd = build('cursor', 'edit', model='auto', resume='test-session')
@@ -140,3 +143,43 @@ elif prompt.startswith('complete'):
             finally:
                 self.assertTrue(runner.wait_for_idle(10))
                 store.db.close()
+
+    def test_windows_cursor_paths_with_chinese_and_spaces(self):
+        """argv[0] is the exe unchanged; prompt via stdin, workdir via cwd — never in argv."""
+        exe = r'C:\Users\张 三\AppData\Local\cursor-agent\agent.cmd'
+        workdir = Path(r'I:\安装包\安装包\Webuddy\WebuddyData\State\repositories\SJJH21 副本')
+        conf = {'cursor': dict(agents.BUILTIN['cursor'], bin=exe)}
+        with patch.object(sys, 'platform', 'win32'):
+            cmd = agents.command(conf, 'cursor', 'fix', '改一个文件的提示词', Path('prompt'), workdir, Path('last'))
+        self.assertEqual(cmd[0], exe)
+        self.assertNotIn('改一个文件的提示词', cmd)
+        self.assertTrue(all('SJJH21' not in a and '安装包' not in a for a in cmd))
+        self.assertNotIn('cmd', cmd[:1])  # no cmd /c wrapping: Popen runs .cmd directly
+        with tempfile.TemporaryDirectory() as folder:  # LOCALAPPDATA discovery for agent.cmd
+            agent = Path(folder + r'\cursor-agent\agent.cmd')  # Windows path = one filename on POSIX
+            agent.write_text('@echo off\n')
+            env = patch.dict(os.environ, {'LOCALAPPDATA': folder})
+            with env, patch.object(sys, 'platform', 'win32'), patch('shutil.which', return_value=None):
+                self.assertEqual(agents.executable('cursor', {'bin': 'agent'}), str(agent))
+
+    def test_cursor_rejected_calls_stop_after_three_consecutive(self):
+        import json as _json
+        p = agents.StreamParser('cursor')
+        def ev(cmd, rejected=True):
+            return _json.dumps({'type': 'tool_call', 'subtype': 'completed',
+                                'tool_call': {'shellToolCall': {'args': cmd,
+                                                'result': {'rejected': {'denied': cmd}} if rejected else {'success': 'ok'}}}})
+        self.assertEqual(p.feed(ev('python --version')), '被拒绝的命令：python --version\n')
+        p.feed(ev('dir'))
+        self.assertFalse(p.stopped_rejections)
+        p.feed(ev('tmh status'))
+        self.assertIn('连续 3 次', p.stopped_rejections)
+        # streak resets on a successful call
+        q = agents.StreamParser('cursor')
+        for cmd in ('a', 'b'):
+            q.feed(ev(cmd))
+        q.feed(ev('git status', rejected=False))
+        q.feed(ev('c')); q.feed(ev('d'))
+        self.assertFalse(q.stopped_rejections)
+        q.feed(ev('e'))
+        self.assertIn('连续 3 次', q.stopped_rejections)

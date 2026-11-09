@@ -247,3 +247,19 @@ class AccessConfigTest(unittest.TestCase):
                     {'mode': 'lan', 'port': 80, 'public_url': 'javascript:alert(1)'}):
             with self.assertRaises(server.ApiError):
                 server.api_access_config_save(self._P(), self._req(bad))
+
+
+def test_cursor_failure_mapping():
+    from tmh.platform.executor_setup import cursor_failure
+    for text, reason in (('Workspace Trust Required for C:\\x', '工作区尚未信任'),
+                         ('Sandbox mode is enabled but not available', '沙箱模式不可用'),
+                         ('uv_os_get_passwd: permission denied', '无法读取 Windows 用户信息'),
+                         ('Not logged in', '未登录'), ('unauthenticated request', '未登录'),
+                         ('Authentication required', '未登录'),
+                         ('Failed to load models', '模型列表获取失败'),
+                         ('something else entirely', '')):
+        got = cursor_failure(text)
+        if reason:
+            assert reason in got[0], (text, got)
+        else:
+            assert got == ()
