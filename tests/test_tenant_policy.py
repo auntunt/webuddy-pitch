@@ -95,15 +95,16 @@ class TenantPolicyTest(unittest.TestCase):
 
     def test_inventory_is_exact_and_every_entry_matches(self):
         from tmh.platform import server
-        tree = ast.parse(Path(server.__file__).read_text(encoding="utf-8"))
         actual = set()
-        for node in tree.body:
-            if isinstance(node, ast.FunctionDef):
-                for item in node.decorator_list:
-                    if isinstance(item, ast.Call) and isinstance(item.func, ast.Name) and item.func.id == "route":
-                        actual.add(tuple(ast.literal_eval(arg) for arg in item.args))
+        for source in [Path(server.__file__), *sorted((Path(server.__file__).parent / "api").glob("*.py"))]:
+            tree = ast.parse(source.read_text(encoding="utf-8"))
+            for node in tree.body:
+                if isinstance(node, ast.FunctionDef):
+                    for item in node.decorator_list:
+                        if isinstance(item, ast.Call) and isinstance(item.func, ast.Name) and item.func.id == "route":
+                            actual.add(tuple(ast.literal_eval(arg) for arg in item.args))
         self.assertEqual(actual, policy.API_ROUTES)
-        self.assertEqual(len(actual), 209)  # Includes explicit map GET and POST routes.
+        self.assertEqual(len(actual), 215)  # Includes explicit map GET and POST routes.
         self.assertTrue({('GET','/api/projects/<key>/maps'),('POST','/api/projects/<key>/maps')}.issubset(actual))
         import re
         for method, template in actual:
@@ -149,10 +150,14 @@ class TenantPolicyTest(unittest.TestCase):
         self.assertEqual(scope["authz_revision"], 2)
 
     def test_global_aggregates_are_not_enabled_by_fake_project_filters(self):
+        platform_owner_only = ("/api/agent-scan", "/api/agent-test")
         for path in policy.ADMIN_GLOBAL:
             with self.subTest(path=path):
                 self.denied(path, query={"project": ["ALPHA"]})
-                self.auth(path, actor="admin")
+                if path in platform_owner_only:
+                    self.denied(path, actor="admin")
+                else:
+                    self.auth(path, actor="admin")
         self.denied("/api/stats")
         self.auth("/api/stats", query={"project": ["ALPHA"]})
 
@@ -455,6 +460,29 @@ class TenantPolicyTest(unittest.TestCase):
                 self.denied('/api/agent-settings',actor=actor,query=query)
             self.auth('/api/agent-settings',actor='admin',query=query)
         self.denied('/api/today',query={'project':['ALPHA']})
+
+    def test_executor_and_listening_config_is_platform_owner_only(self):
+        for method, path in (("GET", "/api/access-config"), ("POST", "/api/access-config"),
+                             ("GET", "/api/agent-scan"), ("POST", "/api/agent-test")):
+            self.denied(path, method=method, actor="bob")
+            self.denied(path, method=method, actor="reader")
+        self.auth("/api/access-config", actor="admin")
+        for method, path in (("POST", "/api/access-config"), ("GET", "/api/agent-scan"), ("POST", "/api/agent-test")):
+            self.denied(path, method=method, actor="admin")
+        self.context.tenant_id = "default"
+        self.auth("/api/access-config", actor="owner")
+        self.auth("/api/agent-scan", actor="owner")
+        self.auth("/api/agent-test", method="POST", actor="owner")
+
+    def test_entries_detect_is_project_scoped_and_execution_gated(self):
+        path = "/api/projects/ALPHA/entries/detect"
+        self.assertNotIn(("/api/projects/<key>/entries/detect"), policy.SAFE_POSTS)
+        self.denied(path, method="POST", actor="reader")
+        self.denied(path, method="POST", actor="outsider")
+        self.denied(path, method="POST", actor="bob")
+        self.context.tenant_id = "default"
+        self.denied(path, method="POST", actor="bob")
+        self.auth(path, method="POST", actor="owner")
 
 
 if __name__ == "__main__":

@@ -158,9 +158,14 @@ GET /api/projects/<key>/upstream
 GET /api/projects/<key>/baseline
 POST /api/projects/<key>/baseline/seal
 GET /api/projects/<key>/ledger
+POST /api/projects/<key>/entries/detect
 POST /api/tickets/<key>
 GET /api/agent-settings
 POST /api/agent-settings
+GET /api/access-config
+POST /api/access-config
+GET /api/agent-scan
+POST /api/agent-test
 GET /api/testbox
 GET /api/projects/<key>/releases
 POST /api/tickets/<key>/release
@@ -237,7 +242,8 @@ PUBLIC_CAPABILITIES = ("/bot/", "/hook/alert/", "/capture/", "/pv/", "/v/", "/si
 # These projections still read across projects, even when their UI shows a
 # project selector. They remain admin-only until their query layer is scoped.
 ADMIN_GLOBAL = frozenset(("/api/lead", "/api/readiness", "/api/testbox",
-                         "/api/agent-settings", "/api/today", "/api/chats", "/api/clients", "/api/requirements"))
+                         "/api/agent-settings", "/api/access-config", "/api/agent-scan", "/api/agent-test",
+                         "/api/today", "/api/chats", "/api/clients", "/api/requirements"))
 AGENT_OPERATIONS = frozenset("""maps_list map_get map_create reform_report_create reform_report_get reforms_list reform_get reform_preview reform_events reform_resume_preview reform_create reform_update reform_control reform_archive run_recover status projects_list tickets_list ticket_get delivery_get ticket_create message_send
 messages_list request_get run_get run_start run_cancel run_retry run_recheck preview_get preview_start
 candidates_list candidate_get candidate_ci candidate_submit candidate_verify candidate_cancel candidate_preview
@@ -633,7 +639,8 @@ def authorize(P, method, path, query, body, actor):
     if not targets and template not in FILTERED_LISTS | ALL_PROJECT_PATHS and template not in ("/api/meta", "/api/delivery/catalog", "/api/projects/bootstrap") and not (method == "GET" and template in ("/api/org/knowledge", "/api/memory")) and not (method == "POST" and template.startswith("/api/projects/import")):
         if who["role"] != "admin":
             raise ApiError(403, "请明确选择获准的项目或工单")
-    if template == "/api/agent-settings" and method == "POST" and not who["platform_owner"]:
+    if (template == "/api/agent-settings" and method == "POST" or template == "/api/access-config" and method == "POST"
+            or template == "/api/agent-test" and method == "POST" or template == "/api/agent-scan" and method == "GET") and not who["platform_owner"]:
         raise ApiError(403, "智能体配置只能由平台管理员管理")
     if method == "GET":
         if template in ("/p/<key>/report/<path>", "/p/<key>/code.bundle"):
