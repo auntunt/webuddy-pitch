@@ -7,6 +7,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import re
 import socket
 import subprocess
 import sys
@@ -250,6 +251,14 @@ def main():
             request = urllib.request.Request(base + '/api/projects', headers={'X-TMH-Token': 'synthetic-offline-token'})
             with opener.open(request, timeout=3) as response:
                 records['projects_after_start_%d' % attempt] = json.load(response)
+            with opener.open(base + '/next/?token=synthetic-offline-token', timeout=10) as response:
+                page = response.read().decode('utf-8')
+                assert response.status == 200 and '<div id="app"></div>' in page
+            asset = re.search(r'assets/index-[^"]+\.js', page)
+            assert asset, 'web bundle is missing its hashed entry asset'
+            with opener.open(base + '/next/' + asset.group(0) + '?token=synthetic-offline-token', timeout=10) as response:
+                assert response.status == 200
+                assert 'immutable' in (response.headers.get('Cache-Control') or '')
             records['workbench_mcp_%d' % attempt] = asyncio.run(sdk_check(base))
             duplicate = call('--config', config, 'start', env=env, ok=False)
             assert 'lock timed out' in duplicate.stderr, duplicate.stderr

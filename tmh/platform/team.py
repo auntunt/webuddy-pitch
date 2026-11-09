@@ -277,6 +277,10 @@ def _action(P, t, b, user, mutation):
         fields = ("ticket", "base_commit", "commit", "requirement_hash", "criteria", "summary", "request_id")
         args = {k: b[k] for k in fields if k in b}
         op = action
+    elif action == "candidate_resolve":
+        fields = ("ticket", "base", "commit")
+        args = {k: b[k] for k in fields if k in b}
+        op = action
     else:
         row = _candidate(P, t, b.get("candidate_id"))
         if action == 'candidate_diagnostic':

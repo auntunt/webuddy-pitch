@@ -340,7 +340,7 @@ def worker(data, tenant, address, keyfile, parent_pid):
     context.platform = P
     from . import learning_experiment_runs as experiments
     recovery_ids = experiments.recovery_candidates(P)
-    base = make_handler(P)
+    base = make_handler(P, web_prefix="/t/" + tenant)
 
     class Handler(base):
         def setup(self):

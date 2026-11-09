@@ -12,7 +12,7 @@ import time
 import traceback
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
-from urllib.parse import parse_qs, unquote, urlparse
+from urllib.parse import parse_qs, quote, unquote, urlparse
 from ... import __version__
 from ..metrics import md_html, report_md
 from ..errors import ApiError
@@ -32,7 +32,10 @@ class Req:
         return (self.query.get(k) or [""])[0]
 
 
-def make_handler(P: Platform, token: str = ""):
+WEB_DIST = Path(__file__).resolve().parent.parent / "web_dist"
+
+
+def make_handler(P: Platform, token: str = "", web_prefix: str = ""):
     from .. import login as L
     from ..ui import page
     throttle = L.Throttle()
@@ -45,15 +48,18 @@ def make_handler(P: Platform, token: str = ""):
 
         def _send(self, code: int, body: bytes, ctype: str, extra: dict | None = None):
             body, extra = encode_json(body, ctype, self.headers.get("Accept-Encoding", ""), extra)
+            extra = extra or {}
+            cache = next((v for k, v in extra.items() if k.lower() == "cache-control"), "no-store")
             self.send_response(code)
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(body)))
-            self.send_header("Cache-Control", "no-store")
+            self.send_header("Cache-Control", cache)
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("X-Frame-Options", "DENY")  # no page (a preview's, say) may frame the platform and click for a person
             self.send_header("Content-Security-Policy", "frame-ancestors 'none'")
-            for k, v in (extra or {}).items():
-                self.send_header(k, v)
+            for k, v in extra.items():
+                if k.lower() != "cache-control":
+                    self.send_header(k, v)
             self.end_headers()
             if self.command != "HEAD":
                 self.wfile.write(body)
@@ -72,6 +78,39 @@ def make_handler(P: Platform, token: str = ""):
                 return not accounts
             got = self.headers.get("X-TMH-Token") or (q.get("token") or [""])[0] or _cookie(self.headers.get("Cookie", ""), "tmh_token")
             return hmac.compare_digest(got.encode("utf-8"), token.encode("utf-8"))
+
+        def _next_spa(self, method: str, path: str, q: dict, u):
+            extra = {}
+            if token and (q.get("token") or [""])[0] == token:
+                extra["Set-Cookie"] = "tmh_token=%s; Path=/; HttpOnly; SameSite=Strict" % token
+            if not self._authorized(q):
+                if L.has_accounts(P.data_dir):
+                    nxt = path + (("?" + u.query) if u.query else "")
+                    return self._send(303, b"", "text/plain", {"Location": "/login?next=" + quote(nxt, safe="")})
+                return self._send(401, "需要访问令牌：在地址后加 ?token=…".encode("utf-8"), "text/plain; charset=utf-8")
+            if path.startswith("/next/assets/"):
+                m = re.fullmatch(r"/next/assets/([A-Za-z0-9._-]+)", path)
+                f = WEB_DIST / "assets" / m.group(1) if m else None
+                if not f or not f.is_file():
+                    return self._send(404, b"not found", "text/plain")
+                ctype = mimetypes.guess_type(f.name)[0] or "application/octet-stream"
+                if ctype.startswith("text/") or ctype in ("application/javascript", "application/json", "image/svg+xml"):
+                    ctype += "; charset=utf-8"
+                return self._send(200, f.read_bytes(), ctype,
+                                  {"Cache-Control": "public, max-age=31536000, immutable"})
+            index = WEB_DIST / "index.html"
+            if not index.is_file():
+                return self._send(503, "新版界面尚未构建，请先运行 web 构建".encode("utf-8"), "text/plain; charset=utf-8")
+            html = index.read_text("utf-8")
+            base = (web_prefix + "/next/") if web_prefix else "/next/"
+            tag = '<base href="%s">' % base
+            if "<head>" in html:
+                html = html.replace("<head>", "<head>" + tag, 1)
+            elif "</head>" in html:
+                html = html.replace("</head>", tag + "</head>", 1)
+            else:
+                html = tag + html
+            return self._send(200, html.encode("utf-8"), "text/html; charset=utf-8", extra)
 
         def _client(self) -> str:
             ip = self.client_address[0]
@@ -232,6 +271,10 @@ def make_handler(P: Platform, token: str = ""):
             if not path.startswith("/api/"):
                 if method != "GET":
                     return self._json(405, {"error": "method"})
+                if path == "/next":
+                    return self._send(303, b"", "text/plain", {"Location": "/next/" + (("?" + u.query) if u.query else "")})
+                if path == "/next/" or path.startswith("/next/"):
+                    return self._next_spa(method, path, q, u)
                 if path in ("/", "/index.html"):
                     extra = {}
                     if token and (q.get("token") or [""])[0] == token:

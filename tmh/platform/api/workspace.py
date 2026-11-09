@@ -235,6 +235,22 @@ def api_team_action(P, req):
     return team.dispatch_action(P, req.body, _human_action(P, req, strict=True))
 
 
+@route("GET", "/api/candidates/<cid>")
+def api_candidate(P, req, cid):
+    from .. import candidates
+    from ..tenant_policy import require_member
+    try:
+        cid = int(cid)
+    except (TypeError, ValueError):
+        raise ApiError(404, "没有这个候选")
+    row = candidates._row(P, cid)
+    t = P.store.ticket(row["ticket_id"])
+    if not t:
+        raise ApiError(404, "没有这个候选")
+    require_member(P, _session_actor(req) or req.user, t["project_id"], "viewer")
+    return candidates.view(P, cid)
+
+
 @route("GET", "/api/memory")
 def api_memory(P, req):
     from .. import memory

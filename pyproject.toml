@@ -22,4 +22,4 @@ packages = ["tmh", "tmh.integrations", "tmh.platform", "tmh.platform.api", "tmh.
 
 [tool.setuptools.package-data]
 tmh = ["rules/*.json"]
-"tmh.platform" = ["*.cjs", "vendor/*.js", "vendor/*LICENSE*"]
+"tmh.platform" = ["*.cjs", "vendor/*.js", "vendor/*LICENSE*", "web_dist/*", "web_dist/assets/*"]

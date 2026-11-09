@@ -1,216 +1,1077 @@
 [
-["GET", "^/api/meta$", "api_meta"],
-["POST", "^/api/agent/(?P<operation>[^/]+)$", "api_agent"],
-["GET", "^/api/workspace$", "api_workspace"],
-["GET", "^/api/projects/(?P<key>[^/]+)/meetings$", "api_meetings"],
-["GET", "^/api/projects/(?P<key>[^/]+)/pilots$", "api_pilots"],
-["POST", "^/api/projects/(?P<key>[^/]+)/pilots$", "api_pilot_create"],
-["GET", "^/api/projects/(?P<key>[^/]+)/pilots/(?P<pid>[^/]+)$", "api_pilot"],
-["POST", "^/api/projects/(?P<key>[^/]+)/pilots/(?P<pid>[^/]+)$", "api_pilot_action"],
-["POST", "^/api/projects/(?P<key>[^/]+)/meetings$", "api_meeting_create"],
-["GET", "^/api/projects/(?P<key>[^/]+)/meetings/(?P<mid>[^/]+)$", "api_meeting"],
-["POST", "^/api/projects/(?P<key>[^/]+)/meetings/(?P<mid>[^/]+)$", "api_meeting_action"],
-["GET", "^/api/tickets/(?P<key>[^/]+)/brief$", "api_work_brief"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/brief$", "api_work_brief_save"],
-["GET", "^/api/projects/(?P<key>[^/]+)/ci$", "api_project_ci"],
-["POST", "^/api/projects/(?P<key>[^/]+)/ci$", "api_project_ci_save"],
-["GET", "^/api/tickets/(?P<key>[^/]+)/ci$", "api_ticket_ci"],
-["GET", "^/api/tickets/(?P<key>[^/]+)/delivery$", "api_delivery_packet"],
-["GET", "^/api/tickets/(?P<key>[^/]+)/development$", "api_development"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/development$", "api_development_action"],
-["GET", "^/api/team$", "api_team"],
-["GET", "^/api/handoffs$", "api_handoffs"],
-["POST", "^/api/handoffs$", "api_handoff_action"],
-["POST", "^/api/team$", "api_team_action"],
-["GET", "^/api/memory$", "api_memory"],
-["GET", "^/api/memory/brief$", "api_memory_brief"],
-["POST", "^/api/memory$", "api_memory_action"],
-["GET", "^/api/learning$", "api_learning"],
-["POST", "^/api/learning$", "api_learning_action"],
-["GET", "^/api/projects$", "api_projects"],
-["POST", "^/api/projects$", "api_add_project"],
-["GET", "^/api/projects/(?P<key>[^/]+)/library$", "api_library"],
-["POST", "^/api/projects/(?P<key>[^/]+)/library$", "api_library_action"],
-["GET", "^/api/projects/(?P<key>[^/]+)/knowledge/search$", "api_knowledge_search"],
-["GET", "^/api/projects/(?P<key>[^/]+)/knowledge/file$", "api_knowledge_file"],
-["GET", "^/api/org/knowledge$", "api_org_knowledge"],
-["GET", "^/api/projects/(?P<key>[^/]+)/habits$", "api_habits"],
-["GET", "^/api/projects/(?P<key>[^/]+)$", "api_project"],
-["POST", "^/api/projects/bootstrap$", "api_bootstrap_project"],
-["POST", "^/api/projects/import$", "api_import_project"],
-["GET", "^/api/projects/import/(?P<job>[^/]+)$", "api_import_status"],
-["POST", "^/api/projects/import/(?P<job>[^/]+)/chunk$", "api_import_chunk"],
-["POST", "^/api/projects/import/(?P<job>[^/]+)/finish$", "api_import_finish"],
-["GET", "^/api/delivery/catalog$", "api_delivery_catalog"],
-["POST", "^/api/delivery-content$", "api_create_delivery_content"],
-["GET", "^/api/deliveries/(?P<did>[^/]+)/content$", "api_delivery_content"],
-["POST", "^/api/deliveries/(?P<did>[^/]+)/content$", "api_save_delivery_content"],
-["GET", "^/api/deliveries/(?P<did>[^/]+)/coverage$", "api_delivery_coverage"],
-["POST", "^/api/deliveries/(?P<did>[^/]+)/coverage$", "api_delivery_coverage_action"],
-["GET", "^/api/deliveries$", "api_deliveries"],
-["POST", "^/api/deliveries$", "api_create_delivery"],
-["GET", "^/api/deliveries/(?P<did>[^/]+)$", "api_delivery"],
-["POST", "^/api/deliveries/(?P<did>[^/]+)$", "api_delivery_action"],
-["GET", "^/api/projects/(?P<key>[^/]+)/related$", "api_related"],
-["GET", "^/api/projects/(?P<key>[^/]+)/flows/(?P<fid>[^/]+)$", "api_flow"],
-["GET", "^/api/projects/(?P<key>[^/]+)/kb$", "api_kb"],
-["GET", "^/api/projects/(?P<key>[^/]+)/kb/tree$", "api_kb_tree"],
-["GET", "^/api/projects/(?P<key>[^/]+)/maps$", "api_code_maps"],
-["POST", "^/api/projects/(?P<key>[^/]+)/maps$", "api_code_map_create"],
-["GET", "^/api/projects/(?P<key>[^/]+)/atlas$", "api_atlas"],
-["GET", "^/api/projects/(?P<key>[^/]+)/atlas/flow/(?P<fid>[^/]+)$", "api_atlas_flow"],
-["GET", "^/api/projects/(?P<key>[^/]+)/statecharts$", "api_statecharts"],
-["GET", "^/api/projects/(?P<key>[^/]+)/statecharts/renderer$", "api_statechart_renderer"],
-["POST", "^/api/projects/(?P<key>[^/]+)/entries/detect$", "api_entries_detect"],
-["GET", "^/api/projects/(?P<key>[^/]+)/arch$", "api_arch"],
-["GET", "^/api/projects/(?P<key>[^/]+)/arch/(?P<did>[^/]+)$", "api_arch_domain"],
-["GET", "^/api/projects/(?P<key>[^/]+)/kb/page$", "api_kb_page"],
-["POST", "^/api/projects/(?P<key>[^/]+)/kb/confirm$", "api_kb_confirm"],
-["GET", "^/api/projects/(?P<key>[^/]+)/kb/questions$", "api_kb_questions"],
-["POST", "^/api/projects/(?P<key>[^/]+)/kb/ask$", "api_kb_ask"],
-["POST", "^/api/projects/(?P<key>[^/]+)/kb/answer$", "api_kb_answer"],
-["POST", "^/api/projects/(?P<key>[^/]+)/kb/triage$", "api_kb_triage"],
-["POST", "^/api/projects/(?P<key>[^/]+)/intake$", "api_intake_start"],
-["GET", "^/api/intake/(?P<sid>[^/]+)$", "api_intake_get"],
-["POST", "^/api/intake/(?P<sid>[^/]+)$", "api_intake_act"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/ask-client$", "api_ask_client"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/client-change$", "api_client_change"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/intake-retry$", "api_intake_retry"],
-["GET", "^/api/tickets/(?P<key>[^/]+)/path-map$", "api_path_map"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/path-map$", "api_path_map_record"],
-["POST", "^/api/projects/(?P<key>[^/]+)/pins$", "api_pin_add"],
-["GET", "^/api/projects/(?P<key>[^/]+)/pins$", "api_pins"],
-["POST", "^/api/projects/(?P<key>[^/]+)/capture-token$", "api_capture_token"],
-["GET", "^/api/pins/(?P<pid>[^/]+)$", "api_pin"],
-["POST", "^/api/pins/(?P<pid>[^/]+)/intake$", "api_pin_intake"],
-["GET", "^/api/projects/(?P<key>[^/]+)/kb/metrics$", "api_kb_metrics"],
-["GET", "^/api/tickets/(?P<key>[^/]+)/similar$", "api_ticket_similar"],
-["GET", "^/api/tickets/(?P<key>[^/]+)/ops$", "api_ticket_ops"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/ops$", "api_ticket_ops_act"],
-["POST", "^/api/projects/(?P<key>[^/]+)/similar$", "api_project_similar"],
-["GET", "^/api/projects/(?P<key>[^/]+)/bots$", "api_bots"],
-["POST", "^/api/projects/(?P<key>[^/]+)/kb/overrule$", "api_kb_overrule"],
-["GET", "^/api/projects/(?P<key>[^/]+)/integrations$", "api_ints"],
-["POST", "^/api/projects/(?P<key>[^/]+)/import$", "api_import"],
-["GET", "^/api/projects/(?P<key>[^/]+)/survey$", "api_survey"],
-["POST", "^/api/projects/(?P<key>[^/]+)/survey$", "api_survey_start"],
-["POST", "^/api/projects/(?P<key>[^/]+)/survey/stop$", "api_survey_stop"],
-["GET", "^/api/lead$", "api_lead"],
-["POST", "^/api/projects/(?P<key>[^/]+)/catchup$", "api_catchup"],
-["GET", "^/api/projects/(?P<key>[^/]+)/loop$", "api_loop"],
-["GET", "^/api/projects/(?P<key>[^/]+)/inbox$", "api_inbox"],
-["GET", "^/api/projects/(?P<key>[^/]+)/points$", "api_points"],
-["POST", "^/api/projects/(?P<key>[^/]+)/points$", "api_points_add"],
-["GET", "^/api/assist$", "api_assist_list"],
-["POST", "^/api/assist$", "api_assist"],
-["GET", "^/api/projects/(?P<key>[^/]+)/sessions$", "api_sessions"],
-["POST", "^/api/projects/(?P<key>[^/]+)/sessions$", "api_new_session"],
-["GET", "^/api/sessions/(?P<sid>[^/]+)$", "api_session"],
-["POST", "^/api/sessions/(?P<sid>[^/]+)$", "api_update_session"],
-["POST", "^/api/sessions/(?P<sid>[^/]+)/messages$", "api_session_ask"],
-["POST", "^/api/sessions/(?P<sid>[^/]+)/assistant$", "api_session_assistant"],
-["POST", "^/api/projects/(?P<key>[^/]+)/command$", "api_command"],
-["POST", "^/api/sessions/(?P<sid>[^/]+)/command/(?P<mid>[^/]+)$", "api_command_state"],
-["POST", "^/api/sessions/(?P<sid>[^/]+)/ticket-draft$", "api_ticket_draft"],
-["POST", "^/api/sessions/(?P<sid>[^/]+)/ticket$", "api_session_ticket"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/accept$", "api_accept"],
-["GET", "^/api/projects/(?P<key>[^/]+)/learn$", "api_learn"],
-["POST", "^/api/learn/holdout$", "api_learn_holdout"],
-["GET", "^/api/projects/(?P<key>[^/]+)/lessons/(?P<lid>[^/]+)$", "api_lesson_snapshot"],
-["GET", "^/api/projects/(?P<key>[^/]+)/lessons/(?P<lid>[^/]+)/share$", "api_lesson_share_preview"],
-["POST", "^/api/projects/(?P<key>[^/]+)/lessons/(?P<lid>[^/]+)$", "api_lesson"],
-["POST", "^/api/projects/(?P<key>[^/]+)/evals/run$", "api_eval_run"],
-["POST", "^/api/projects/(?P<key>[^/]+)/evals/cases$", "api_eval_case"],
-["POST", "^/api/projects/(?P<key>[^/]+)/evals/history$", "api_eval_history"],
-["POST", "^/api/projects/(?P<key>[^/]+)/evals/history/import$", "api_eval_history_import"],
-["POST", "^/api/projects/(?P<key>[^/]+)/alerts$", "api_alert_paste"],
-["POST", "^/api/projects/(?P<key>[^/]+)/external-requirements$", "api_external_requirement"],
-["GET", "^/api/projects/(?P<key>[^/]+)/reforms$", "api_reforms"],
-["GET", "^/api/projects/(?P<key>[^/]+)/reforms/deps$", "api_reform_deps"],
-["POST", "^/api/projects/(?P<key>[^/]+)/reforms$", "api_reform_new"],
-["POST", "^/api/projects/(?P<key>[^/]+)/reforms/(?P<pid>[^/]+)$", "api_reform_act"],
-["GET", "^/api/tickets$", "api_tickets"],
-["POST", "^/api/tickets$", "api_new_ticket"],
-["GET", "^/api/tickets/(?P<key>[^/]+)$", "api_ticket"],
-["GET", "^/api/tickets/(?P<key>[^/]+)/epic$", "api_epic"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/epic$", "api_epic_act"],
-["GET", "^/api/tickets/(?P<key>[^/]+)/evidence$", "api_evidence"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/evidence$", "api_evidence_add"],
-["GET", "^/api/tickets/(?P<key>[^/]+)/upstream$", "api_upstream"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/upstream$", "api_upstream_act"],
-["GET", "^/api/projects/(?P<key>[^/]+)/upstream$", "api_upstream_list"],
-["GET", "^/api/projects/(?P<key>[^/]+)/baseline$", "api_baseline"],
-["POST", "^/api/projects/(?P<key>[^/]+)/baseline/seal$", "api_baseline_seal"],
-["GET", "^/api/projects/(?P<key>[^/]+)/ledger$", "api_ledger"],
-["POST", "^/api/tickets/(?P<key>[^/]+)$", "api_update_ticket"],
-["GET", "^/api/agent-settings$", "api_agent_settings"],
-["GET", "^/api/access-config$", "api_access_config"],
-["POST", "^/api/access-config$", "api_access_config_save"],
-["GET", "^/api/agent-scan$", "api_agent_scan"],
-["POST", "^/api/agent-test$", "api_agent_test"],
-["POST", "^/api/agent-settings$", "api_agent_settings_save"],
-["GET", "^/api/testbox$", "api_testbox"],
-["GET", "^/api/projects/(?P<key>[^/]+)/releases$", "api_releases"],
-["GET", "^/api/projects/(?P<key>[^/]+)/tests$", "api_project_tests"],
-["GET", "^/api/runs/(?P<rid>[^/]+)/test-report$", "api_project_test_report"],
-["POST", "^/api/projects/(?P<key>[^/]+)/tests$", "api_project_tests_save"],
-["GET", "^/api/projects/(?P<key>[^/]+)/mode$", "api_mode"],
-["POST", "^/api/projects/(?P<key>[^/]+)/mode$", "api_mode_set"],
-["GET", "^/api/projects/(?P<key>[^/]+)/channels$", "api_channels"],
-["POST", "^/api/projects/(?P<key>[^/]+)/repo$", "api_repo_set"],
-["POST", "^/api/projects/(?P<key>[^/]+)/notify$", "api_notify_set"],
-["POST", "^/api/projects/(?P<key>[^/]+)/releases/(?P<version>[^/]+)/rollback$", "api_rollback"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/release$", "api_release_again"],
-["GET", "^/api/tickets/(?P<key>[^/]+)/preview$", "api_preview"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/preview$", "api_preview_do"],
-["GET", "^/api/projects/(?P<key>[^/]+)/preview-conf$", "api_preview_conf"],
-["POST", "^/api/projects/(?P<key>[^/]+)/preview-conf$", "api_preview_conf_set"],
-["GET", "^/api/tickets/(?P<key>[^/]+)/starter$", "api_starter"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/claim$", "api_claim"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/handwork$", "api_handwork"],
-["POST", "^/api/projects/(?P<key>[^/]+)/scan$", "api_handwork_scan"],
-["GET", "^/api/readiness$", "api_readiness"],
-["POST", "^/api/testbox$", "api_testbox_save"],
-["POST", "^/api/testbox/(?P<action>[^/]+)$", "api_testbox_act"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/comments$", "api_comment"],
-["GET", "^/api/tickets/(?P<key>[^/]+)/related$", "api_ticket_related"],
-["GET", "^/api/tickets/(?P<key>[^/]+)/context$", "api_ticket_context"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/runs$", "api_start_run"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/push$", "api_push"],
-["POST", "^/api/projects/(?P<key>[^/]+)/runs$", "api_project_run"],
-["GET", "^/api/runs$", "api_runs"],
-["GET", "^/api/runs/(?P<rid>[^/]+)$", "api_run"],
-["POST", "^/api/runs/(?P<rid>[^/]+)/cancel$", "api_cancel"],
-["POST", "^/api/runs/(?P<rid>[^/]+)/review-feedback$", "api_review_feedback"],
-["POST", "^/api/runs/(?P<rid>[^/]+)/say$", "api_run_say"],
-["POST", "^/api/runs/(?P<rid>[^/]+)/retry$", "api_retry_run"],
-["POST", "^/api/runs/(?P<rid>[^/]+)/recover$", "api_recover_run"],
-["POST", "^/api/runs/(?P<rid>[^/]+)/decide$", "api_decide"],
-["POST", "^/api/runs/(?P<rid>[^/]+)/recheck$", "api_recheck"],
-["GET", "^/api/runs/(?P<rid>[^/]+)/recheck$", "api_recheck_state"],
-["POST", "^/api/runs/(?P<rid>[^/]+)/page-check$", "api_page_check"],
-["GET", "^/api/runs/(?P<rid>[^/]+)/page-check$", "api_page_check_state"],
-["POST", "^/api/runs/(?P<rid>[^/]+)/recheck/recover$", "api_recheck_recover"],
-["GET", "^/api/projects/(?P<key>[^/]+)/metrics$", "api_metrics"],
-["GET", "^/api/projects/(?P<key>[^/]+)/report$", "api_report"],
-["GET", "^/api/tickets/(?P<key>[^/]+)/prompt$", "api_ticket_prompt"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/prompt$", "api_use_prompt"],
-["GET", "^/api/stats$", "api_stats"],
-["GET", "^/api/clients$", "api_clients"],
-["POST", "^/api/clients$", "api_client_new"],
-["GET", "^/api/clients/(?P<cid>[^/]+)$", "api_client"],
-["POST", "^/api/clients/(?P<cid>[^/]+)$", "api_client_act"],
-["POST", "^/api/workbench/intake$", "api_workbench_intake"],
-["GET", "^/api/projects/(?P<key>[^/]+)/systems$", "api_systems"],
-["POST", "^/api/projects/(?P<key>[^/]+)/systems$", "api_system_new"],
-["POST", "^/api/tickets/(?P<key>[^/]+)/system$", "api_ticket_system"],
-["GET", "^/api/requirements$", "api_requirements"],
-["GET", "^/api/projects/(?P<key>[^/]+)/versions$", "api_versions"],
-["GET", "^/api/projects/(?P<key>[^/]+)/prod-requests$", "api_prod_requests"],
-["POST", "^/api/projects/(?P<key>[^/]+)/prod-requests$", "api_prod_request_act"],
-["POST", "^/api/projects/(?P<key>[^/]+)/standing$", "api_standing"],
-["POST", "^/api/projects/(?P<key>[^/]+)/shares$", "api_share_new"],
-["POST", "^/api/projects/(?P<key>[^/]+)/shares/(?P<sid>[^/]+)/revoke$", "api_share_revoke"],
-["GET", "^/api/today$", "api_today"],
-["GET", "^/api/chats$", "api_chats"]
+[
+"GET",
+"^/api/meta$",
+"api_meta"
+],
+[
+"POST",
+"^/api/agent/(?P<operation>[^/]+)$",
+"api_agent"
+],
+[
+"GET",
+"^/api/workspace$",
+"api_workspace"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/meetings$",
+"api_meetings"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/pilots$",
+"api_pilots"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/pilots$",
+"api_pilot_create"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/pilots/(?P<pid>[^/]+)$",
+"api_pilot"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/pilots/(?P<pid>[^/]+)$",
+"api_pilot_action"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/meetings$",
+"api_meeting_create"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/meetings/(?P<mid>[^/]+)$",
+"api_meeting"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/meetings/(?P<mid>[^/]+)$",
+"api_meeting_action"
+],
+[
+"GET",
+"^/api/tickets/(?P<key>[^/]+)/brief$",
+"api_work_brief"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/brief$",
+"api_work_brief_save"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/ci$",
+"api_project_ci"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/ci$",
+"api_project_ci_save"
+],
+[
+"GET",
+"^/api/tickets/(?P<key>[^/]+)/ci$",
+"api_ticket_ci"
+],
+[
+"GET",
+"^/api/tickets/(?P<key>[^/]+)/delivery$",
+"api_delivery_packet"
+],
+[
+"GET",
+"^/api/tickets/(?P<key>[^/]+)/development$",
+"api_development"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/development$",
+"api_development_action"
+],
+[
+"GET",
+"^/api/team$",
+"api_team"
+],
+[
+"GET",
+"^/api/handoffs$",
+"api_handoffs"
+],
+[
+"POST",
+"^/api/handoffs$",
+"api_handoff_action"
+],
+[
+"POST",
+"^/api/team$",
+"api_team_action"
+],
+[
+"GET",
+"^/api/candidates/(?P<cid>[^/]+)$",
+"api_candidate"
+],
+[
+"GET",
+"^/api/memory$",
+"api_memory"
+],
+[
+"GET",
+"^/api/memory/brief$",
+"api_memory_brief"
+],
+[
+"POST",
+"^/api/memory$",
+"api_memory_action"
+],
+[
+"GET",
+"^/api/learning$",
+"api_learning"
+],
+[
+"POST",
+"^/api/learning$",
+"api_learning_action"
+],
+[
+"GET",
+"^/api/projects$",
+"api_projects"
+],
+[
+"POST",
+"^/api/projects$",
+"api_add_project"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/library$",
+"api_library"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/library$",
+"api_library_action"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/knowledge/search$",
+"api_knowledge_search"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/knowledge/file$",
+"api_knowledge_file"
+],
+[
+"GET",
+"^/api/org/knowledge$",
+"api_org_knowledge"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/habits$",
+"api_habits"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)$",
+"api_project"
+],
+[
+"POST",
+"^/api/projects/bootstrap$",
+"api_bootstrap_project"
+],
+[
+"POST",
+"^/api/projects/import$",
+"api_import_project"
+],
+[
+"GET",
+"^/api/projects/import/(?P<job>[^/]+)$",
+"api_import_status"
+],
+[
+"POST",
+"^/api/projects/import/(?P<job>[^/]+)/chunk$",
+"api_import_chunk"
+],
+[
+"POST",
+"^/api/projects/import/(?P<job>[^/]+)/finish$",
+"api_import_finish"
+],
+[
+"GET",
+"^/api/delivery/catalog$",
+"api_delivery_catalog"
+],
+[
+"POST",
+"^/api/delivery-content$",
+"api_create_delivery_content"
+],
+[
+"GET",
+"^/api/deliveries/(?P<did>[^/]+)/content$",
+"api_delivery_content"
+],
+[
+"POST",
+"^/api/deliveries/(?P<did>[^/]+)/content$",
+"api_save_delivery_content"
+],
+[
+"GET",
+"^/api/deliveries/(?P<did>[^/]+)/coverage$",
+"api_delivery_coverage"
+],
+[
+"POST",
+"^/api/deliveries/(?P<did>[^/]+)/coverage$",
+"api_delivery_coverage_action"
+],
+[
+"GET",
+"^/api/deliveries$",
+"api_deliveries"
+],
+[
+"POST",
+"^/api/deliveries$",
+"api_create_delivery"
+],
+[
+"GET",
+"^/api/deliveries/(?P<did>[^/]+)$",
+"api_delivery"
+],
+[
+"POST",
+"^/api/deliveries/(?P<did>[^/]+)$",
+"api_delivery_action"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/related$",
+"api_related"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/flows/(?P<fid>[^/]+)$",
+"api_flow"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/kb$",
+"api_kb"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/kb/tree$",
+"api_kb_tree"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/maps$",
+"api_code_maps"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/maps$",
+"api_code_map_create"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/atlas$",
+"api_atlas"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/atlas/flow/(?P<fid>[^/]+)$",
+"api_atlas_flow"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/statecharts$",
+"api_statecharts"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/statecharts/renderer$",
+"api_statechart_renderer"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/entries/detect$",
+"api_entries_detect"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/arch$",
+"api_arch"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/arch/(?P<did>[^/]+)$",
+"api_arch_domain"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/kb/page$",
+"api_kb_page"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/kb/confirm$",
+"api_kb_confirm"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/kb/questions$",
+"api_kb_questions"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/kb/ask$",
+"api_kb_ask"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/kb/answer$",
+"api_kb_answer"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/kb/triage$",
+"api_kb_triage"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/intake$",
+"api_intake_start"
+],
+[
+"GET",
+"^/api/intake/(?P<sid>[^/]+)$",
+"api_intake_get"
+],
+[
+"POST",
+"^/api/intake/(?P<sid>[^/]+)$",
+"api_intake_act"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/ask-client$",
+"api_ask_client"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/client-change$",
+"api_client_change"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/intake-retry$",
+"api_intake_retry"
+],
+[
+"GET",
+"^/api/tickets/(?P<key>[^/]+)/path-map$",
+"api_path_map"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/path-map$",
+"api_path_map_record"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/pins$",
+"api_pin_add"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/pins$",
+"api_pins"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/capture-token$",
+"api_capture_token"
+],
+[
+"GET",
+"^/api/pins/(?P<pid>[^/]+)$",
+"api_pin"
+],
+[
+"POST",
+"^/api/pins/(?P<pid>[^/]+)/intake$",
+"api_pin_intake"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/kb/metrics$",
+"api_kb_metrics"
+],
+[
+"GET",
+"^/api/tickets/(?P<key>[^/]+)/similar$",
+"api_ticket_similar"
+],
+[
+"GET",
+"^/api/tickets/(?P<key>[^/]+)/ops$",
+"api_ticket_ops"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/ops$",
+"api_ticket_ops_act"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/similar$",
+"api_project_similar"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/bots$",
+"api_bots"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/kb/overrule$",
+"api_kb_overrule"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/integrations$",
+"api_ints"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/import$",
+"api_import"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/survey$",
+"api_survey"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/survey$",
+"api_survey_start"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/survey/stop$",
+"api_survey_stop"
+],
+[
+"GET",
+"^/api/lead$",
+"api_lead"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/catchup$",
+"api_catchup"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/loop$",
+"api_loop"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/inbox$",
+"api_inbox"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/points$",
+"api_points"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/points$",
+"api_points_add"
+],
+[
+"GET",
+"^/api/assist$",
+"api_assist_list"
+],
+[
+"POST",
+"^/api/assist$",
+"api_assist"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/sessions$",
+"api_sessions"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/sessions$",
+"api_new_session"
+],
+[
+"GET",
+"^/api/sessions/(?P<sid>[^/]+)$",
+"api_session"
+],
+[
+"POST",
+"^/api/sessions/(?P<sid>[^/]+)$",
+"api_update_session"
+],
+[
+"POST",
+"^/api/sessions/(?P<sid>[^/]+)/messages$",
+"api_session_ask"
+],
+[
+"POST",
+"^/api/sessions/(?P<sid>[^/]+)/assistant$",
+"api_session_assistant"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/command$",
+"api_command"
+],
+[
+"POST",
+"^/api/sessions/(?P<sid>[^/]+)/command/(?P<mid>[^/]+)$",
+"api_command_state"
+],
+[
+"POST",
+"^/api/sessions/(?P<sid>[^/]+)/ticket-draft$",
+"api_ticket_draft"
+],
+[
+"POST",
+"^/api/sessions/(?P<sid>[^/]+)/ticket$",
+"api_session_ticket"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/accept$",
+"api_accept"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/learn$",
+"api_learn"
+],
+[
+"POST",
+"^/api/learn/holdout$",
+"api_learn_holdout"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/lessons/(?P<lid>[^/]+)$",
+"api_lesson_snapshot"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/lessons/(?P<lid>[^/]+)/share$",
+"api_lesson_share_preview"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/lessons/(?P<lid>[^/]+)$",
+"api_lesson"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/evals/run$",
+"api_eval_run"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/evals/cases$",
+"api_eval_case"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/evals/history$",
+"api_eval_history"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/evals/history/import$",
+"api_eval_history_import"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/alerts$",
+"api_alert_paste"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/external-requirements$",
+"api_external_requirement"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/reforms$",
+"api_reforms"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/reforms/deps$",
+"api_reform_deps"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/reforms$",
+"api_reform_new"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/reforms/(?P<pid>[^/]+)$",
+"api_reform_act"
+],
+[
+"GET",
+"^/api/tickets$",
+"api_tickets"
+],
+[
+"POST",
+"^/api/tickets$",
+"api_new_ticket"
+],
+[
+"GET",
+"^/api/tickets/(?P<key>[^/]+)$",
+"api_ticket"
+],
+[
+"GET",
+"^/api/tickets/(?P<key>[^/]+)/epic$",
+"api_epic"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/epic$",
+"api_epic_act"
+],
+[
+"GET",
+"^/api/tickets/(?P<key>[^/]+)/evidence$",
+"api_evidence"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/evidence$",
+"api_evidence_add"
+],
+[
+"GET",
+"^/api/tickets/(?P<key>[^/]+)/upstream$",
+"api_upstream"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/upstream$",
+"api_upstream_act"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/upstream$",
+"api_upstream_list"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/baseline$",
+"api_baseline"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/baseline/seal$",
+"api_baseline_seal"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/ledger$",
+"api_ledger"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)$",
+"api_update_ticket"
+],
+[
+"GET",
+"^/api/agent-settings$",
+"api_agent_settings"
+],
+[
+"GET",
+"^/api/access-config$",
+"api_access_config"
+],
+[
+"POST",
+"^/api/access-config$",
+"api_access_config_save"
+],
+[
+"GET",
+"^/api/agent-scan$",
+"api_agent_scan"
+],
+[
+"POST",
+"^/api/agent-test$",
+"api_agent_test"
+],
+[
+"POST",
+"^/api/agent-settings$",
+"api_agent_settings_save"
+],
+[
+"GET",
+"^/api/testbox$",
+"api_testbox"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/releases$",
+"api_releases"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/tests$",
+"api_project_tests"
+],
+[
+"GET",
+"^/api/runs/(?P<rid>[^/]+)/test-report$",
+"api_project_test_report"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/tests$",
+"api_project_tests_save"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/mode$",
+"api_mode"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/mode$",
+"api_mode_set"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/channels$",
+"api_channels"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/repo$",
+"api_repo_set"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/notify$",
+"api_notify_set"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/releases/(?P<version>[^/]+)/rollback$",
+"api_rollback"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/release$",
+"api_release_again"
+],
+[
+"GET",
+"^/api/tickets/(?P<key>[^/]+)/preview$",
+"api_preview"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/preview$",
+"api_preview_do"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/preview-conf$",
+"api_preview_conf"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/preview-conf$",
+"api_preview_conf_set"
+],
+[
+"GET",
+"^/api/tickets/(?P<key>[^/]+)/starter$",
+"api_starter"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/claim$",
+"api_claim"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/handwork$",
+"api_handwork"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/scan$",
+"api_handwork_scan"
+],
+[
+"GET",
+"^/api/readiness$",
+"api_readiness"
+],
+[
+"POST",
+"^/api/testbox$",
+"api_testbox_save"
+],
+[
+"POST",
+"^/api/testbox/(?P<action>[^/]+)$",
+"api_testbox_act"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/comments$",
+"api_comment"
+],
+[
+"GET",
+"^/api/tickets/(?P<key>[^/]+)/related$",
+"api_ticket_related"
+],
+[
+"GET",
+"^/api/tickets/(?P<key>[^/]+)/context$",
+"api_ticket_context"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/runs$",
+"api_start_run"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/push$",
+"api_push"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/runs$",
+"api_project_run"
+],
+[
+"GET",
+"^/api/runs$",
+"api_runs"
+],
+[
+"GET",
+"^/api/runs/(?P<rid>[^/]+)$",
+"api_run"
+],
+[
+"POST",
+"^/api/runs/(?P<rid>[^/]+)/cancel$",
+"api_cancel"
+],
+[
+"POST",
+"^/api/runs/(?P<rid>[^/]+)/review-feedback$",
+"api_review_feedback"
+],
+[
+"POST",
+"^/api/runs/(?P<rid>[^/]+)/say$",
+"api_run_say"
+],
+[
+"POST",
+"^/api/runs/(?P<rid>[^/]+)/retry$",
+"api_retry_run"
+],
+[
+"POST",
+"^/api/runs/(?P<rid>[^/]+)/recover$",
+"api_recover_run"
+],
+[
+"POST",
+"^/api/runs/(?P<rid>[^/]+)/decide$",
+"api_decide"
+],
+[
+"POST",
+"^/api/runs/(?P<rid>[^/]+)/recheck$",
+"api_recheck"
+],
+[
+"GET",
+"^/api/runs/(?P<rid>[^/]+)/recheck$",
+"api_recheck_state"
+],
+[
+"POST",
+"^/api/runs/(?P<rid>[^/]+)/page-check$",
+"api_page_check"
+],
+[
+"GET",
+"^/api/runs/(?P<rid>[^/]+)/page-check$",
+"api_page_check_state"
+],
+[
+"POST",
+"^/api/runs/(?P<rid>[^/]+)/recheck/recover$",
+"api_recheck_recover"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/metrics$",
+"api_metrics"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/report$",
+"api_report"
+],
+[
+"GET",
+"^/api/tickets/(?P<key>[^/]+)/prompt$",
+"api_ticket_prompt"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/prompt$",
+"api_use_prompt"
+],
+[
+"GET",
+"^/api/stats$",
+"api_stats"
+],
+[
+"GET",
+"^/api/clients$",
+"api_clients"
+],
+[
+"POST",
+"^/api/clients$",
+"api_client_new"
+],
+[
+"GET",
+"^/api/clients/(?P<cid>[^/]+)$",
+"api_client"
+],
+[
+"POST",
+"^/api/clients/(?P<cid>[^/]+)$",
+"api_client_act"
+],
+[
+"POST",
+"^/api/workbench/intake$",
+"api_workbench_intake"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/systems$",
+"api_systems"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/systems$",
+"api_system_new"
+],
+[
+"POST",
+"^/api/tickets/(?P<key>[^/]+)/system$",
+"api_ticket_system"
+],
+[
+"GET",
+"^/api/requirements$",
+"api_requirements"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/versions$",
+"api_versions"
+],
+[
+"GET",
+"^/api/projects/(?P<key>[^/]+)/prod-requests$",
+"api_prod_requests"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/prod-requests$",
+"api_prod_request_act"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/standing$",
+"api_standing"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/shares$",
+"api_share_new"
+],
+[
+"POST",
+"^/api/projects/(?P<key>[^/]+)/shares/(?P<sid>[^/]+)/revoke$",
+"api_share_revoke"
+],
+[
+"GET",
+"^/api/today$",
+"api_today"
+],
+[
+"GET",
+"^/api/chats$",
+"api_chats"
+]
 ]

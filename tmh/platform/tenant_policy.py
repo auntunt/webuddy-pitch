@@ -43,6 +43,7 @@ POST /api/deliveries/<did>/content
 GET /api/deliveries/<did>/coverage
 POST /api/deliveries/<did>/coverage
 GET /api/team
+GET /api/candidates/<cid>
 GET /api/handoffs
 POST /api/handoffs
 POST /api/team
@@ -608,7 +609,8 @@ def authorize(P, method, path, query, body, actor):
             add("ticket" if template.startswith(("/api/tickets/", "/e/")) else "project", params["key"])
     for prefix, name, kind in (("/api/runs/", "rid", "run"), ("/api/sessions/", "sid", "session"),
                                ("/api/intake/", "sid", "intake"), ("/api/pins/", "pid", "pin"),
-                               ("/api/deliveries/", "did", "delivery")):
+                               ("/api/deliveries/", "did", "delivery"),
+                               ("/api/candidates/", "cid", "candidate")):
         if template.startswith(prefix):
             add(kind, params[name])
     values = body if method == "POST" else {key: _arg(query, key) for key in query}

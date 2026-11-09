@@ -64,6 +64,7 @@ from .api._common import (  # noqa: F401
 from .api.workspace import (  # noqa: F401
     _handoff_work,
     api_agent,
+    api_candidate,
     api_delivery_packet,
     api_development,
     api_development_action,
