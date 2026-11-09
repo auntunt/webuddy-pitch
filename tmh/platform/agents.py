@@ -544,6 +544,13 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
         if cursor_kb_bridge:
             instruction = instruction.replace("tmh kb ", "tmh-kb.cmd ")
         out.append(instruction.replace("{target}", target or "<页面 id>"))
+    if mode in ("analyze", "plan", "fix"):
+        out.append("""## 小步开发与知识记录
+先结合本任务已有记录和当前代码核对目标、已完成内容与剩余问题；已有可靠交接时不重复调查，也不读取其他项目的私人会话。
+按当前需求做最小完整改动，复用已有实现。每一步只验证实际受影响的行为；已有检查通过且没有新风险时继续交付，不默认增加全量测试、多模型评审或长期自动循环。
+以实际代码、运行结果和原始回执为依据，区分已验证、推断和未验证；构建成功不等于业务已验收。
+在本次结果末尾附简短“知识记录”：适用场景、关键判断与原因、采用的做法、实际验证依据（工单/运行/提交/文件）、未解决问题与下一步。没有可复用经验时直接说明，不编造结论。保留既有机器可读输出契约。
+反复出现且能用代码、类型或检查表达的规则，优先落实到对应实现；需要判断的经验进入待确认记录。知识记录本身不授予共享、自动采用或业务验收权限。""")
     return "\n".join(out)
 
 

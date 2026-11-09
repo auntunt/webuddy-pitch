@@ -3,6 +3,9 @@ on:
   push:
     branches: ['codex/huairou-product-v2']
     paths:
+      - 'tmh/**'
+      - 'web/**'
+      - 'scripts/deploy/build-windows-offline.py'
       - 'scripts/deploy/windows-installer/**'
       - 'scripts/deploy/windows-offline/**'
       - '.github/workflows/windows-installer.yml'
