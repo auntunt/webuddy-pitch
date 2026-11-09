@@ -696,6 +696,16 @@
  ],
  [
   "GET",
+  "^/api/projects/(?P<key>[^/]+)/tasks$",
+  "api_tasks"
+ ],
+ [
+  "POST",
+  "^/api/projects/(?P<key>[^/]+)/tasks$",
+  "api_new_task"
+ ],
+ [
+  "GET",
   "^/api/agent-settings$",
   "api_agent_settings"
  ],

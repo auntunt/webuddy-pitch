@@ -61,6 +61,10 @@ from .api._common import (  # noqa: F401
     _session_actor,
     _workspace_id,
 )
+from .api.tasks import (  # noqa: F401
+    api_new_task,
+    api_tasks,
+)
 from .api.workspace import (  # noqa: F401
     _handoff_work,
     api_agent,

@@ -31,6 +31,8 @@ GET /api/projects/<key>/pilots
 POST /api/projects/<key>/pilots
 GET /api/projects/<key>/pilots/<pid>
 POST /api/projects/<key>/pilots/<pid>
+GET /api/projects/<key>/tasks
+POST /api/projects/<key>/tasks
 GET /api/projects/<key>/meetings
 POST /api/projects/<key>/meetings
 GET /api/projects/<key>/meetings/<mid>

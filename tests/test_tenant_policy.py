@@ -104,7 +104,7 @@ class TenantPolicyTest(unittest.TestCase):
                         if isinstance(item, ast.Call) and isinstance(item.func, ast.Name) and item.func.id == "route":
                             actual.add(tuple(ast.literal_eval(arg) for arg in item.args))
         self.assertEqual(actual, policy.API_ROUTES)
-        self.assertEqual(len(actual), 209)  # Includes explicit map GET and POST routes.
+        self.assertEqual(len(actual), 211)  # Includes explicit map GET and POST routes.
         self.assertTrue({('GET','/api/projects/<key>/maps'),('POST','/api/projects/<key>/maps')}.issubset(actual))
         import re
         for method, template in actual:

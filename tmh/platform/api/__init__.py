@@ -23,6 +23,7 @@ from . import (  # noqa: E402,F401  registration order == original route order
     sessions,
     lessons,
     tickets,
+    tasks,
     settings,
     runs,
     workbench,
