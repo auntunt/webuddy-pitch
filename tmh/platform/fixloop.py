@@ -422,8 +422,12 @@ class FixLoop:
         return self._local(seq, self.wt)
 
     def _local(self, seq: list, where: Path) -> list:
+        from . import toolchain
         out = []
         base, diff = git(where, "rev-parse", "HEAD").strip(), worktree_diff(where)
+        prepared = toolchain.prepare(where, Path(self.r.data_dir) / "toolchains")
+        self.say("环境准备：" + ("；".join(prepared["notes"]) or "无需额外工具"))
+        child_env = dict(os.environ, **prepared["env"])
         for kind, cmd in seq:
             if self.r.stop_reason(self.rid):
                 break
@@ -432,7 +436,7 @@ class FixLoop:
             shell = (subprocess.list2cmdline([os.environ.get("COMSPEC", "cmd.exe")]) + ' /d /s /c "' + cmd + '"'
                      if os.name == "nt" else ["/bin/sh", "-c", cmd])
             r, folder = self.r.run_command(self.rid, shell, where,
-                timeout=float(self.set.get("check_timeout") or 1200), kind="check:" + kind)
+                timeout=float(self.set.get("check_timeout") or 1200), kind="check:" + kind, env=child_env)
             code, text = r.returncode, r.output
             res = {"kind": kind, "command": cmd, "exit_code": code, "seconds": round(time.time() - t0, 1),
                    "tail": "\n".join(text.strip().splitlines()[-60:]), "output": text,
