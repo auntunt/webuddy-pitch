@@ -147,6 +147,10 @@ class Survey:
             (self.root / ".tmh").mkdir(exist_ok=True)
             if self.resumed:
                 self.say("平台重启前这次分析还没写完，自动接着写")
+            from ..install import prepare_knowledge_tools
+            from .agents import load_config, engine_name
+            config = load_config(self.P.data_dir)
+            prepare_knowledge_tools(self.root, cursor=engine_name(self.agent, config[self.agent]) == "cursor")
             kb.release_claims(self.root, "tmh-w")  # pages a stopped process had taken would otherwise wait out their lease
             self.say("构建知识图谱（增量，只重新解析改过的文件）…")
             t0 = time.time()

@@ -46,7 +46,7 @@ onMounted(() => {
         </select>
       </label>
       <div class="user"><a class="full-workspace" :href="legacyUrl('/workspace')" @click="prepareLegacy('*')">完整工作台</a>
-        <span v-if="app.meta?.user">{{ app.meta.user }}</span>
+        <span v-if="app.meta?.user" :title="app.meta.user">{{ app.meta.user }}</span>
         <a :href="logoutUrl()">退出</a>
       </div>
     </header>
@@ -118,8 +118,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 .btn:hover { border-color: var(--accent); }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
-.btn-primary { background: var(--fg); border-color: var(--fg); color: #fff; }
-.btn-primary:hover { background: #000; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: #173FA8; border-color: #173FA8; }
 .field { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--sub); margin-bottom: 14px; }
 .field input, .field select, .field textarea {
   box-sizing: border-box; width: 100%; background: var(--panel); color: var(--fg);
@@ -141,7 +141,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   background: var(--panel); border-bottom: 1px solid var(--line);
 }
 .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; color: var(--fg); text-decoration: none; }
+.brand { white-space:nowrap;min-width:0; }.brand>span:last-child{overflow:hidden;text-overflow:ellipsis}.user>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}.user a{white-space:nowrap}
 .brand-mark {
+  flex-shrink:0;
   width: 28px; height: 28px; border-radius: 8px; background: var(--accent); color: #fff;
   display: inline-flex; align-items: center; justify-content: center; font-size: 14px;
 }
@@ -166,7 +168,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .content { padding: 20px 16px 88px; }
   .topbar { padding: 0 14px; gap: 10px; }
   .full-workspace { display:none; }
-  .project-picker select { max-width: 130px; }
+  .project-picker select { max-width: 110px; }.brand{max-width:110px}.user{gap:8px}.user>span{max-width:50px;}
   .bottomnav {
     display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
     background: var(--panel); border-top: 1px solid var(--line);

@@ -551,6 +551,10 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
 以实际代码、运行结果和原始回执为依据，区分已验证、推断和未验证；构建成功不等于业务已验收。
 在本次结果末尾附简短“知识记录”：适用场景、关键判断与原因、采用的做法、实际验证依据（工单/运行/提交/文件）、未解决问题与下一步。没有可复用经验时直接说明，不编造结论。保留既有机器可读输出契约。
 反复出现且能用代码、类型或检查表达的规则，优先落实到对应实现；需要判断的经验进入待确认记录。知识记录本身不授予共享、自动采用或业务验收权限。""")
+    if mode in ("analyze", "plan", "fix", "ask", "kb", "diagnose"):
+        out.append("""## 面向使用者的产出
+先用一两句话说明当前结论和下一步，不用执行日志代替结果。用短标题、列表和必要的对照表组织正文；表格只放并列短项，长解释和代码另起段落，文件位置与依据紧邻对应结论。保留完整原文与机器可读输出契约，不把待验证写成已通过。
+遇到数据库迁移或信创适配，按实际阶段给出：架构与模块清单、兼容性问题及来源、改造方案与工作量依据、实际改动、验证结果。架构识别要核对构建文件、配置、ORM和SQL位置；区分XML、注解、拼接SQL。发现既有适配时先复用，不重复改造。方案说明影响范围和需用户决定的事项，未获开发授权前不修改业务代码。验证分开记录静态检查、编译、实际连库；没有目标数据库就明确写“未执行连库验证”，不要虚构工时、SQL执行结果或业务验收。""")
     return "\n".join(out)
 
 
@@ -736,8 +740,8 @@ def command(conf: dict, agent: str, mode: str, prompt: str, prompt_file: Path, w
     if engine == "cursor":
         # Platform authorization selects the mode; readonly calls never receive write permission.
         # --trust is scoped to this run's workspace, which the platform controls.
-        # Native Windows has no Cursor OS sandbox: keep CLI permissions and drop
-        # --force (user approved running Cursor's own checks instead).
+        # Native Windows has no Cursor OS sandbox. Preserve readonly ask mode;
+        # authorized write modes use CLI automation inside the selected workspace.
         if sys.platform == "win32":
             # Write modes need --force: without it every shell call is rejected on site.
             policy = ["--force"] if mode in ("fix", "edit", "kb", "chart") else ["--mode", "ask"]

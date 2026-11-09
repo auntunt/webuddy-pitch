@@ -270,6 +270,15 @@ def vendor_tool(repo: Path, strict: bool = True) -> Path:
     return tool / "tmh.py"
 
 
+def prepare_knowledge_tools(repo: Path, *, cursor: bool = False) -> None:
+    """Prepare only the tool runtime needed by the explicit knowledge build."""
+    if not (repo / ".tmh" / "tool" / "tmh.py").is_file():
+        vendor_tool(repo)
+    if cursor:
+        _write_cursor_permissions(repo)
+        _write_kb_bridge(repo)
+
+
 def install(repo: Path, engines: list[str], git_hook: bool = False) -> list[str]:
     if set(engines) - {"claude", "codex", "cursor"}:
         raise ValueError("支持的宿主为 claude、codex、cursor")

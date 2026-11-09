@@ -248,7 +248,7 @@ onUnmounted(() => { generation++; clearPoll() })
 .runs { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 22px; }.run { background:var(--panel); border:1px solid var(--line); padding:7px 10px; border-radius:5px; cursor:pointer; font-size:12px; }.run span { color:var(--sub); margin-left:8px; }.run.current { border-color:var(--accent); }.run span.running { color:var(--accent); }
 .diff-line { display:block; white-space:pre-wrap; }.diff-line.added { background:#e4f4e9; color:#145b32; }.diff-line.removed { background:#fde8e8; color:#9b2929; }.diff-line.hunk { color:var(--accent); }
 .tabs { display:flex; gap:20px; border-bottom:1px solid var(--line); }.tabs button { border:0; border-bottom:2px solid transparent; background:transparent; padding:12px 0; cursor:pointer; color:var(--sub); font-size:13px; }.tabs button.current { border-bottom-color:var(--accent); color:var(--accent); }
-.artifact { white-space:pre-wrap; overflow-wrap:anywhere; font:14px/1.8 ui-monospace,monospace; margin:0; padding:22px 0; }.diff,.logs { background:#f7f9fb; padding:18px; margin-top:16px; font-size:12px; }
+.artifact { overflow-wrap:anywhere; margin:0; padding:22px 0; }.artifact:not(.document) { white-space:pre-wrap; font:13px/1.8 ui-monospace,monospace; }.diff,.logs { background:#f7f9fb; padding:18px; margin-top:16px; font-size:12px; }
 @media(max-width:1000px) { .workbench { grid-template-columns:210px minmax(0,1fr); }.desk { padding:20px; } }
 @media(max-width:760px) { .workbench { grid-template-columns:1fr; }.queue { border-right:0; border-bottom:1px solid var(--line); max-height:230px; overflow:auto; }.desk { padding:18px; }.tabs { gap:16px; }.task-heading h2 { font-size:20px; } }
 </style>

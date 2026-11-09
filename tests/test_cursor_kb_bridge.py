@@ -30,6 +30,16 @@ class CursorKbBridgeTest(unittest.TestCase):
         self.bridge = bridge_module(self.root)
         self.store = Store(self.root / 'data' / 'platform.db')
 
+    def test_knowledge_preparation_preserves_repository_instructions(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'AGENTS.md').write_text('Original project instructions')
+            install.prepare_knowledge_tools(root, cursor=True)
+            self.assertEqual((root / 'AGENTS.md').read_text(), 'Original project instructions')
+            self.assertTrue((root / '.tmh/tool/tmh.py').is_file())
+            self.assertTrue((root / '.tmh/tool/tmh-kb.cmd').is_file())
+            self.assertFalse((root / '.cursor/mcp.json').exists())
+
     def test_cli_json_permissions_merged(self):
         cli = self.root / '.cursor' / 'cli.json'
         permissions = json.loads(cli.read_text(encoding='utf-8'))['permissions']
@@ -58,7 +68,8 @@ class CursorKbBridgeTest(unittest.TestCase):
             self.assertEqual(self.bridge.main(['done', 'dom:index']), 0)
             argv = call.call_args.args[0]
             self.assertEqual(argv[-5:], ['kb', 'done', 'dom:index', '--repo', str(self.root.resolve())])
-            self.assertNotIn('python3', argv[0])
+            self.assertEqual(argv[0], sys.executable)
+            self.assertTrue(Path(argv[0]).is_absolute())
         with patch.object(Path, 'cwd', return_value=self.root):
             self.assertEqual(self.bridge.main(['status']), 0)
 
