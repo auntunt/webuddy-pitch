@@ -27,6 +27,7 @@ const loading = ref(false)
 const composing = ref(false)
 const tab = ref('result')
 const batch = ref(false), comment = ref(''), notice = ref('')
+let pendingComment: {scope:string; body:string; request_id:string} | null = null
 type Preview = {url?:string;preview: {state?:string;why?:string;error?:string}}
 const preview = ref<Preview | null>(null)
 
@@ -148,9 +149,15 @@ async function perform(action: string, payload: unknown = {}) {
   try {
     const ticketPath = `/api/tickets/${encodeURIComponent(selected.value)}`
     const path = action === 'auto' ? ticketPath : action === 'comments' ? ticketPath + '/comments' : action.startsWith('epic-') ? ticketPath + '/epic' : `/api/runs/${run.value!.id}/${action}`
+    if (action === 'comments') {
+      const scope = `${props.pkey}/${selected.value}`
+      if (!pendingComment || pendingComment.scope !== scope || pendingComment.body !== comment.value)
+        pendingComment = {scope, body:comment.value, request_id:crypto.randomUUID()}
+      payload = {body:pendingComment.body, request_id:pendingComment.request_id, continue:true}
+    }
     await post(path, action === 'auto' ? {auto:'go'} : action.startsWith('epic-') ? {action:action.slice(5)} : payload)
     if(stamp !== generation)return
-    notice.value = '操作已提交'; comment.value = ''; await refresh()
+    notice.value = action === 'comments' ? '评论已发送，智能体已继续执行' : '操作已提交'; comment.value = ''; if(action === 'comments')pendingComment = null; await refresh()
   } catch(e) { if(stamp === generation)error.value=message(e) } finally {busy.value=''}
 }
 async function previewRun() {
@@ -221,7 +228,7 @@ onUnmounted(() => { generation++; clearPoll() })
             <pre v-else-if="tab === 'output' && run.output" class="artifact logs">{{ run.output }}</pre>
             <p v-else class="empty">{{ tab === 'verification' ? '暂无验证回执。执行结束不代表验证通过。' : tab === 'diff' ? '本次运行暂无代码差异。' : ['queued','running'].includes(run.status) ? '正在执行，结果会自动更新。' : '本次运行未产生这项内容。' }}</p>
           </template>
-          <form class="discussion" @submit.prevent="perform(run && ['running','queued'].includes(run.status) ? 'say' : 'comments',run && ['running','queued'].includes(run.status)?{text:comment}:{body:comment})"><label class="field">{{run && ['running','queued'].includes(run.status)?'补充给正在执行的智能体':'讨论与补充'}}<textarea v-model="comment" :maxlength="active?2000:undefined" placeholder="补充要求、说明问题或记录复核意见" /></label><button class="btn" :disabled="!!busy || !comment.trim()">发送补充</button></form>
+          <form class="discussion" @submit.prevent="perform(run && ['running','queued'].includes(run.status) ? 'say' : 'comments',run && ['running','queued'].includes(run.status)?{text:comment}:{body:comment})"><label class="field">{{run && ['running','queued'].includes(run.status)?'补充给正在执行的智能体':'讨论与补充'}}<textarea v-model="comment" :maxlength="active?2000:undefined" placeholder="补充要求、说明问题或记录复核意见" /></label><button class="btn" :disabled="!!busy || !comment.trim()">{{active?'发送补充':'评论并继续'}}</button></form>
           <details v-if="detail.events?.length" class="history"><summary>完整操作记录</summary><article v-for="(event,i) in detail.events" :key="i"><strong>{{event.author}} · {{event.created}}</strong><DocumentText :text="event.body || ''" /></article></details>
         </template>
         <p v-else-if="!loading" class="empty">选择一项需求，或创建新需求。</p>

@@ -62,3 +62,19 @@ it('preserves the original request and adds explicit operations criteria without
   expect(wrapper.get('[aria-label="处理与交接"]').text()).toContain('复核人')
   wrapper.unmount()
 })
+
+it('continues from a comment and reuses its request id after a lost reply', async () => {
+  getMock.mockImplementation((url:string)=>Promise.resolve(url.startsWith('/api/tickets?')?[{key:'P-1',title:'修复'}]:{ticket:{key:'P-1',title:'修复'},runs:[]}))
+  postMock.mockRejectedValueOnce(new Error('connection lost')).mockResolvedValue({ok:true,run:7})
+  const wrapper=mount(WorkbenchPage,{props:{pkey:'P'}});await flushPromises()
+  await wrapper.get('.discussion textarea').setValue('按评论继续')
+  await wrapper.get('.discussion').trigger('submit');await flushPromises()
+  const first=postMock.mock.calls[0]!
+  expect(first[0]).toBe('/api/tickets/P-1/comments')
+  expect(first[1]).toMatchObject({body:'按评论继续',continue:true,request_id:expect.any(String)})
+  expect((wrapper.get('.discussion textarea').element as HTMLTextAreaElement).value).toBe('按评论继续')
+  await wrapper.get('.discussion').trigger('submit');await flushPromises()
+  expect(postMock.mock.calls[1]).toEqual(first)
+  expect(wrapper.text()).toContain('评论已发送，智能体已继续执行')
+  wrapper.unmount()
+})

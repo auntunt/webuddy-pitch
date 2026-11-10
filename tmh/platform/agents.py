@@ -464,7 +464,7 @@ def build_prompt(store: Store, project: dict, ticket: dict | None, mode: str, ta
         if flows:
             out += ["## 已关联的业务流", "、".join(flows), ""]
         evs = store.events(ticket["id"]) if ticket.get("id") else []  # an eval case is a ticket without a history
-        comments = [e for e in evs if e["kind"] == "comment"][-6:]
+        comments = [e for e in evs if e["kind"] == "comment"]
         if comments:
             out.append("## 讨论")
             out += ["- %s（%s）：%s" % (c["author"] or "-", c["ts"][5:16], c["body"].strip()) for c in comments]
@@ -1354,9 +1354,9 @@ def follow_up(store, ticket: dict, prev: dict, mode: str, where: str) -> str:
     L = ["# 接着做下一步：%s" % dict(RUN_MODES)[mode], "",
          "工单 %s 的上一步（%s）就在这个会话里，上面读过的代码、知识库和结论都还算数，不用重新读一遍；只在需要时打开新的文件。" % (
              ticket["key"], dict(RUN_MODES)[prev["mode"]]), where, ""]
-    new = [e for e in store.events(ticket["id"]) if e["kind"] in ("comment", "reject") and e["ts"] > (prev.get("ended") or "")]
+    new = [e for e in store.events(ticket["id"]) if e["kind"] in ("comment", "reject") and e["ts"] >= (prev.get("started") or prev.get("created") or "")]
     if new:
-        L += ["## 上一步之后补充的信息"] + ["- %s（%s）：%s" % (e["author"] or "-", e["ts"][5:16], e["body"].strip()[:800]) for e in new[-6:]] + [""]
+        L += ["## 上一步之后补充的信息"] + ["- %s（%s）：%s" % (e["author"] or "-", e["ts"][5:16], e["body"]) for e in new] + [""]
     return "\n".join(L) + "\n" + MODE_TEXT[mode]
 
 

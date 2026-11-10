@@ -43,7 +43,7 @@ function ticketCommentWire(d){
   const e=commentDraftOpen(scope,storage,S.commentDrafts);
   const current=()=>$('#cm')===input&&input.isConnected&&S.cur?.ticket?.key===key&&commentDraftScope(d)===scope&&commentDraftActor()===user;
   const paint=()=>{if(!current())return;
-    button.disabled=e.busy;button.textContent=e.busy?'正在发送…':e.record.pending?'确认上次发送':'评论';
+    button.disabled=e.busy;button.textContent=e.busy?'正在发送…':e.record.pending?'确认上次发送':'评论并继续';
     notice.textContent=e.error||(e.record.pending?'上次发送结果待确认。点击确认后核对原评论，不会发送下方新写的草稿。':e.record.body?'评论草稿已保存在本标签页，刷新后可恢复。':'评论草稿自动保存在本标签页，不会自动发送。');
     notice.className=e.error?'na warn':'sub';pendingView.hidden=!e.record.pending;
     if(e.record.pending)pendingView.textContent=e.record.pending.body;
@@ -51,7 +51,7 @@ function ticketCommentWire(d){
   input.value=e.record.body;input.oninput=()=>{if(!current())return;commentDraftChange(e,input.value);paint()};
   S.commentDraftView={entry:e,current,refresh:()=>{if(current()){input.value=e.record.body;paint()}},
     failed:()=>{if(current())notice.textContent=(e.error?e.error+' ':'')+e.message+' 原评论已保留，可点击“确认上次发送”安全重试。';},
-    sent:async()=>{if(!current())return;toast(e.record.body?'上一条评论已发送；新写的草稿已保留。':'评论已发送');
+    sent:async()=>{if(!current())return;toast(e.record.body?'上一条评论已发送；新写的草稿已保留。':'评论已发送，智能体已继续执行');
       const refresh=S.ticketRefresh;
       if(typeof refresh==='function')try{await refresh()}catch(err){if(current())notice.textContent='评论已发送，讨论列表暂未更新；刷新后查看。'+(e.error||'')}
     }};paint();
@@ -63,7 +63,7 @@ function ticketCommentWire(d){
     if(!pending){paint();return}
     e.busy=true;paint();let sent=false;
     try{
-      const r=await post('/api/tickets/'+encodeURIComponent(key)+'/comments',{body:pending.body,request_id:pending.request_id,expected_author:user,expected_workspace:workspace});
+      const r=await post('/api/tickets/'+encodeURIComponent(key)+'/comments',{body:pending.body,request_id:pending.request_id,expected_author:user,expected_workspace:workspace,continue:true});
       if(r?.ok!==true||r.request_id!==pending.request_id||!r.event_id)throw Error('服务器未返回匹配的评论回执，请确认上次发送。');
       commentDraftComplete(e,pending);sent=true;
     }catch(err){e.message='发送结果未确认：'+err.message;}

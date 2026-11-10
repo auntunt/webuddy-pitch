@@ -25,7 +25,13 @@ def api_comment(P, req, key):
     if "request_id" in req.body and (not isinstance(request_id, str) or not request_id.strip()):
         raise ApiError(400, "评论请求编号不能为空，且必须是字符串")
     try:
-        return P.store.comment(t["id"], req.user, body, request_id)
+        if req.body.get("continue") is True and not request_id:
+            raise ApiError(400, "评论并继续需要请求编号")
+        receipt = P.store.comment(t["id"], req.user, body, request_id)
+        if req.body.get("continue") is True:
+            from ..comment_execution import continue_comment
+            receipt["run"] = continue_comment(P, t, req.user, receipt["event_id"])
+        return receipt
     except ValueError as exc:
         raise ApiError(409, str(exc)) from exc
 
