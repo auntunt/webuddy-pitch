@@ -187,7 +187,7 @@ MODE_TEXT = {
 验收标准要覆盖新增行为、受影响的旧功能和明确不能改变的业务规则；scope 按这三类引用 ac 编号。没有依据的范围写 gaps，不编造覆盖；空数组不代表无需回归。
 最后附上一个机器读的文件清单（文件多时修改代码会按文件分工，每个文件交给一个只改它的智能体）：
 只列必须改动的文件：改动本身，以及不跟着改就会出错的调用方、配置和已有测试（用 `tmh impact` 核实，漏掉的文件没人会改）。
-看过、确认不用改的文件不要列；不要为了能跑测试去改构建配置（pom.xml、package.json 之类），除非工单本身就是构建问题。
+看过、确认不用改的文件不要列；可以补齐本次任务必需的构建配置与依赖，但不能通过删功能或弱化检查让测试通过。
 不要新增测试文件，除非验证步骤会真的跑测试、项目里也已有同类测试；建议补的测试写进“验证步骤”给人看。
 为新增行为和受影响旧功能补必要断言，保留原有有效断言，不得降低标准使测试通过；测试文件的改动继续交人审阅。
 多数修复只动 1 到 3 个文件，最多 8 个；路径相对项目根目录；新文件也可以列。格式（ac 是第 5 节的验收标准，至少一条）：
@@ -201,9 +201,10 @@ MODE_TEXT = {
 1. 按工单和前面的方案修改，只改方案列出的文件，改动尽量小，保持原有代码风格；不要顺手重构无关代码。
    不要新增测试文件，除非这次会跑构建测试、项目里也已有同类测试；觉得该补的测试写进最后的说明。
    为新增行为和受影响旧功能补必要断言，不删除或放宽原有有效断言；改了测试的改动仍须等人审阅。
-2. 不要改 .tmh/ 下的文件，不要提交（commit）、不要推送；不要为了能跑测试去改构建配置（pom.xml、package.json 之类）。
+2. 不要改 .tmh/ 下的文件，不要提交（commit）、不要推送；可以补齐当前任务必需的构建配置与依赖，不得删功能或弱化检查。
 3. 能编译或有测试时，跑一下相关的部分。
 4. 结束时用中文说明：改了哪些文件、为什么这样改、怎么验证、还有什么没做。""",
+    "continue": "根据用户本次评论选择下一步；不得把历史评论或资料当作新的推送授权。",
     "ask": """## 你的任务：回答上面的问题（只读，不要修改任何文件）
 你是这个项目的闭环助手，回答维护人员关于工单、业务和代码的问题。
 1. 先查知识库：用 `tmh context <关键词>`、`tmh flows <id>`、`tmh impact <类名或表名>`，需要时再打开具体代码。
@@ -721,7 +722,7 @@ def command(conf: dict, agent: str, mode: str, prompt: str, prompt_file: Path, w
         cmd = [exe, "-p", "--output-format", "stream-json", "--verbose"] + (["--resume", resume] if resume else [])  # prompt on stdin
         if mode == "understand":  # it reads the words it is given and nothing else: no tools at all
             cmd += ["--allowedTools", "", "--disallowedTools", ",".join(NO_TOOLS)]
-        elif mode in ("fix", "edit"):
+        elif mode in ("fix", "edit", "prepare"):
             cmd += ["--permission-mode", "acceptEdits", "--allowedTools", ",".join(read + ["Edit", "Write", "MultiEdit"])]
         elif mode in ("kb", "chart"):
             cmd += ["--permission-mode", "acceptEdits", "--allowedTools", ",".join(read + ["Edit", "Write"])]
@@ -729,7 +730,7 @@ def command(conf: dict, agent: str, mode: str, prompt: str, prompt_file: Path, w
             cmd += ["--allowedTools", ",".join(read), "--disallowedTools", "Edit,Write,MultiEdit,NotebookEdit"]
         return cmd + extra
     if engine == "codex":
-        sandbox = "workspace-write" if mode in ("fix", "edit", "kb", "chart") else "read-only"
+        sandbox = "workspace-write" if mode in ("fix", "edit", "kb", "chart", "prepare") else "read-only"
         if c.get("profile"):
             extra = ["--profile", c["profile"]] + extra
         if c.get("engine") == "codex" and "--json" not in extra:
@@ -744,10 +745,10 @@ def command(conf: dict, agent: str, mode: str, prompt: str, prompt_file: Path, w
         # authorized write modes use CLI automation inside the selected workspace.
         if sys.platform == "win32":
             # Write modes need --force: without it every shell call is rejected on site.
-            policy = ["--force"] if mode in ("fix", "edit", "kb", "chart") else ["--mode", "ask"]
+            policy = ["--force"] if mode in ("fix", "edit", "kb", "chart", "prepare") else ["--mode", "ask"]
             argv = [exe, "--trust", "--print", "--output-format", "stream-json", "--sandbox", "disabled"] + policy + extra + (["--resume", resume] if resume else [])
             return argv
-        policy = ["--force"] if mode in ("fix", "edit", "kb", "chart") else ["--mode", "ask"]
+        policy = ["--force"] if mode in ("fix", "edit", "kb", "chart", "prepare") else ["--mode", "ask"]
         return [exe, "--trust", "--print", "--output-format", "stream-json", "--sandbox", "enabled"] + policy + extra + (["--resume", resume] if resume else [])
     raise ValueError("智能体 %s 没有配置 cmd" % agent)
 
@@ -990,19 +991,21 @@ def _brief(inp) -> str:
 
 # ---------------------------------------------------------------- git
 
+_GIT_ENV = threading.local()
+
 def git(cwd: Path, *args, check=True) -> str:
     from .project_git import read
     r = read(cwd,args,text=True)
     if r is None:
-        r = subprocess.run(["git", "-C", str(cwd)] + list(args), capture_output=True, text=True)
+        r = subprocess.run(["git", "-C", str(cwd)] + list(args), capture_output=True, text=True, env=getattr(_GIT_ENV, "value", None))
     if check and r.returncode != 0:
         raise RuntimeError((r.stderr or r.stdout).strip() or "git %s 失败" % args[0])
     return r.stdout
 
 
 def is_git(root: Path) -> bool:
-    return shutil.which("git") is not None and subprocess.run(["git", "-C", str(root), "rev-parse", "--git-dir"],
-                                                              capture_output=True).returncode == 0
+    return shutil.which("git", path=getattr(_GIT_ENV, "value", os.environ).get("PATH")) is not None and subprocess.run(["git", "-C", str(root), "rev-parse", "--git-dir"],
+                                                              capture_output=True, env=getattr(_GIT_ENV, "value", None)).returncode == 0
 
 
 _TEMPLATE_END = re.compile(r"(?m)^.*(友情提示|温馨提示|提问须知|Before submitting|Checklist).*$")
@@ -1382,7 +1385,7 @@ def make_worktree(data_dir: Path, project: dict, ticket: dict | None, rid: int, 
     root = Path(project["root"])
     if not is_git(root):
         raise RuntimeError("项目目录不是 git 仓库，修改代码需要在独立工作树里进行。请先在项目目录执行：git init && git add -A && git commit -m 基线")
-    if subprocess.run(["git", "-C", str(root), "rev-parse", "--verify", "-q", "HEAD"], capture_output=True).returncode != 0:
+    if subprocess.run(["git", "-C", str(root), "rev-parse", "--verify", "-q", "HEAD"], capture_output=True, env=getattr(_GIT_ENV, "value", None)).returncode != 0:
         raise RuntimeError("项目的 git 仓库还没有任何提交，修改代码要从一个基线提交开始。请先在项目目录执行：git add -A && git commit -m 基线")
     name = "%s-r%d" % (ticket["key"] if ticket else project["key"], rid)
     branch = "tmh/" + name
@@ -1596,7 +1599,7 @@ class Runner:
             return self.store.run(rid)
 
     def start(self, project: dict, ticket: dict | None, agent: str, mode: str, author: str, target: str = "", then=None,
-              question: str = "", history: list | None = None, session_id=None, batch: str = "", model=None, base: str = "", retry_of=None) -> dict:
+              question: str = "", history: list | None = None, session_id=None, batch: str = "", model=None, base: str = "", retry_of=None, continuation=False) -> dict:
         from . import project_library as library
         project = self.store.project(project['id'])
         library.require_development(self.store, project)
@@ -1664,7 +1667,7 @@ class Runner:
         if development and development['execution'].get('current') and not authority:
             selected_base = development['execution']['base_commit']
             if retry_of is not None:
-                retry_state = self.retry_state(retry_of)
+                retry_state = self.retry_state(retry_of, continuation=continuation)
                 if not retry_state['can_retry']:
                     raise ValueError('；'.join(retry_state['retry_blocked']))
                 self._retry_execution_contract(retry_of, ticket)
@@ -1817,6 +1820,12 @@ class Runner:
 
     def _run(self, rid, project, ticket, agent, mode, prompt, conf, model="", explicit=False, base=""):
         """Waits for a free slot (ticket steps go before knowledge pages), then runs."""
+        if mode == "continue" and ticket:
+            while self.store.one("SELECT id FROM runs WHERE ticket_id=? AND id<>? AND status IN ('queued','running') AND (mode<>'continue' OR id<?)", (ticket['id'], rid, rid)):
+                if self.store.run(rid)['status'] == 'cancelled':
+                    return
+                with self.slots:
+                    self.slots.wait(1)
         if mode == "ask" or not self._take(rid, mode):  # a question someone is waiting on never queues
             if mode != "ask":
                 self._release(rid)
@@ -1882,6 +1891,8 @@ class Runner:
                     self.controls[rid].update(finished=True, ended_at=now())
                     self._save_lifecycle(rid)
                 self.member_authorities.pop(rid, None)
+                if hasattr(_GIT_ENV, "value"):
+                    del _GIT_ENV.value
                 self._release(rid)
 
     def _execute_run(self, rid, project, ticket, agent, mode, prompt, conf, model="", explicit=False, base=""):
@@ -1907,6 +1918,9 @@ class Runner:
                 raise ValueError('原个人授权不能在服务重启后自动恢复，请重新发起任务')
             from .project_member import execute
             return execute(self,rid,project,ticket,prompt,authority,authority.image,entry)
+        from .task_preparation import inherit_environment, environment
+        inherit_environment(self.data_dir, rid, project)
+        _GIT_ENV.value = environment(self.data_dir, rid)
         from . import project_library as library
         library.require_development(st, st.project(project['id']))
         library.require_run_current(st, project, rid)
@@ -1957,6 +1971,10 @@ class Runner:
             prompt = replace_template(prompt, "（目录 %s）" % project["root"], "（这张工单针对的是 %s 版本的代码，代码在 %s，只看这里；知识库和 tmh 工具仍在 %s）"
                                     % (pin[:10], "{workdir}", project["root"]), prompt_metas, 1)
         if mode == "fix":
+            from .task_preparation import prepare, environment, stage
+            st.update_run(rid, status="running", started=now())
+            prepare(self, rid, project, ticket, agent, conf, model, source=True)
+            _GIT_ENV.value = environment(self.data_dir, rid)
             try:
                 workdir, branch = make_worktree(self.data_dir, project, ticket, rid, base or pin)
             except (RuntimeError, ValueError) as e:
@@ -1969,14 +1987,21 @@ class Runner:
             if st.run(rid)["status"] == "cancelled":
                 st.update_run(rid, workdir=str(workdir))
                 return
-            st.update_run(rid, status="running", started=now(), workdir=str(workdir))
+            st.update_run(rid, status="running", started=st.run(rid)["started"] or now(), workdir=str(workdir))
         try:
             record_session_context(self.data_dir, rid)
             if not learning_context_current(st, self.data_dir, project, st.run(rid), running=True):
                 raise ValueError("学习输入或旧结论的采用、来源或授权已变化；当前冻结提示词已停止，请重新启动任务")
             if mode == "fix":
                 from .fixloop import FixLoop
+                prepare(self, rid, project, ticket, agent, conf, model, workdir=workdir)
+                _GIT_ENV.value = environment(self.data_dir, rid)
+                stage(self, rid, "执行任务")
                 code, result = FixLoop(self, rid, project, ticket, agent, conf, model, explicit, prompt, workdir).run()
+                stage(self, rid, "执行任务", "done" if code == 0 else "failed", "结果和验证回执已保存")
+            elif mode == "continue":
+                from .comment_execution import execute_comment
+                code, result = execute_comment(self, rid, project, ticket, agent, conf, model)
             else:
                 # A lifecycle step must receive its current reviewed artifacts and stage request in full.
                 # The ordinary continuation prompt only carries ticket deltas and would silently lose those.
@@ -2139,6 +2164,8 @@ class Runner:
     def run_command(self, rid, cmd, workdir, *, timeout=None, env=None, stdin=None, on_output=None, kind="command", prompt=None, prompt_transport=None):
         """Execute only an owned process group; keep every attempt and its original bytes."""
         from .supervised_process import run_supervised
+        from .task_preparation import environment
+        env = environment(self.data_dir, rid, env)
         c = self.controls.get(rid)
         active = c is not None and not c["finished"]
         owner = self._claim(rid)
@@ -2377,7 +2404,7 @@ class Runner:
         elif binding:
             raise ValueError('原运行的执行确认稿已变化，请重新核对负责人交接')
 
-    def retry_state(self, rid: int) -> dict:
+    def retry_state(self, rid: int, *, continuation=False) -> dict:
         r = self.store.run(rid)
         blocked = []
         state = {"can_retry": False, "retry_blocked": blocked, "delivery_id": "", "delivery_stage": ""}
@@ -2394,7 +2421,7 @@ class Runner:
                 stage = self.store.one("SELECT stage FROM delivery_runs WHERE run_id=? AND delivery_id=?", (rid, did))
                 state["delivery_stage"] = (stage or {}).get("stage", "")
             blocked.append("请从交付阶段页按当前方案重新执行，不能绕过阶段版本与复核条件")
-        if r["status"] not in ("failed", "cancelled"):
+        if r["status"] not in (("failed", "cancelled", "done") if continuation else ("failed", "cancelled")):
             blocked.append("只有失败或取消的运行可以重新执行")
         if r["mode"] not in dict(RUN_MODES) or r["mode"] == "understand":
             blocked.append("请从需求沟通页重新理解")
@@ -2437,15 +2464,15 @@ class Runner:
             blocked.append("存在尚未确认回收的进程，请先检查完整生命周期回执")
         if r["mode"] == "fix" and r.get("workdir") and not Path(r["workdir"]).is_dir():
             blocked.append("原工作树已不存在，不能承诺保留已有改动")
-        if t and self.store.one("SELECT id FROM runs WHERE ticket_id=? AND status IN ('queued','running') AND id<>?", (t["id"], rid)):
+        if t and self.store.one("SELECT id FROM runs WHERE ticket_id=? AND status IN ('queued','running') AND mode<>'continue' AND id<>?", (t["id"], rid)):
             blocked.append("同一工单已有运行，请先等待或停止它")
         state["can_retry"] = not blocked
         return state
 
-    def retry(self, rid: int, author: str) -> dict:
+    def retry(self, rid: int, author: str, *, continuation=False) -> dict:
         """Start a new run from a retained Git snapshot, without rewriting the failed run."""
         with self.lock:
-            state = self.retry_state(rid)
+            state = self.retry_state(rid, continuation=continuation)
             if not state["can_retry"]:
                 raise ValueError("；".join(state["retry_blocked"]))
             old = self.store.run(rid)
@@ -2462,7 +2489,8 @@ class Runner:
                 if common(wt) != common(Path(project["root"])):
                     raise ValueError("原工作树不属于这个项目")
                 with tempfile.TemporaryDirectory(prefix="webuddy-recovery-index-") as temp:
-                    env = dict(os.environ, GIT_INDEX_FILE=str(Path(temp) / "index"),
+                    from .task_preparation import environment
+                    env = dict(environment(self.data_dir, rid), GIT_INDEX_FILE=str(Path(temp) / "index"),
                                GIT_AUTHOR_NAME="Webuddy recovery", GIT_AUTHOR_EMAIL="recovery@localhost",
                                GIT_COMMITTER_NAME="Webuddy recovery", GIT_COMMITTER_EMAIL="recovery@localhost")
                     def snapshot(*args):
@@ -2478,13 +2506,13 @@ class Runner:
                     (recovery / "source.patch").write_bytes(snapshot("diff", "--binary", head, base))
                     (recovery / "snapshot.json").write_text(json.dumps({"commit": base, "parent": head,
                         "notice": "未验证的恢复快照，不是采纳、签收或发布", "original_worktree": str(wt)}, ensure_ascii=False, indent=2))
-            question = ("## 继续失败运行 #%d（不是已完成或已验收）\n原始任务全文：\n%s\n\n"
+            question = ("## 继续运行 #%d（历史结果不代表本轮已验收）\n原始任务全文：\n%s\n\n"
                         "## 上次停止记录\n%s\n\n已有 Git 改动已保留在本轮基线中；先核对再继续，不要重复创建已存在的数据或改动。"
                         % (rid, old["prompt"], old["result"]))
             new = self.start(project, ticket, old["agent"], old["mode"], author,
                              target=old.get("target") or "", question=question,
                              model=(old.get("model") if old.get("model") != configured_model(load_config(self.data_dir).get(old["agent"]) or {}) else None) or None,
-                             base=base, retry_of=rid)
+                             base=base, retry_of=rid, continuation=continuation)
             try:
                 parent = self.controls.get(rid)
                 if parent:

@@ -58,7 +58,9 @@ def api_ticket(P, req, key):
     runs = P.store.runs(ticket_id=t["id"])
     pts = P.store.run_points([r["id"] for r in runs])
     from ..fixloop import verified
+    from ..task_preparation import view as preparation_view
     for r in runs:
+        r.update(preparation_view(P.data_dir, r))
         r["points"] = pts.get(r["id"], 0)
         if r["mode"] == "fix":
             r["diff_bytes"] = len((P.store.run(r["id"]) or {}).get("diff") or "")

@@ -342,6 +342,7 @@ class FixLoop:
         """[(kind, command)] to build and test the change, or ([], why not)."""
         from .. import config as cfgmod
         from ..verify import detect_commands
+        from .task_preparation import environment
         from . import project_tests
         profile = project_tests.view(getattr(self.r, "evidence_root", self.r.data_dir), self.p["key"])["profile"]
         if profile:
@@ -382,7 +383,7 @@ class FixLoop:
                 seq.append((k, given[k]))
             elif found.get(k):
                 exe = shlex.split(found[k], posix=os.name != "nt")[0].strip('"')
-                if (exe.startswith(("./", ".\\")) and (self.wt / where / exe).exists()) or shutil.which(exe):
+                if (exe.startswith(("./", ".\\")) and (self.wt / where / exe).exists()) or shutil.which(exe, path=environment(self.r.data_dir, self.rid).get("PATH")):
                     seq.append((k, ("cd %s && %s" % (shlex.quote(where), found[k])) if where else found[k]))
                 else:
                     missing.append(exe)
@@ -645,15 +646,15 @@ class FixLoop:
         if seq:
             why = self.baseline(seq)
             if why:
-                seq, skip = [], why
+                skip = why
+                self.say(why + "；保留原始失败记录，仍检查修改后的代码")
         if seq and self.box:
             self.nobuild = ("## 构建和测试由平台在测试机上跑\n这台机器上没有构建环境。不要尝试编译、跑测试、启动服务或调接口，也不要为此去改构建配置；"
                             "改完后平台会在测试机上编译（%s），没通过的话会把报错发给你再改。\n\n" % "；".join(c for _, c in seq))
         if not seq:
             self.say("未配置固定构建命令：%s" % skip)
             # otherwise every agent finds out for itself that there is no maven/node/docker here, a third of its commands
-            self.nobuild = ("## 这次不跑构建和测试\n%s。不要尝试编译、跑测试、启动服务或调接口（mvn、gradle、npm、java、docker、curl 等），"
-                            "也不要为此去改构建配置；只靠读代码确认改动正确，没能验证的写进最后的说明。\n\n" % skip)
+            self.nobuild = ("## 当前验证条件\n%s。\n" % skip) + ("本项目明确设置为不跑构建测试，请遵守该设置。\n" if skip == "设置为不跑构建测试" else "依据仓库说明完成最小必要验证；缺少配置时可补齐本任务所需配置，不删功能、不弱化测试。平台会重新检测构建命令。\n")
         if self.remote_testing:
             self.nobuild = testbox_mcp.INSTRUCTION + '\n固定构建命令仍由平台复核；测试机执行失败须修复后重测。\n'
         rounds = max(0, int(self.set.get("rounds") if self.set.get("rounds") is not None else 3))
@@ -698,13 +699,13 @@ class FixLoop:
             if not diff.strip():
                 self.log.append("第 %d 轮：没有改出代码" % (rnd + 1))
                 break
-            if not seq and not goals and self.box and rnd == 0:
+            if not seq and rnd == 0 and skip != "设置为不跑构建测试":
                 # the plan named no files: what to compile on the test machine is known only now, from the change
                 late, why = self.commands({f: "" for f in files})
                 why = why or (self.baseline(late) if late else "")
-                if late and not why:
-                    seq, skip = late, ""
-                    self.say("方案没列文件，按改动的文件在测试机上构建测试：%s" % "；".join(c for _, c in seq))
+                if late:
+                    seq, skip = late, why
+                    self.say("根据当前源码补充构建测试：%s" % "；".join(c for _, c in seq))
                 elif why:
                     skip = why
             candidate_base = git(self.wt, "rev-parse", "HEAD").strip()

@@ -7,7 +7,8 @@ import DocumentText from '../components/DocumentText.vue'
 import RequirementBatch from '../components/RequirementBatch.vue'
 import type { Ticket } from '../api/types'
 
-type Run = { id: number; mode: string; status: string; result?: string; diff?: string; output?: string; verification?: Record<string, unknown> | null; decision?: string; can_retry?: boolean; recheck?: { running?: boolean }; commit?: string }
+type Preparation = { steps: {name:string; state:string; detail?:string}[] }
+type Run = { preparation?:Preparation; continuation?:{next_run:number}; id: number; mode: string; status: string; result?: string; diff?: string; output?: string; verification?: Record<string, unknown> | null; decision?: string; can_retry?: boolean; recheck?: { running?: boolean }; commit?: string }
 type Detail = { ticket: Ticket & { body?: string; type?: string }; team_assignment?: {assignee:string;reviewer:string}; stage?: {label:string}; runs: Run[]; auto_next?: string; plain_state?: unknown; events?: { author: string; body: string; created: string }[]; epic?: { children: {key:string; title:string; status:string; after:string[]}[]; paused:string }; parent?: {key:string;title:string} }
 const props = defineProps<{ pkey: string; ticketKey?: string; compose?: boolean }>()
 const router = useRouter()
@@ -37,7 +38,7 @@ let timer: ReturnType<typeof setTimeout> | undefined
 const agents = computed(() => (app.meta?.agents || []).filter(a => a.available))
 const visible = computed(() => tickets.value.filter(t => `${t.key} ${t.title}`.toLowerCase().includes(query.value.toLowerCase())))
 const active = computed(() => detail.value?.runs.some(r => ['queued', 'running'].includes(r.status)))
-const modes: Record<string, string> = { analyze: '分析', plan: '方案', fix: '开发', edit: '协作开发', verify: '验证' }
+const modes: Record<string, string> = { continue: '处理补充', analyze: '分析', plan: '方案', fix: '开发', edit: '协作开发', verify: '验证' }
 const states: Record<string, string> = { new: '新建', analyzing: '分析中', confirm: '待确认', doing: '处理中', verify: '待验证', cancelled: '已取消', queued: '等待执行', running: '执行中', done: '已结束', failed: '失败', stopped: '已停止', open: '待处理', closed: '已关闭', planned: '方案待确认', resolved: '待验收' }
 const message = (e: unknown) => e instanceof ApiError ? e.message : e instanceof Error ? e.message : '请求失败。'
 function clearPoll() { if (timer) clearTimeout(timer); timer = undefined }
@@ -59,7 +60,8 @@ async function refresh() {
     detail.value = value
     const listed = tickets.value.find(t => t.key === key)
     if (listed) Object.assign(listed, value.ticket)
-    const current = value.runs.find(r => r.id === run.value?.id) || value.runs[0]
+    const next = run.value?.continuation?.next_run
+    const current = value.runs.find(r => r.id === (next || run.value?.id)) || value.runs[0]
     if (current) await loadRun(current.id)
     if (stamp !== generation) return
     if (preview.value && run.value) {
@@ -155,9 +157,10 @@ async function perform(action: string, payload: unknown = {}) {
         pendingComment = {scope, body:comment.value, request_id:crypto.randomUUID()}
       payload = {body:pendingComment.body, request_id:pendingComment.request_id, continue:true}
     }
-    await post(path, action === 'auto' ? {auto:'go'} : action.startsWith('epic-') ? {action:action.slice(5)} : payload)
+    const response = await post<{run?:number}>(path, action === 'auto' ? {auto:'go'} : action.startsWith('epic-') ? {action:action.slice(5)} : payload)
     if(stamp !== generation)return
-    notice.value = action === 'comments' ? '评论已发送，智能体已继续执行' : '操作已提交'; comment.value = ''; if(action === 'comments')pendingComment = null; await refresh()
+    if(action === 'comments' && response.run) await loadRun(response.run)
+    notice.value = action === 'comments' ? '评论已提交，智能体会接着处理' : '操作已提交'; comment.value = ''; if(action === 'comments')pendingComment = null; await refresh()
   } catch(e) { if(stamp === generation)error.value=message(e) } finally {busy.value=''}
 }
 async function previewRun() {
@@ -218,6 +221,10 @@ onUnmounted(() => { generation++; clearPoll() })
           </div>
           <p v-else class="empty">需求已保存。先分析需求或生成方案。</p>
           <template v-if="run">
+            <ol v-if="run.preparation?.steps.length" class="preparation" aria-label="任务进度">
+              <li v-for="step in run.preparation.steps" :key="step.name" :class="step.state"><span class="step-icon">{{step.state==='done'?'✓':step.state==='failed'?'!':step.state==='cancelled'?'—':'…'}}</span><div><strong>{{step.name}}</strong><p v-if="step.detail">{{step.detail}}</p></div></li>
+            </ol>
+            <button v-if="run.continuation?.next_run" class="btn primary" @click="loadRun(run.continuation.next_run)">查看后续任务 #{{run.continuation.next_run}}</button>
             <div class="actions run-actions"><button v-if="['running','queued'].includes(run.status)" class="btn" :disabled="!!busy" @click="perform('cancel')">停止运行</button><button v-if="run.can_retry" class="btn" :disabled="!!busy" @click="perform('retry')">重试本次运行</button><button v-if="run.mode==='fix' && run.status==='done'" class="btn" :disabled="!!busy || run.recheck?.running" @click="perform('recheck',{kind:'tests'})">{{run.recheck?.running?'正在验证…':'运行项目检查'}}</button><button v-if="run.mode==='fix' && run.status==='done' && !run.decision" class="btn" :disabled="!!busy" @click="perform('decide',{decision:'accept'})">采纳当前改动</button><button v-if="run.decision?.startsWith('accept')" class="btn" :disabled="!!busy" @click="previewRun">启动预览</button><a v-if="preview?.url" class="btn" :href="appUrl(preview.url)" target="_blank" rel="noopener">打开预览</a></div>
             <p v-if="preview?.preview.state === 'starting'" role="status">预览正在启动…</p><p v-if="preview?.preview.why || preview?.preview.error" class="error">{{preview.preview.why || preview.preview.error}}</p>
 
@@ -228,7 +235,7 @@ onUnmounted(() => { generation++; clearPoll() })
             <pre v-else-if="tab === 'output' && run.output" class="artifact logs">{{ run.output }}</pre>
             <p v-else class="empty">{{ tab === 'verification' ? '暂无验证回执。执行结束不代表验证通过。' : tab === 'diff' ? '本次运行暂无代码差异。' : ['queued','running'].includes(run.status) ? '正在执行，结果会自动更新。' : '本次运行未产生这项内容。' }}</p>
           </template>
-          <form class="discussion" @submit.prevent="perform(run && ['running','queued'].includes(run.status) ? 'say' : 'comments',run && ['running','queued'].includes(run.status)?{text:comment}:{body:comment})"><label class="field">{{run && ['running','queued'].includes(run.status)?'补充给正在执行的智能体':'讨论与补充'}}<textarea v-model="comment" :maxlength="active?2000:undefined" placeholder="补充要求、说明问题或记录复核意见" /></label><button class="btn" :disabled="!!busy || !comment.trim()">{{active?'发送补充':'评论并继续'}}</button></form>
+          <form class="discussion" @submit.prevent="perform('comments',{body:comment})"><label class="field">补充下一步<textarea v-model="comment" placeholder="描述下一步；推送时写明仓库地址和分支" /></label><button class="btn" :disabled="!!busy || !comment.trim()">{{active?'补充并排队继续':'评论并继续'}}</button></form>
           <details v-if="detail.events?.length" class="history"><summary>完整操作记录</summary><article v-for="(event,i) in detail.events" :key="i"><strong>{{event.author}} · {{event.created}}</strong><DocumentText :text="event.body || ''" /></article></details>
         </template>
         <p v-else-if="!loading" class="empty">选择一项需求，或创建新需求。</p>
@@ -238,6 +245,8 @@ onUnmounted(() => { generation++; clearPoll() })
 </template>
 
 <style scoped>
+.preparation {list-style:none;padding:0;display:grid;gap:12px;margin:20px 0}.preparation li{display:flex;gap:10px;align-items:flex-start}.step-icon{width:24px;height:24px;border-radius:50%;background:var(--line);text-align:center;flex-shrink:0}.preparation .done .step-icon{color:#167044;background:#e9f6ee}.preparation .failed .step-icon{color:#b42318;background:#fff0ee}.preparation .running .step-icon{color:var(--primary);background:#eef3ff}.preparation p{margin:4px 0 0;overflow-wrap:anywhere;white-space:pre-wrap}
+
 .run-actions { margin:16px 0; }.discussion { border-top:1px solid var(--line); padding-top:20px; margin-top:28px; }.history { margin-top:20px; }.child-task { display:flex; flex-wrap:wrap; gap:16px; margin:12px 0; }
 .heading,.task-heading,.run-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .heading { margin-bottom:24px; }.heading h1 { margin:0; }

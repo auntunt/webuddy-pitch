@@ -44,11 +44,12 @@ class CommentExecutionTest(unittest.TestCase):
         self.assertEqual(self.send()['run'], 42)
         self.assertEqual(len([e for e in self.store.events(self.ticket['id']) if e['kind'] == 'comment']), 1)
 
-    def test_running_task_does_not_start_overlapping_work(self):
-        with patch.object(self.store, 'runs', return_value=[{'status': 'running'}]):
-            with self.assertRaises(ApiError):
-                self.send()
-        self.runner.start.assert_not_called()
+    @patch('tmh.platform.app._routed_agent', return_value='cursor')
+    def test_running_task_queues_comment_dispatch_instead_of_development(self, route):
+        with patch.object(self.store, 'runs', return_value=[{'status': 'running', 'agent':'cursor', 'model':''}]):
+            self.assertEqual(self.send()['run'], 42)
+        self.runner.start.assert_called_once()
+        self.assertEqual(self.runner.start.call_args.args[3], 'continue')
         self.assertEqual(len([e for e in self.store.events(self.ticket['id']) if e['kind'] == 'comment']), 1)
 
     def test_interrupted_claim_does_not_start_duplicate(self):
@@ -65,3 +66,27 @@ class CommentExecutionTest(unittest.TestCase):
         prompt = follow_up(self.store, self.ticket, {'mode': 'analyze', 'started': '2000', 'ended': '2999'}, 'plan', 'here')
         for i in range(9):
             self.assertIn(f'{i}: {long}', prompt)
+
+    def test_dispatch_waits_for_active_run_then_starts(self):
+        from tmh.platform.agents import Runner
+        old = self.store.create_run(self.project['id'], self.ticket['id'], 'cursor', 'fix', 'alice', '')
+        self.store.update_run(old['id'], status='running')
+        queued = self.store.create_run(self.project['id'], self.ticket['id'], 'cursor', 'continue', 'alice', '')
+        called = threading.Event()
+        runner = Runner(self.store, Path(self.temp.name))
+        with patch.object(runner, '_take', return_value=True), patch.object(runner, '_go', side_effect=lambda *a:called.set()):
+            worker=threading.Thread(target=runner._run,args=(queued['id'], self.project, self.ticket, 'cursor', 'continue', '', {}))
+            worker.start()
+            self.assertFalse(called.wait(.05))
+            self.store.update_run(old['id'], status='done')
+            with runner.slots: runner.slots.notify_all()
+            worker.join(3)
+            self.assertFalse(worker.is_alive())
+            self.assertTrue(called.is_set())
+
+    def test_push_authorization_comes_only_from_current_explicit_comment(self):
+        from tmh.platform.comment_execution import push_target
+        self.assertEqual(push_target('请推送到 origin 分支 feature/test', 'origin', 'feature/test'), ('origin','feature/test'))
+        for text, remote, branch in [('继续','origin','main'), ('请推送到 origin feature/test','other','feature/test'),
+                                     ('不要推送 origin main','origin','main'), ('如何推送 origin main','origin','main')]:
+            with self.assertRaises(ValueError): push_target(text, remote, branch)

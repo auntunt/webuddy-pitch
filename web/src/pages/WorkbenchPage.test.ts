@@ -75,6 +75,20 @@ it('continues from a comment and reuses its request id after a lost reply', asyn
   expect((wrapper.get('.discussion textarea').element as HTMLTextAreaElement).value).toBe('按评论继续')
   await wrapper.get('.discussion').trigger('submit');await flushPromises()
   expect(postMock.mock.calls[1]).toEqual(first)
-  expect(wrapper.text()).toContain('评论已发送，智能体已继续执行')
+  expect(wrapper.text()).toContain('评论已提交，智能体会接着处理')
+  wrapper.unmount()
+})
+
+it('shows preparation stages and queues a full comment while development is active', async () => {
+  const current={id:5,mode:'fix',status:'running',preparation:{steps:[{name:'准备源码与 Git 基线',state:'done',detail:'已建立本地基线'},{name:'准备构建环境',state:'running',detail:'正在安装 Maven'}]}}
+  getMock.mockImplementation((url:string)=>Promise.resolve(url.startsWith('/api/tickets?')?[{key:'P-1',title:'准备项目'}]:url.startsWith('/api/runs/')?current:{ticket:{key:'P-1',title:'准备项目'},runs:[current]}))
+  postMock.mockResolvedValue({ok:true,run:6})
+  const wrapper=mount(WorkbenchPage,{props:{pkey:'P'}});await flushPromises()
+  expect(wrapper.get('[aria-label="任务进度"]').text()).toContain('正在安装 Maven')
+  expect(wrapper.get('.discussion button').text()).toBe('补充并排队继续')
+  const message='补充完整要求。'.repeat(400)
+  await wrapper.get('.discussion textarea').setValue(message)
+  await wrapper.get('.discussion').trigger('submit');await flushPromises()
+  expect(postMock).toHaveBeenCalledWith('/api/tickets/P-1/comments',expect.objectContaining({body:message,continue:true}))
   wrapper.unmount()
 })

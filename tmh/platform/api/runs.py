@@ -152,6 +152,8 @@ def api_run(P, req, rid):
             r["lifecycle"] = record
     except (OSError, ValueError) as e:
         r["lifecycle_error"] = "运行停止回执不可读：%s" % e
+    from ..task_preparation import view as preparation_view
+    r.update(preparation_view(P.data_dir, r))
     r.update(P.runner.retry_state(r["id"]))
     if r["lifecycle_error"]:
         r["can_retry"] = False

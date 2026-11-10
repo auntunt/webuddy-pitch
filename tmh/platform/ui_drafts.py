@@ -51,7 +51,7 @@ function ticketCommentWire(d){
   input.value=e.record.body;input.oninput=()=>{if(!current())return;commentDraftChange(e,input.value);paint()};
   S.commentDraftView={entry:e,current,refresh:()=>{if(current()){input.value=e.record.body;paint()}},
     failed:()=>{if(current())notice.textContent=(e.error?e.error+' ':'')+e.message+' 原评论已保留，可点击“确认上次发送”安全重试。';},
-    sent:async()=>{if(!current())return;toast(e.record.body?'上一条评论已发送；新写的草稿已保留。':'评论已发送，智能体已继续执行');
+    sent:async()=>{if(!current())return;toast(e.record.body?'上一条评论已发送；新写的草稿已保留。':'评论已发送，智能体会接着处理');
       const refresh=S.ticketRefresh;
       if(typeof refresh==='function')try{await refresh()}catch(err){if(current())notice.textContent='评论已发送，讨论列表暂未更新；刷新后查看。'+(e.error||'')}
     }};paint();

@@ -27,7 +27,7 @@ class CursorExecutorTest(unittest.TestCase):
             self.assertNotIn('--force', cmd)
             self.assertNotIn('--approve-mcps', cmd)
             self.assertNotIn('prompt', cmd)
-        for mode in ('fix', 'edit', 'kb', 'chart'):
+        for mode in ('fix', 'edit', 'kb', 'chart', 'prepare'):
             cmd = agents.command(conf, 'cursor', mode, 'prompt', Path('prompt'), Path('.'), Path('last'))
             self.assertIn('--force', cmd)
             self.assertNotIn('--mode', cmd)
@@ -47,16 +47,16 @@ class CursorExecutorTest(unittest.TestCase):
             conf, agent, mode, 'test', Path('prompt'), Path('.'), Path('last'), **kw)
         codex_before, claude_before = build('codex'), build('claude')
         with patch.object(sys, 'platform', 'win32'):
-            for mode in ('ask', 'analyze', 'plan', 'diagnose', 'understand', 'fix', 'edit', 'kb', 'chart'):
+            for mode in ('ask', 'analyze', 'plan', 'diagnose', 'understand', 'fix', 'edit', 'kb', 'chart', 'prepare'):
                 cmd = build('cursor', mode)
                 self.assertEqual(cmd[cmd.index('--sandbox') + 1], 'disabled', cmd)
                 self.assertEqual(cmd.count('--sandbox'), 1)
                 self.assertIn('--trust', cmd)
-                if mode in ('fix', 'edit', 'kb', 'chart'):
+                if mode in ('fix', 'edit', 'kb', 'chart', 'prepare'):
                     self.assertIn('--force', cmd)  # write modes need it or every shell call is rejected
                 else:
                     self.assertNotIn('--force', cmd)
-                if mode not in ('fix', 'edit', 'kb', 'chart'):
+                if mode not in ('fix', 'edit', 'kb', 'chart', 'prepare'):
                     self.assertEqual(cmd[cmd.index('--mode') + 1], 'ask')
             cmd = build('cursor', 'edit', model='auto', resume='test-session')
             self.assertEqual(cmd[cmd.index('--model') + 1], 'auto')
