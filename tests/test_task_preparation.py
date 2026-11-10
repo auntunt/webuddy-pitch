@@ -64,6 +64,20 @@ class PreparationTest(unittest.TestCase):
         (folder/'environment.json').write_text(json.dumps({'path':['relative']}))
         with self.assertRaises(ValueError): environment(self.root, 1)
 
+    def test_chinese_progress_round_trips_with_windows_default_encoding(self):
+        from types import SimpleNamespace
+        from unittest.mock import Mock, patch
+        from tmh.platform.task_preparation import stage
+        runner = SimpleNamespace(data_dir=self.root, store=Mock())
+        read_text = Path.read_text
+        def windows_read(path, encoding=None, **kwargs):
+            return read_text(path, encoding=encoding or 'gbk', **kwargs)
+        with patch.object(Path, 'read_text', windows_read):
+            stage(runner, 1, '准备源码与 Git 基线')
+            stage(runner, 1, '准备源码与 Git 基线', 'done', '已建立本地基线')
+        progress = json.loads((self.root/'runs/1/preparation.json').read_text(encoding='utf-8'))
+        self.assertEqual(progress['steps'][0]['state'], 'done')
+
     def test_registered_run_prepares_unversioned_source_and_executes_real_check(self):
         from unittest.mock import patch
         from tmh import config

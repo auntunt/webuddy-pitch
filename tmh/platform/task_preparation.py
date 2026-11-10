@@ -21,7 +21,7 @@ EXCLUDES = ['.tmh/', '.env', '.env.*', '!.env.example', '!.env.sample', '.venv/'
 def stage(runner, rid, name, state='running', detail=''):
     path = runner.data_dir / 'runs' / str(rid) / 'preparation.json'
     path.parent.mkdir(parents=True, exist_ok=True)
-    data = json.loads(path.read_text()) if path.exists() else {'steps': []}
+    data = json.loads(path.read_text(encoding='utf-8')) if path.exists() else {'steps': []}
     entry = next((s for s in data['steps'] if s['name'] == name), None)
     if entry is None:
         entry = {'name': name}
