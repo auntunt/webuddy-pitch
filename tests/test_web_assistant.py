@@ -127,3 +127,55 @@ class WebAssistantTest(unittest.TestCase):
         self.req.body = {'action': 'stop'}
         stopped = assistant.step(self.P, self.req, self.session, out['message']['id'])
         self.assertEqual(stopped['message']['body'], '完成结果')
+
+class CliAssistantTest(unittest.TestCase):
+    setUp = WebAssistantTest.setUp
+
+    def test_cli_route_starts_once_and_reconciles_finished_answer(self):
+        with patch.object(assistant, '_backend', return_value='cursor'), \
+                patch.object(assistant.tenant_policy, 'require_execution'), \
+                patch.object(self.P.runner, 'start') as launch:
+            run = self.P.store.create_run(self.project['id'], None, 'cursor', 'ask', 'alice', 'question')
+            launch.return_value = run
+            self.req.body['page'] = {'title': '设置', 'route': '#/settings'}
+            first = assistant.start(self.P, self.req, self.session)
+            again = assistant.start(self.P, self.req, self.session)
+            self.assertEqual(first['message']['id'], again['message']['id'])
+            launch.assert_called_once()
+            self.assertEqual(launch.call_args.args[3], 'ask')
+            self.assertIn('设置', launch.call_args.kwargs['question'])
+            self.req.body = {'message': first['message']['id'], 'step': 0}
+            pending = assistant.step(self.P, self.req, self.session, first['message']['id'])
+            self.assertEqual(pending['poll_after_ms'], 1500)
+            self.P.store.update_run(run['id'], status='done', result='AI助手已连接', exit_code=0)
+            answer = assistant.step(self.P, self.req, self.session, first['message']['id'])
+            self.assertFalse(answer['pending'])
+            self.assertEqual(answer['message']['body'], 'AI助手已连接')
+            launch.assert_called_once()
+
+    def test_cli_cannot_bypass_execution_isolation(self):
+        with patch.object(assistant, '_backend', return_value='cursor'), \
+                patch.object(assistant.tenant_policy, 'require_execution', side_effect=ApiError(403, '未配置隔离')), \
+                patch.object(self.P.runner, 'start') as launch:
+            with self.assertRaises(ApiError):
+                assistant.start(self.P, self.req, self.session)
+            launch.assert_not_called()
+            self.assertEqual(self.P.store.session_chats(self.session['id']), [])
+
+    def test_explicit_cli_route_does_not_require_direct_model_api(self):
+        with patch.object(assistant.agent_routes, 'route', return_value={'agent':'cursor','allowed_agents':['cursor'],'direct_api':False}), \
+                patch.object(assistant.agents, 'available', return_value=[{'name':'cursor','available':True}]), \
+                patch.object(assistant.kbqa, 'router_conf', return_value={'ready':False}):
+            self.assertEqual(assistant._backend(self.P, self.project), 'cursor')
+
+    def test_stop_cancels_cli_run_without_starting_another(self):
+        run=self.P.store.create_run(self.project['id'],None,'cursor','ask','alice','question')
+        with patch.object(assistant,'_backend',return_value='cursor'), \
+                patch.object(assistant.tenant_policy,'require_execution'), \
+                patch.object(self.P.runner,'start',return_value=run) as launch:
+            turn=assistant.start(self.P,self.req,self.session)
+            self.req.body={'action':'stop'}
+            result=assistant.step(self.P,self.req,self.session,turn['message']['id'])
+            self.assertFalse(result['pending'])
+            self.assertEqual(self.P.store.run(run['id'])['status'],'cancelled')
+            launch.assert_called_once()
