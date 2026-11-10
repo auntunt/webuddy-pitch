@@ -90,3 +90,9 @@ class CommentExecutionTest(unittest.TestCase):
         for text, remote, branch in [('继续','origin','main'), ('请推送到 origin feature/test','other','feature/test'),
                                      ('不要推送 origin main','origin','main'), ('如何推送 origin main','origin','main')]:
             with self.assertRaises(ValueError): push_target(text, remote, branch)
+
+    @patch('tmh.platform.app._routed_agent', return_value='cursor')
+    def test_selected_executor_is_used_for_first_comment(self, route):
+        api_comment(self.P, SimpleNamespace(user='alice', body={'body':'继续开发','request_id':'selected','continue':True,'agent':'cursor'}), self.ticket['key'])
+        self.assertEqual(route.call_args.args[2], 'cursor')
+        self.assertEqual(self.runner.start.call_args.args[2], 'cursor')

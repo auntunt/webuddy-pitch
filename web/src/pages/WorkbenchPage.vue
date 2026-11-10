@@ -155,7 +155,7 @@ async function perform(action: string, payload: unknown = {}) {
       const scope = `${props.pkey}/${selected.value}`
       if (!pendingComment || pendingComment.scope !== scope || pendingComment.body !== comment.value)
         pendingComment = {scope, body:comment.value, request_id:crypto.randomUUID()}
-      payload = {body:pendingComment.body, request_id:pendingComment.request_id, continue:true}
+      payload = {body:pendingComment.body, request_id:pendingComment.request_id, continue:true, ...(agent.value?{agent:agent.value}:{})}
     }
     const response = await post<{run?:number}>(path, action === 'auto' ? {auto:'go'} : action.startsWith('epic-') ? {action:action.slice(5)} : payload)
     if(stamp !== generation)return

@@ -10,7 +10,7 @@ from .errors import ApiError
 from .store import now
 
 
-def continue_comment(P, ticket, author, event_id):
+def continue_comment(P, ticket, author, event_id, requested_agent=None):
     from .app import _routed_agent
     key = 'comment-run:%s' % event_id
     with P.runner.lock:
@@ -26,13 +26,13 @@ def continue_comment(P, ticket, author, event_id):
         project = P.store.project(ticket['project_id'])
         runs = P.store.runs(ticket_id=ticket['id'])
         previous = runs[0] if runs else None
-        agent = _routed_agent(P, project, previous['agent'] if previous else None, 'claude')
+        agent = _routed_agent(P, project, requested_agent or (previous['agent'] if previous else None), 'claude')
         with P.store.lock:
             cursor = P.store.db.execute('INSERT OR IGNORE INTO idem(key,result,ts) VALUES(?,?,?)', (key, '{}', now()))
             P.store.db.commit()
             claimed = cursor.rowcount == 1
         if not claimed:
-            return continue_comment(P, ticket, author, event_id)
+            return continue_comment(P, ticket, author, event_id, requested_agent)
         try:
             run = P.runner.start(project, ticket, agent, 'continue', author,
                                  target=str(event_id), batch=key,

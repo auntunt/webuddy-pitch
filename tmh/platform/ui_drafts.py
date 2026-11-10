@@ -63,7 +63,7 @@ function ticketCommentWire(d){
     if(!pending){paint();return}
     e.busy=true;paint();let sent=false;
     try{
-      const r=await post('/api/tickets/'+encodeURIComponent(key)+'/comments',{body:pending.body,request_id:pending.request_id,expected_author:user,expected_workspace:workspace,continue:true});
+      const r=await post('/api/tickets/'+encodeURIComponent(key)+'/comments',{body:pending.body,request_id:pending.request_id,expected_author:user,expected_workspace:workspace,continue:true,agent:$('#ag')?.value||undefined});
       if(r?.ok!==true||r.request_id!==pending.request_id||!r.event_id)throw Error('服务器未返回匹配的评论回执，请确认上次发送。');
       commentDraftComplete(e,pending);sent=true;
     }catch(err){e.message='发送结果未确认：'+err.message;}

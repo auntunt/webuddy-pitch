@@ -30,7 +30,7 @@ def api_comment(P, req, key):
         receipt = P.store.comment(t["id"], req.user, body, request_id)
         if req.body.get("continue") is True:
             from ..comment_execution import continue_comment
-            receipt["run"] = continue_comment(P, t, req.user, receipt["event_id"])
+            receipt["run"] = continue_comment(P, t, req.user, receipt["event_id"], req.body.get("agent"))
         return receipt
     except ValueError as exc:
         raise ApiError(409, str(exc)) from exc
